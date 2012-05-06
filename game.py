@@ -1,27 +1,27 @@
-import pygame
+from __future__ import division, print_function, unicode_literals; range = xrange
+import pyglet
 from pygame.locals import *
 import sys
 
 game_title = "Dr. Chemical's Lab"
 game_fps = 60
+game_size = (1024, 600)
 
-pygame.init()
-fps_clock = pygame.time.Clock()
+tank_loc = [(108, 54), (531, 55)]
 
-window = pygame.display.set_mode((800, 600))
-pygame.display.set_caption(game_title)
+window = pyglet.window.Window(width=game_size[0], height=game_size[1], caption=game_title)
+fps_display = pyglet.clock.ClockDisplay()
+bg = pyglet.resource.image("data/bg.png")
 
-color_black = pygame.Color(0, 0, 0)
+@window.event
+def on_draw():
+    window.clear()
+    bg.blit(0, 0)
+    fps_display.draw()
 
-while True:
-    window.fill(color_black)
+def update(dt):
+    pass
 
-    for event in pygame.event.get():
-        if event.type is QUIT:
-            pygame.quit()
-            sys.exit()
-        elif event.type is KEYDOWN:
-            if event.key is K_ESCAPE:
-                pygame.event.post(pygame.event.Event(QUIT))
-    pygame.display.update()
-    fps_clock.tick(game_fps)
+pyglet.clock.schedule_interval(update, 1/game_fps)
+
+pyglet.app.run()
