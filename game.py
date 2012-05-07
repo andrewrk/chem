@@ -7,15 +7,14 @@ import sys
 import random
 from collections import namedtuple
 
-Point = namedtuple('Point', ['x', 'y'])
-Size = namedtuple('Size', ['w', 'h'])
+from vec2d import Vec2d
 
 game_title = "Dr. Chemical's Lab"
 game_fps = 60
-game_size = Size(1024, 600)
+game_size = Vec2d(1024, 600)
 
 
-block_size = Size(24, 24)
+block_size = Vec2d(24, 24)
 
 class Control:
     MoveLeft = 0
@@ -36,6 +35,7 @@ class Atom:
 
     def __init__(self, pos, flavor_index, sprite):
         self.pos = pos
+        self.vel = Vec2d(0, 0)
         self.flavor_index = flavor_index
         self.sprite = sprite
 
@@ -72,13 +72,13 @@ class Game(object):
         }
         self.control_state = [False] * (len(dir(Control)) - 2)
 
-        self.tank_dims = Size(16, 22)
-        self.tank_pos = Point(108, 18)
-        self.man_dims = Size(1, 2)
-        self.man_size = Size(self.man_dims.w*block_size.w, self.man_dims.h*block_size.h)
+        self.tank_dims = Vec2d(16, 22)
+        self.tank_pos = Vec2d(108, 18)
+        self.man_dims = Vec2d(1, 2)
+        self.man_size = Vec2d(self.man_dims.x*block_size.x, self.man_dims.y*block_size.y)
 
-        self.time_between_drops = 3
-        self.time_until_next_drop = self.time_between_drops
+        self.time_between_drops = 1
+        self.time_until_next_drop = 0
 
         self.tank = Tank(self.tank_dims)
 
@@ -88,12 +88,21 @@ class Game(object):
             self.time_until_next_drop += self.time_between_drops
             # drop a random atom
             flavor_index = random.randint(0, len(Atom.flavors)-1)
-            pos = Point(
-                block_size.w*random.randint(0, self.tank.dims.w-1),
-                block_size.h*(self.tank.dims.h-1),
+            pos = Vec2d(
+                block_size.x*random.randint(0, self.tank.dims.x-1),
+                block_size.y*(self.tank.dims.y-1),
             )
             atom = Atom(pos, flavor_index, pyglet.sprite.Sprite(self.atom_imgs[flavor_index], batch=self.batch, group=self.group_main))
             self.tank.atoms.append(atom)
+
+        # velocity
+        for atom in self.tank.atoms:
+            atom.pos.y += atom.vel.y * dt
+
+        # gravity
+        gravity_accel = 400
+        for atom in self.tank.atoms:
+            atom.vel.y -= gravity_accel * dt
 
     def on_draw(self):
         self.window.clear()
@@ -121,6 +130,6 @@ class Game(object):
         except KeyError:
             return
 
-window = pyglet.window.Window(width=game_size.w, height=game_size.h, caption=game_title)
+window = pyglet.window.Window(width=game_size.x, height=game_size.y, caption=game_title)
 game = Game(window)
 game.start()
