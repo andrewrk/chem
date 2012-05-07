@@ -14,7 +14,7 @@ game_fps = 60
 game_size = Vec2d(1024, 600)
 
 
-block_size = Vec2d(24, 24)
+atom_size = Vec2d(24, 24)
 
 class Control:
     MoveLeft = 0
@@ -42,7 +42,12 @@ class Atom:
 class Tank:
     def __init__(self, dims):
         self.dims = dims
+        self.size = dims * atom_size
         self.atoms = []
+
+    def hit_atom(self, pos):
+
+        return False
 
 class Game(object):
     def __init__(self, window):
@@ -75,7 +80,7 @@ class Game(object):
         self.tank_dims = Vec2d(16, 22)
         self.tank_pos = Vec2d(108, 18)
         self.man_dims = Vec2d(1, 2)
-        self.man_size = Vec2d(self.man_dims.x*block_size.x, self.man_dims.y*block_size.y)
+        self.man_size = Vec2d(self.man_dims * atom_size)
 
         self.time_between_drops = 1
         self.time_until_next_drop = 0
@@ -89,18 +94,39 @@ class Game(object):
             # drop a random atom
             flavor_index = random.randint(0, len(Atom.flavors)-1)
             pos = Vec2d(
-                block_size.x*random.randint(0, self.tank.dims.x-1),
-                block_size.y*(self.tank.dims.y-1),
+                atom_size.x*random.randint(0, self.tank.dims.x-1),
+                atom_size.y*(self.tank.dims.y-1),
             )
             atom = Atom(pos, flavor_index, pyglet.sprite.Sprite(self.atom_imgs[flavor_index], batch=self.batch, group=self.group_main))
             self.tank.atoms.append(atom)
 
         # velocity
         for atom in self.tank.atoms:
-            atom.pos.y += atom.vel.y * dt
+            atom.new_pos = atom.pos + atom.vel * dt
+            # hit walls of tank x
+            if atom.new_pos.x < 0:
+                atom.new_pos.x = 0
+                atom.vel.x = 0
+            elif atom.new_pos.x + atom_size.x > self.tank.size.x:
+                atom.new_pos.x = self.tank.size.x - atom_size.x
+                atom.vel.x = 0
+            # hit walls of tank y
+            if atom.new_pos.y < 0:
+                atom.new_pos.y = 0
+                atom.vel.y = 0
+            elif atom.new_pos.y + atom_size.y > self.tank.size.y:
+                atom.new_pos.y = self.tank.size.y - atom_size.y
+                atom.vel.y = 0
+            # stick to other atoms
+            if self.tank.hit_atom(atom.new_pos):
+                atom.new_pos = (atom.pos / atom_size).do(int) * atom_size
+                atom.vel = Vec2d(0, 0)
+
+        for atom in self.tank.atoms:
+            atom.pos = atom.new_pos
 
         # gravity
-        gravity_accel = 400
+        gravity_accel = 200
         for atom in self.tank.atoms:
             atom.vel.y -= gravity_accel * dt
 
@@ -108,7 +134,7 @@ class Game(object):
         self.window.clear()
 
         for atom in self.tank.atoms:
-            atom.sprite.set_position(atom.pos.x + self.tank_pos.x, atom.pos.y + self.tank_pos.y)
+            atom.sprite.set_position(*(atom.pos + self.tank_pos))
 
         self.batch.draw()
         self.fps_display.draw()
