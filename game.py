@@ -6,7 +6,6 @@ from pygame.locals import *
 import sys
 import random
 import math
-from collections import namedtuple
 
 import pymunk
 from pymunk import Vec2d
@@ -55,31 +54,72 @@ class Tank:
         self.size = dims * atom_size
         self.atoms = []
 
+class Animations:
+    def __init__(self):
+        pass
+
+    def get(self, name):
+        return self.animations[name]
+
+    def offset(self, animation):
+        return self.animation_offset[animation]
+
+    def load(self):
+        with pyglet.resource.file('data/animations.txt') as fd:
+            animations_txt = fd.read()
+        lines = animations_txt.split('\n')
+        self.animations = {}
+        self.animation_offset = {}
+        for full_line in lines:
+            line = full_line.strip()
+            if line.startswith('#') or len(line) == 0:
+                continue
+            props, frames_txt = line.split('=')
+
+            name, delay, loop, off_x, off_y, size_x, size_y, anchor_x, anchor_y = [s.strip() for s in props.strip().split(':')]
+            delay = float(delay)
+            loop = bool(int(loop))
+            anchor_x = int(anchor_x)
+            anchor_y = int(anchor_y)
+
+            frame_files = frames_txt.strip().split(',')
+            def get_img(x):
+                img = pyglet.resource.image('data/' + x.strip())
+                img.anchor_x = anchor_x
+                img.anchor_y = anchor_y
+                return img
+            frame_list = [pyglet.image.AnimationFrame(get_img(x), delay) for x in frame_files]
+            rev_frame_list = [pyglet.image.AnimationFrame(pyglet.resource.image('data/' + x.strip(), flip_x=True), delay) for x in frame_files]
+            if not loop:
+                frame_list[-1].duration = None
+                rev_frame_list[-1].duration = None
+
+            animation = pyglet.image.Animation(frame_list)
+            rev_animation = pyglet.image.Animation(rev_frame_list)
+            self.animations[name] = animation
+            self.animations['-' + name] = rev_animation
+
+            self.animation_offset[animation] = Vec2d(-int(off_x), -int(off_y))
+            self.animation_offset[rev_animation] = Vec2d(int(off_x) + int(size_x), -int(off_y))
+
 class Game(object):
     def __init__(self, window):
+        self.animations = Animations()
+        self.animations.load()
+
         self.batch = pyglet.graphics.Batch()
         self.group_bg = pyglet.graphics.OrderedGroup(0)
         self.group_main = pyglet.graphics.OrderedGroup(1)
+        self.group_fg = pyglet.graphics.OrderedGroup(2)
 
         img_bg = pyglet.resource.image("data/bg.png")
         self.sprite_bg = pyglet.sprite.Sprite(img_bg, batch=self.batch, group=self.group_bg)
 
-        img_arm = pyglet.resource.image("data/arm.png")
-        img_arm.anchor_x = 2
-        img_arm.anchor_y = 11
-        self.sprite_arm = pyglet.sprite.Sprite(img_arm, batch=self.batch, group=self.group_main)
+        self.sprite_arm = pyglet.sprite.Sprite(self.animations.get("arm"), batch=self.batch, group=self.group_fg)
 
-        img_man = pyglet.resource.image("data/man.png")
-        img_man.anchor_x = img_man.width / 2
-        img_man.anchor_y = img_man.height / 2
-        self.sprite_man = pyglet.sprite.Sprite(img_man, batch=self.batch, group=self.group_main)
+        self.sprite_man = pyglet.sprite.Sprite(self.animations.get("man"), batch=self.batch, group=self.group_main)
 
-        self.atom_imgs = []
-        for i in range(len(Atom.flavors)):
-            img = pyglet.resource.image("data/atom-%i.png" % i)
-            img.anchor_x = img.width / 2
-            img.anchor_y = img.height / 2
-            self.atom_imgs.append(img)
+        self.atom_imgs = [self.animations.get("atom%i" % i) for i in range(len(Atom.flavors))]
 
         self.window = window
         self.window.set_handler('on_draw', self.on_draw)
@@ -106,6 +146,7 @@ class Game(object):
         self.let_go_of_jump = True
         self.crosshair = window.get_system_mouse_cursor(window.CURSOR_CROSSHAIR)
         self.default_cursor = window.get_system_mouse_cursor(window.CURSOR_DEFAULT)
+        self.mouse_pos = Vec2d(0, 0)
 
         self.tank_dims = Vec2d(16, 22)
         self.tank_pos = Vec2d(108, 18)
@@ -184,6 +225,10 @@ class Game(object):
             self.man.body.apply_impulse(Vec2d(0, 8000), Vec2d(0, 0))
             self.let_go_of_jump = False
 
+        negate = self.mouse_pos.x < self.man.body.position.x
+        animation = self.animations.get("-man" if negate else "man")
+        if self.sprite_man.image != animation:
+            self.sprite_man.image = animation
         if self.control_state[Control.ShootRope]:
             print("shoot rope at %i, %i" % (self.mouse_pos.x, self.mouse_pos.y))
 
@@ -203,6 +248,9 @@ class Game(object):
 
         self.sprite_man.set_position(*(self.man.body.position + self.tank_pos))
         self.sprite_man.rotation = -self.man.body.rotation_vector.get_angle_degrees()
+
+        self.sprite_arm.set_position(*(self.man.body.position + self.tank_pos))
+        self.sprite_arm.rotation = -(self.mouse_pos - self.man.body.position).get_angle_degrees()
 
         self.batch.draw()
         self.fps_display.draw()
