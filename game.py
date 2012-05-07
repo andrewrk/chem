@@ -143,7 +143,6 @@ class Game(object):
             Control.MOUSE_OFFSET+pyglet.window.mouse.RIGHT: Control.ShootRope,
         }
         self.control_state = [False] * (len(dir(Control)) - 2)
-        self.let_go_of_jump = True
         self.crosshair = window.get_system_mouse_cursor(window.CURSOR_CROSSHAIR)
         self.default_cursor = window.get_system_mouse_cursor(window.CURSOR_DEFAULT)
         self.mouse_pos = Vec2d(0, 0)
@@ -204,33 +203,35 @@ class Game(object):
             self.tank.atoms.append(atom)
 
         # input
-        grounded = abs(self.man.body.velocity.y) < 10.0
+        grounded, grounded_atom = self.is_grounded()
         grounded_move_force = 2700
         not_moving_x = abs(self.man.body.velocity.x) < 5.0
         air_move_force = 600
         move_force = grounded_move_force if grounded else air_move_force
         if self.control_state[Control.MoveLeft] and not self.control_state[Control.MoveRight]:
             self.man.body.apply_impulse(Vec2d(-move_force, 0), Vec2d(0, 0))
-            if not_moving_x:
+            if self.man.body.velocity.x > -40 and self.man.body.velocity.x < 0:
                 self.man.body.velocity.x = -40
         if self.control_state[Control.MoveRight] and not self.control_state[Control.MoveLeft]:
             self.man.body.apply_impulse(Vec2d(move_force, 0), Vec2d(0, 0))
-            if not_moving_x:
+            if self.man.body.velocity.x < 40 and self.man.body.velocity.x > 0:
                 self.man.body.velocity.x = 40
 
-        if not self.control_state[Control.MoveUp]:
-            self.let_go_of_jump = True
-        if self.control_state[Control.MoveUp] and grounded and self.let_go_of_jump:
+        if self.control_state[Control.MoveUp] and grounded:
             self.man.body.velocity.y = 100
             self.man.body.apply_impulse(Vec2d(0, 8000), Vec2d(0, 0))
-            self.let_go_of_jump = False
+            # apply a reverse force upon the atom we jumped from
+            if grounded_atom is not None:
+                grounded_atom.shape.body.apply_impulse(Vec2d(0, -2000), self.man.body.position - Vec2d(0, self.man_size.y))
 
+        # point the man+arm in direction of mouse
         negate = self.mouse_pos.x < self.man.body.position.x
         animation = self.animations.get("-man" if negate else "man")
         if self.sprite_man.image != animation:
             self.sprite_man.image = animation
         if self.control_state[Control.ShootRope]:
             print("shoot rope at %i, %i" % (self.mouse_pos.x, self.mouse_pos.y))
+        # draw a faint line from the gun towards the crosshair to the wall
 
         # update physics
         self.space.step(dt)
@@ -278,6 +279,24 @@ class Game(object):
             self.control_state[control] = False
         except KeyError:
             return
+
+    def is_grounded(self):
+        close_enough = 2
+        feet_pos = self.man.body.position - self.man_size.y / 2
+        if feet_pos.y - close_enough <= 0:
+            return True, None
+
+        # loop over atoms
+        for atom in self.tank.atoms:
+            atom_pos = atom.shape.body.position
+            no_touch = feet_pos.x + self.man_size.x / 2 < atom_pos.x - atom_size.x / 2 or \
+                       feet_pos.x - self.man_size.x / 2 > atom_pos.x + atom_size.x / 2 or \
+                       feet_pos.y - close_enough > atom_pos.y + atom_size.y / 2 or \
+                       feet_pos.y < atom_pos.y - atom_size.y / 2
+            if not no_touch:
+                return True, atom
+
+        return False, None
 
     def start(self):
         pyglet.app.run()
