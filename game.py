@@ -285,7 +285,7 @@ class Game(object):
 
     def is_grounded(self):
         close_enough = 2
-        feet_pos = self.man.body.position - self.man_size.y / 2
+        feet_pos = Vec2d(self.man.body.position.x, self.man.body.position.y - self.man_size.y / 2)
         if feet_pos.y - close_enough <= 0:
             return True, None
 
