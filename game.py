@@ -44,6 +44,7 @@ class Atom:
         body.position = pos
         self.shape = pymunk.Circle(body, 12)
         self.shape.friction = 0.5
+        self.shape.elasticity = 0.05
         space.add(body, self.shape)
 
 class Tank:
@@ -61,7 +62,12 @@ class Game(object):
         img_bg = pyglet.resource.image("data/bg.png")
         self.sprite_bg = pyglet.sprite.Sprite(img_bg, batch=self.batch, group=self.group_bg)
 
-        self.atom_imgs = [pyglet.resource.image("data/atom-%i.png" % i) for i in range(len(Atom.flavors))]
+        self.atom_imgs = []
+        for i in range(len(Atom.flavors)):
+            img = pyglet.resource.image("data/atom-%i.png" % i)
+            img.anchor_x = img.width / 2
+            img.anchor_y = img.height / 2
+            self.atom_imgs.append(img)
 
         self.window = window
         self.window.set_handler('on_draw', self.on_draw)
@@ -93,6 +99,28 @@ class Game(object):
         self.space = pymunk.Space()
         self.space.gravity = Vec2d(0, -200)
 
+        # add the walls of the tank to space
+        corner_top_left     = Vec2d(0, self.tank.size.y)
+        corner_top_right    = Vec2d(self.tank.size.x, self.tank.size.y)
+        corner_bottom_left  = Vec2d(0, 0)
+        corner_bottom_right = Vec2d(self.tank.size.x, 0)
+        r = 25
+        self.borders = [
+            # top wall
+            (Vec2d(0, self.tank.size.y + r), Vec2d(self.tank.size.x, self.tank.size.y + r)),
+            # right wall
+            (Vec2d(self.tank.size.x + r, self.tank.size.y), Vec2d(self.tank.size.x + r, 0)),
+            # bottom wall
+            (Vec2d(self.tank.size.x, -r), Vec2d(0, -r)),
+            # left wall
+            (Vec2d(-r, 0), Vec2d(-r, self.tank.size.y)),
+        ]
+        for p1, p2 in self.borders:
+            shape = pymunk.Segment(pymunk.Body(), p1, p2, r)
+            shape.friction = 0.99
+            shape.elasticity = 0.0
+            self.space.add(shape)
+
     def update(self, dt):
         self.time_until_next_drop -= dt
         if self.time_until_next_drop <= 0:
@@ -100,8 +128,8 @@ class Game(object):
             # drop a random atom
             flavor_index = random.randint(0, len(Atom.flavors)-1)
             pos = Vec2d(
-                atom_size.x*random.randint(0, self.tank.dims.x-1),
-                atom_size.y*(self.tank.dims.y-1),
+                random.random() * (self.tank.size.x - atom_size.x) + atom_size.x / 2,
+                self.tank.size.y - atom_size.y / 2,
             )
             atom = Atom(pos, flavor_index, pyglet.sprite.Sprite(self.atom_imgs[flavor_index], batch=self.batch, group=self.group_main), self.space)
             self.tank.atoms.append(atom)
