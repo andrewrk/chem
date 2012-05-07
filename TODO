@@ -1,4 +1,4 @@
-* atoms should fall down randomly and stack
+* atoms shouldn't bounce when stuck
 * man should be able to run around and jump on top of atoms
 * man should be able to use rope gun to move around
 * man should be able to use gun to grab an atom and shoot it somewhere else

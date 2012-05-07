@@ -15,6 +15,7 @@ game_size = Vec2d(1024, 600)
 
 
 atom_size = Vec2d(24, 24)
+atom_collide_size = Vec2d(20, 20)
 
 class Control:
     MoveLeft = 0
@@ -44,10 +45,6 @@ class Tank:
         self.dims = dims
         self.size = dims * atom_size
         self.atoms = []
-
-    def hit_atom(self, pos):
-
-        return False
 
 class Game(object):
     def __init__(self, window):
@@ -118,9 +115,17 @@ class Game(object):
                 atom.new_pos.y = self.tank.size.y - atom_size.y
                 atom.vel.y = 0
             # stick to other atoms
-            if self.tank.hit_atom(atom.new_pos):
-                atom.new_pos = (atom.pos / atom_size).do(int) * atom_size
-                atom.vel = Vec2d(0, 0)
+            for other in self.tank.atoms:
+                if atom is other: continue
+
+                no_touch = atom.new_pos.x > other.pos.x + atom_collide_size.x or \
+                           atom.new_pos.x + atom_collide_size.x < other.pos.x or \
+                           atom.new_pos.y > other.pos.y + atom_collide_size.y or \
+                           atom.new_pos.y + atom_collide_size.y < other.pos.y
+                if not no_touch:
+                    atom.new_pos = (atom.pos / atom_size).do(round) * atom_size
+                    atom.vel = Vec2d(0, 0)
+                    break
 
         for atom in self.tank.atoms:
             atom.pos = atom.new_pos
