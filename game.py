@@ -4,6 +4,7 @@ import pyglet
 from pygame.locals import *
 
 import sys
+import random
 from collections import namedtuple
 
 Point = namedtuple('Point', ['x', 'y'])
@@ -12,6 +13,9 @@ Size = namedtuple('Size', ['w', 'h'])
 game_title = "Dr. Chemical's Lab"
 game_fps = 60
 game_size = Size(1024, 600)
+
+
+block_size = Size(24, 24)
 
 class Control:
     MoveLeft = 0
@@ -22,12 +26,34 @@ class Control:
     ShootAtom = 5
     ShootRope = 6
 
+class Atom:
+    flavors = [
+        (70, 83, 255),
+        (357, 82, 86),
+        (139, 67, 55),
+        (36, 89, 100),
+    ]
+
+    def __init__(self, pos, flavor_index, sprite):
+        self.pos = pos
+        self.flavor_index = flavor_index
+        self.sprite = sprite
+
+class Tank:
+    def __init__(self, dims):
+        self.dims = dims
+        self.atoms = []
+
 class Game(object):
     def __init__(self, window):
-        self.batch_bg = pyglet.graphics.Batch()
+        self.batch = pyglet.graphics.Batch()
+        self.group_bg = pyglet.graphics.OrderedGroup(0)
+        self.group_main = pyglet.graphics.OrderedGroup(1)
 
-        self.img_bg = pyglet.resource.image("data/bg.png")
-        self.sprite_bg_left = pyglet.sprite.Sprite(self.img_bg, batch=self.batch_bg)
+        img_bg = pyglet.resource.image("data/bg.png")
+        self.sprite_bg = pyglet.sprite.Sprite(img_bg, batch=self.batch, group=self.group_bg)
+
+        self.atom_imgs = [pyglet.resource.image("data/atom-%i.png" % i) for i in range(len(Atom.flavors))]
 
         self.window = window
         self.window.set_handler('on_draw', self.on_draw)
@@ -46,28 +72,37 @@ class Game(object):
         }
         self.control_state = [False] * (len(dir(Control)) - 2)
 
-        tank_loc = [Point(108, 54), Point(531, 55)]
-        tank_dims = Size(22, 16)
-        block_size = Size(24, 24)
-        atom_colors = [
-            (70, 83, 255),
-            (357, 82, 86),
-            (139, 67, 55),
-            (36, 89, 100),
-        ]
-        man_dims = Size(1, 2)
-        man_size = Size(man_dims.w*block_size.w, man_dims.h*block_size.h)
+        self.tank_dims = Size(22, 16)
+        self.tank_loc = [Point(108, 54), Point(531, 55)]
+        self.man_dims = Size(1, 2)
+        self.man_size = Size(self.man_dims.w*block_size.w, self.man_dims.h*block_size.h)
+
+        self.time_between_drops = 3
+        self.time_until_next_drop = self.time_between_drops
+
+        self.tank = Tank(self.tank_dims)
 
     def update(self, dt):
-        pass
+        self.time_until_next_drop -= dt
+        if self.time_until_next_drop <= 0:
+            self.time_until_next_drop += self.time_between_drops
+            # drop a random atom
+            flavor_index = random.randint(0, len(Atom.flavors)-1)
+            pos = Point(block_size.w*random.randint(0, self.tank.dims.w-1), block_size.h*(self.tank.dims.h-1))
+            atom = Atom(pos, flavor_index, pyglet.sprite.Sprite(self.atom_imgs[flavor_index], batch=self.batch, group=self.group_main))
+            self.tank.atoms.append(atom)
 
     def on_draw(self):
         self.window.clear()
-        self.batch_bg.draw()
+
+        for atom in self.tank.atoms:
+            atom.sprite.set_position(*atom.pos)
+
+        self.batch.draw()
         self.fps_display.draw()
 
     def start(self):
-        pass
+        pyglet.app.run()
 
     def on_key_press(self, symbol, modifiers):
         try:
@@ -85,4 +120,4 @@ class Game(object):
 
 window = pyglet.window.Window(width=game_size.w, height=game_size.h, caption=game_title)
 game = Game(window)
-pyglet.app.run()
+game.start()
