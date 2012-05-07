@@ -1,3 +1,9 @@
-Dr. Chemical's Lab
+Dr. Chemical's Lab - PyWeek #14 Entry
 
-PyWeek #14 Entry
+Install:
+
+    pip install pymunk
+
+Run:
+
+    python game.py

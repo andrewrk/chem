@@ -5,9 +5,11 @@ from pygame.locals import *
 
 import sys
 import random
+import math
 from collections import namedtuple
 
-from vec2d import Vec2d
+import pymunk
+from pymunk import Vec2d
 
 game_title = "Dr. Chemical's Lab"
 game_fps = 60
@@ -34,11 +36,15 @@ class Atom:
         (36, 89, 100),
     ]
 
-    def __init__(self, pos, flavor_index, sprite):
-        self.pos = pos
-        self.vel = Vec2d(0, 0)
+    def __init__(self, pos, flavor_index, sprite, space):
         self.flavor_index = flavor_index
         self.sprite = sprite
+
+        body = pymunk.Body(10, 100)
+        body.position = pos
+        self.shape = pymunk.Circle(body, 12)
+        self.shape.friction = 0.5
+        space.add(body, self.shape)
 
 class Tank:
     def __init__(self, dims):
@@ -84,6 +90,9 @@ class Game(object):
 
         self.tank = Tank(self.tank_dims)
 
+        self.space = pymunk.Space()
+        self.space.gravity = Vec2d(0, -200)
+
     def update(self, dt):
         self.time_until_next_drop -= dt
         if self.time_until_next_drop <= 0:
@@ -94,52 +103,18 @@ class Game(object):
                 atom_size.x*random.randint(0, self.tank.dims.x-1),
                 atom_size.y*(self.tank.dims.y-1),
             )
-            atom = Atom(pos, flavor_index, pyglet.sprite.Sprite(self.atom_imgs[flavor_index], batch=self.batch, group=self.group_main))
+            atom = Atom(pos, flavor_index, pyglet.sprite.Sprite(self.atom_imgs[flavor_index], batch=self.batch, group=self.group_main), self.space)
             self.tank.atoms.append(atom)
 
-        # velocity
-        for atom in self.tank.atoms:
-            atom.new_pos = atom.pos + atom.vel * dt
-            # hit walls of tank x
-            if atom.new_pos.x < 0:
-                atom.new_pos.x = 0
-                atom.vel.x = 0
-            elif atom.new_pos.x + atom_size.x > self.tank.size.x:
-                atom.new_pos.x = self.tank.size.x - atom_size.x
-                atom.vel.x = 0
-            # hit walls of tank y
-            if atom.new_pos.y < 0:
-                atom.new_pos.y = 0
-                atom.vel.y = 0
-            elif atom.new_pos.y + atom_size.y > self.tank.size.y:
-                atom.new_pos.y = self.tank.size.y - atom_size.y
-                atom.vel.y = 0
-            # stick to other atoms
-            for other in self.tank.atoms:
-                if atom is other: continue
-
-                no_touch = atom.new_pos.x > other.pos.x + atom_collide_size.x or \
-                           atom.new_pos.x + atom_collide_size.x < other.pos.x or \
-                           atom.new_pos.y > other.pos.y + atom_collide_size.y or \
-                           atom.new_pos.y + atom_collide_size.y < other.pos.y
-                if not no_touch:
-                    atom.new_pos = (atom.pos / atom_size).do(round) * atom_size
-                    atom.vel = Vec2d(0, 0)
-                    break
-
-        for atom in self.tank.atoms:
-            atom.pos = atom.new_pos
-
-        # gravity
-        gravity_accel = 200
-        for atom in self.tank.atoms:
-            atom.vel.y -= gravity_accel * dt
+        # update physics
+        self.space.step(dt)
 
     def on_draw(self):
         self.window.clear()
 
         for atom in self.tank.atoms:
-            atom.sprite.set_position(*(atom.pos + self.tank_pos))
+            atom.sprite.set_position(*(atom.shape.body.position + self.tank_pos))
+            atom.sprite.rotation = atom.shape.body.rotation_vector.get_angle_degrees()
 
         self.batch.draw()
         self.fps_display.draw()
@@ -161,6 +136,6 @@ class Game(object):
         except KeyError:
             return
 
-window = pyglet.window.Window(width=game_size.x, height=game_size.y, caption=game_title)
+window = pyglet.window.Window(width=int(game_size.x), height=int(game_size.y), caption=game_title)
 game = Game(window)
 game.start()
