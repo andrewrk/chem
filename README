@@ -1,8 +1,8 @@
 Dr. Chemical's Lab - PyWeek #14 Entry
 
-Install:
+Install dependencies:
 
-    pip install pymunk
+    sudo pip install pymunk pyglet
 
 Run:
 

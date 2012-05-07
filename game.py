@@ -158,7 +158,7 @@ class Game(object):
         self.tank = Tank(self.tank_dims)
 
         self.space = pymunk.Space()
-        self.space.gravity = Vec2d(0, -200)
+        self.space.gravity = Vec2d(0, -400)
         self.space.damping = 0.99
 
         # add the walls of the tank to space
@@ -179,10 +179,9 @@ class Game(object):
             shape.elasticity = 0.0
             self.space.add(shape)
 
-        shape = pymunk.Poly.create_box(pymunk.Body(100, 10000000), self.man_size)
+        shape = pymunk.Poly.create_box(pymunk.Body(20, 10000000), self.man_size)
         shape.body.position = Vec2d(self.tank.size.x / 2, self.man_size.y / 2)
         shape.body.angular_velocity_limit = 0
-        shape.body.velocity_limit = 300
         self.man_angle = shape.body.angle
         shape.elasticity = 0
         shape.friction = 3.0
@@ -204,25 +203,29 @@ class Game(object):
 
         # input
         grounded, grounded_atom = self.is_grounded()
-        grounded_move_force = 2700
+        grounded_move_force = 1000
         not_moving_x = abs(self.man.body.velocity.x) < 5.0
-        air_move_force = 600
+        air_move_force = 200
         move_force = grounded_move_force if grounded else air_move_force
+        move_boost = 30
+        max_speed = 200
         if self.control_state[Control.MoveLeft] and not self.control_state[Control.MoveRight]:
-            self.man.body.apply_impulse(Vec2d(-move_force, 0), Vec2d(0, 0))
-            if self.man.body.velocity.x > -40 and self.man.body.velocity.x < 0:
-                self.man.body.velocity.x = -40
-        if self.control_state[Control.MoveRight] and not self.control_state[Control.MoveLeft]:
-            self.man.body.apply_impulse(Vec2d(move_force, 0), Vec2d(0, 0))
-            if self.man.body.velocity.x < 40 and self.man.body.velocity.x > 0:
-                self.man.body.velocity.x = 40
+            if self.man.body.velocity.x >= -max_speed:
+                self.man.body.apply_impulse(Vec2d(-move_force, 0), Vec2d(0, 0))
+                if self.man.body.velocity.x > -move_boost and self.man.body.velocity.x < 0:
+                    self.man.body.velocity.x = -move_boost
+        elif self.control_state[Control.MoveRight] and not self.control_state[Control.MoveLeft]:
+            if self.man.body.velocity.x <= max_speed:
+                self.man.body.apply_impulse(Vec2d(move_force, 0), Vec2d(0, 0))
+                if self.man.body.velocity.x < move_boost and self.man.body.velocity.x > 0:
+                    self.man.body.velocity.x = move_boost
 
         if self.control_state[Control.MoveUp] and grounded:
             self.man.body.velocity.y = 100
-            self.man.body.apply_impulse(Vec2d(0, 8000), Vec2d(0, 0))
+            self.man.body.apply_impulse(Vec2d(0, 2000), Vec2d(0, 0))
             # apply a reverse force upon the atom we jumped from
             if grounded_atom is not None:
-                grounded_atom.shape.body.apply_impulse(Vec2d(0, -2000), self.man.body.position - Vec2d(0, self.man_size.y))
+                grounded_atom.shape.body.apply_impulse(Vec2d(0, -1000), self.man.body.position - Vec2d(0, self.man_size.y))
 
         # point the man+arm in direction of mouse
         negate = self.mouse_pos.x < self.man.body.position.x
