@@ -20,6 +20,8 @@ atom_size = Vec2d(24, 24)
 atom_collide_size = Vec2d(20, 20)
 
 class Control:
+    MOUSE_OFFSET = 255
+
     MoveLeft = 0
     MoveRight = 1
     MoveUp = 2
@@ -81,6 +83,9 @@ class Game(object):
 
         self.window = window
         self.window.set_handler('on_draw', self.on_draw)
+        self.window.set_handler('on_mouse_motion', self.on_mouse_motion)
+        self.window.set_handler('on_mouse_press', self.on_mouse_press)
+        self.window.set_handler('on_mouse_release', self.on_mouse_release)
         self.window.set_handler('on_key_press', self.on_key_press)
         self.window.set_handler('on_key_release', self.on_key_release)
 
@@ -93,9 +98,14 @@ class Game(object):
             pyglet.window.key.E: Control.MoveRight,
             pyglet.window.key.COMMA: Control.MoveUp,
             pyglet.window.key.S: Control.MoveDown,
+
+            Control.MOUSE_OFFSET+pyglet.window.mouse.LEFT: Control.ShootAtom,
+            Control.MOUSE_OFFSET+pyglet.window.mouse.RIGHT: Control.ShootRope,
         }
         self.control_state = [False] * (len(dir(Control)) - 2)
         self.let_go_of_jump = True
+        self.crosshair = window.get_system_mouse_cursor(window.CURSOR_CROSSHAIR)
+        self.default_cursor = window.get_system_mouse_cursor(window.CURSOR_DEFAULT)
 
         self.tank_dims = Vec2d(16, 22)
         self.tank_pos = Vec2d(108, 18)
@@ -174,6 +184,9 @@ class Game(object):
             self.man.body.apply_impulse(Vec2d(0, 8000), Vec2d(0, 0))
             self.let_go_of_jump = False
 
+        if self.control_state[Control.ShootRope]:
+            print("shoot rope at %i, %i" % (self.mouse_pos.x, self.mouse_pos.y))
+
         # update physics
         self.space.step(dt)
 
@@ -193,6 +206,30 @@ class Game(object):
 
         self.batch.draw()
         self.fps_display.draw()
+
+    def on_mouse_motion(self, x, y, dx, dy):
+        self.mouse_pos = Vec2d(x, y) - self.tank_pos
+
+        use_crosshair = self.mouse_pos.x >= 0 and \
+                        self.mouse_pos.y >= 0 and \
+                        self.mouse_pos.x <= self.tank.size.x and \
+                        self.mouse_pos.y <= self.tank.size.y
+        cursor = self.crosshair if use_crosshair else self.default_cursor
+        self.window.set_mouse_cursor(cursor)
+
+    def on_mouse_press(self, x, y, button, modifiers):
+        try:
+            control = self.controls[Control.MOUSE_OFFSET+button]
+            self.control_state[control] = True
+        except KeyError:
+            return
+
+    def on_mouse_release(self, x, y, button, modifiers):
+        try:
+            control = self.controls[Control.MOUSE_OFFSET+button]
+            self.control_state[control] = False
+        except KeyError:
+            return
 
     def start(self):
         pyglet.app.run()
