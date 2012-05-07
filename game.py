@@ -40,7 +40,7 @@ class Atom:
         self.flavor_index = flavor_index
         self.sprite = sprite
 
-        body = pymunk.Body(10, 100)
+        body = pymunk.Body(10, 100000)
         body.position = pos
         self.shape = pymunk.Circle(body, 12)
         self.shape.friction = 0.5
@@ -95,6 +95,7 @@ class Game(object):
             pyglet.window.key.S: Control.MoveDown,
         }
         self.control_state = [False] * (len(dir(Control)) - 2)
+        self.let_go_of_jump = True
 
         self.tank_dims = Vec2d(16, 22)
         self.tank_pos = Vec2d(108, 18)
@@ -131,7 +132,7 @@ class Game(object):
         shape = pymunk.Poly.create_box(pymunk.Body(100, 10000000), self.man_size)
         shape.body.position = Vec2d(self.tank.size.x / 2, self.man_size.y / 2)
         shape.body.angular_velocity_limit = 0
-        shape.body.velocity_limit = 1500
+        shape.body.velocity_limit = 300
         self.man_angle = shape.body.angle
         shape.elasticity = 0
         shape.friction = 3.0
@@ -152,11 +153,26 @@ class Game(object):
             self.tank.atoms.append(atom)
 
         # input
-        move_force = 2000
-        if self.control_state[Control.MoveLeft]:
+        grounded = abs(self.man.body.velocity.y) < 10.0
+        grounded_move_force = 2700
+        not_moving_x = abs(self.man.body.velocity.x) < 5.0
+        air_move_force = 600
+        move_force = grounded_move_force if grounded else air_move_force
+        if self.control_state[Control.MoveLeft] and not self.control_state[Control.MoveRight]:
             self.man.body.apply_impulse(Vec2d(-move_force, 0), Vec2d(0, 0))
-        if self.control_state[Control.MoveRight]:
+            if not_moving_x:
+                self.man.body.velocity.x = -40
+        if self.control_state[Control.MoveRight] and not self.control_state[Control.MoveLeft]:
             self.man.body.apply_impulse(Vec2d(move_force, 0), Vec2d(0, 0))
+            if not_moving_x:
+                self.man.body.velocity.x = 40
+
+        if not self.control_state[Control.MoveUp]:
+            self.let_go_of_jump = True
+        if self.control_state[Control.MoveUp] and grounded and self.let_go_of_jump:
+            self.man.body.velocity.y = 100
+            self.man.body.apply_impulse(Vec2d(0, 8000), Vec2d(0, 0))
+            self.let_go_of_jump = False
 
         # update physics
         self.space.step(dt)
