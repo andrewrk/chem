@@ -72,8 +72,8 @@ class Game(object):
         }
         self.control_state = [False] * (len(dir(Control)) - 2)
 
-        self.tank_dims = Size(22, 16)
-        self.tank_loc = [Point(108, 54), Point(531, 55)]
+        self.tank_dims = Size(16, 22)
+        self.tank_pos = Point(108, 18)
         self.man_dims = Size(1, 2)
         self.man_size = Size(self.man_dims.w*block_size.w, self.man_dims.h*block_size.h)
 
@@ -88,7 +88,10 @@ class Game(object):
             self.time_until_next_drop += self.time_between_drops
             # drop a random atom
             flavor_index = random.randint(0, len(Atom.flavors)-1)
-            pos = Point(block_size.w*random.randint(0, self.tank.dims.w-1), block_size.h*(self.tank.dims.h-1))
+            pos = Point(
+                block_size.w*random.randint(0, self.tank.dims.w-1),
+                block_size.h*(self.tank.dims.h-1),
+            )
             atom = Atom(pos, flavor_index, pyglet.sprite.Sprite(self.atom_imgs[flavor_index], batch=self.batch, group=self.group_main))
             self.tank.atoms.append(atom)
 
@@ -96,7 +99,7 @@ class Game(object):
         self.window.clear()
 
         for atom in self.tank.atoms:
-            atom.sprite.set_position(*atom.pos)
+            atom.sprite.set_position(atom.pos.x + self.tank_pos.x, atom.pos.y + self.tank_pos.y)
 
         self.batch.draw()
         self.fps_display.draw()
