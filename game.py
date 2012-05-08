@@ -324,7 +324,7 @@ class Game(object):
         self.batch.draw()
 
         # draw a line from gun hand to self.point_end
-        self.draw_line(self.point_start + self.tank_pos, self.point_end + self.tank_pos, (1, 1, 0, 0.17))
+        self.draw_line(self.point_start + self.tank_pos, self.point_end + self.tank_pos, (0, 0, 0, 0.23))
 
         self.fps_display.draw()
 
