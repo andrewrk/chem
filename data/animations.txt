@@ -1,7 +1,7 @@
 # name:delay:loop:off_x:off_y:size_x:size_y:anchor_x:anchor_y = file1, file2, etc
 
-man   :1    :1   :0    :0    :32    :48    :16      :32       = man.png
-arm   :1    :1   :0    :0    :32    :32    :2       :16       = arm.png
+man   :1    :1   :0    :0    :32    :64    :16      :32       = man.png
+arm   :1    :1   :0    :0    :55    :23    :5       :11       = arm.png
 atom0 :1    :1   :0    :0    :32    :32    :16      :16       = atom-0.png
 atom1 :1    :1   :0    :0    :32    :32    :16      :16       = atom-1.png
 atom2 :1    :1   :0    :0    :32    :32    :16      :16       = atom-2.png

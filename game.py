@@ -195,6 +195,9 @@ class Game(object):
         shape.friction = 3.0
         self.space.add(shape.body, shape)
         self.man = shape
+        self.arm_offset = Vec2d(13, 43)
+
+        self.claw_in_motion = False
 
         # opengl
         pyglet.gl.glEnable(pyglet.gl.GL_BLEND)
@@ -244,8 +247,9 @@ class Game(object):
         animation = self.animations.get("-man" if negate else "man")
         if self.sprite_man.image != animation:
             self.sprite_man.image = animation
-        if self.control_state[Control.ShootRope]:
-            print("shoot rope at %i, %i" % (self.mouse_pos.x, self.mouse_pos.y))
+        if self.control_state[Control.ShootRope] and self.claw_in_motion:
+            self.claw_in_motion = True
+
         # draw a faint line from the gun towards the crosshair
         self.compute_atom_pointed_at()
 
@@ -260,7 +264,8 @@ class Game(object):
         return pt.x >= 0 and pt.y >= 0 and pt.x < self.tank.size.x and pt.y < self.tank.size.y
 
     def compute_atom_pointed_at(self):
-        self.point_start = self.man.body.position
+        self.arm_pos = self.man.body.position - self.man_size / 2 + self.arm_offset
+        self.point_start = self.arm_pos
 
         # iterate over each atom. check if intersects with line.
         closest_atom = None
@@ -317,9 +322,8 @@ class Game(object):
         self.sprite_man.set_position(*(self.man.body.position + self.tank_pos))
         self.sprite_man.rotation = -self.man.body.rotation_vector.get_angle_degrees()
 
-        self.sprite_arm.set_position(*(self.man.body.position + self.tank_pos))
+        self.sprite_arm.set_position(*(self.arm_pos + self.tank_pos))
         self.sprite_arm.rotation = -(self.mouse_pos - self.man.body.position).get_angle_degrees()
-
 
         self.batch.draw()
 
