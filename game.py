@@ -15,9 +15,8 @@ game_fps = 60
 game_size = Vec2d(1024, 600)
 
 
-atom_size = Vec2d(24, 24)
-atom_radius = 12
-atom_collide_size = Vec2d(20, 20)
+atom_size = Vec2d(32, 32)
+atom_radius = atom_size.x / 2
 
 def sign(x):
     if x > 0:
@@ -52,7 +51,7 @@ class Atom:
 
         body = pymunk.Body(10, 100000)
         body.position = pos
-        self.shape = pymunk.Circle(body, 12)
+        self.shape = pymunk.Circle(body, atom_radius)
         self.shape.friction = 0.5
         self.shape.elasticity = 0.05
         space.add(body, self.shape)
@@ -156,7 +155,7 @@ class Game(object):
         self.default_cursor = window.get_system_mouse_cursor(window.CURSOR_DEFAULT)
         self.mouse_pos = Vec2d(0, 0)
 
-        self.tank_dims = Vec2d(16, 22)
+        self.tank_dims = Vec2d(12, 16)
         self.tank_pos = Vec2d(108, 18)
         self.man_dims = Vec2d(1, 2)
         self.man_size = Vec2d(self.man_dims * atom_size)
@@ -196,6 +195,10 @@ class Game(object):
         shape.friction = 3.0
         self.space.add(shape.body, shape)
         self.man = shape
+
+        # opengl
+        pyglet.gl.glEnable(pyglet.gl.GL_BLEND)
+        pyglet.gl.glBlendFunc(pyglet.gl.GL_SRC_ALPHA, pyglet.gl.GL_ONE_MINUS_SRC_ALPHA)
 
     def update(self, dt):
         self.time_until_next_drop -= dt
@@ -259,8 +262,7 @@ class Game(object):
     def compute_atom_pointed_at(self):
         self.point_start = self.man.body.position
 
-        # iterate over each atom. check if intersects with line. if so, add to
-        # list sorted by distance squared
+        # iterate over each atom. check if intersects with line.
         closest_atom = None
         closest_dist = None
         vector = self.mouse_pos - self.point_start
@@ -322,12 +324,12 @@ class Game(object):
         self.batch.draw()
 
         # draw a line from gun hand to self.point_end
-        self.draw_line(self.point_start + self.tank_pos, self.point_end + self.tank_pos, (.7, .7, 0))
+        self.draw_line(self.point_start + self.tank_pos, self.point_end + self.tank_pos, (1, 1, 0, 0.17))
 
         self.fps_display.draw()
 
     def draw_line(self, p1, p2, color):
-        pyglet.gl.glColor4f(color[0], color[1], color[2], 1.0)
+        pyglet.gl.glColor4f(color[0], color[1], color[2], color[3])
         pyglet.graphics.draw(2, pyglet.gl.GL_LINES,
             ('v2f', (p1[0], p1[1], p2[0], p2[1]))
         )
