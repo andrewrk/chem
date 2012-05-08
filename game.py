@@ -129,6 +129,8 @@ class Game(object):
 
         self.atom_imgs = [self.animations.get("atom%i" % i) for i in range(len(Atom.flavors))]
 
+        self.sprite_claw = pyglet.sprite.Sprite(self.animations.get("claw"), batch=self.batch, group=self.group_main)
+
         self.window = window
         self.window.set_handler('on_draw', self.on_draw)
         self.window.set_handler('on_mouse_motion', self.on_mouse_motion)
@@ -147,8 +149,8 @@ class Game(object):
             pyglet.window.key.COMMA: Control.MoveUp,
             pyglet.window.key.S: Control.MoveDown,
 
-            Control.MOUSE_OFFSET+pyglet.window.mouse.LEFT: Control.ShootAtom,
-            Control.MOUSE_OFFSET+pyglet.window.mouse.RIGHT: Control.ShootRope,
+            Control.MOUSE_OFFSET+pyglet.window.mouse.LEFT: Control.ShootRope,
+            Control.MOUSE_OFFSET+pyglet.window.mouse.RIGHT: Control.ShootAtom,
         }
         self.control_state = [False] * (len(dir(Control)) - 2)
         self.crosshair = window.get_system_mouse_cursor(window.CURSOR_CROSSHAIR)
@@ -198,10 +200,16 @@ class Game(object):
         self.arm_offset = Vec2d(13, 43)
 
         self.claw_in_motion = False
+        self.sprite_claw.visible = False
+
+        self.compute_arm_pos()
 
         # opengl
         pyglet.gl.glEnable(pyglet.gl.GL_BLEND)
         pyglet.gl.glBlendFunc(pyglet.gl.GL_SRC_ALPHA, pyglet.gl.GL_ONE_MINUS_SRC_ALPHA)
+
+    def compute_arm_pos(self):
+        self.arm_pos = self.man.body.position - self.man_size / 2 + self.arm_offset
 
     def update(self, dt):
         self.time_until_next_drop -= dt
@@ -240,21 +248,29 @@ class Game(object):
             self.man.body.apply_impulse(Vec2d(0, 2000), Vec2d(0, 0))
             # apply a reverse force upon the atom we jumped from
             if grounded_atom is not None:
-                grounded_atom.shape.body.apply_impulse(Vec2d(0, -1000), self.man.body.position - Vec2d(0, self.man_size.y))
+                grounded_atom.shape.body.apply_impulse(Vec2d(0, -1000), Vec2d(0, 0))
 
         # point the man+arm in direction of mouse
         negate = self.mouse_pos.x < self.man.body.position.x
         animation = self.animations.get("-man" if negate else "man")
         if self.sprite_man.image != animation:
             self.sprite_man.image = animation
-        if self.control_state[Control.ShootRope] and self.claw_in_motion:
+        if self.control_state[Control.ShootRope] and not self.claw_in_motion:
             self.claw_in_motion = True
+            self.sprite_claw.visible = True
+            body = pymunk.Body(mass=10, moment=100000)
+            body.position = self.arm_pos
+            self.shape = pymunk.Circle(body, atom_radius)
+            self.shape.friction = 0.5
+            self.shape.elasticity = 0.05
+            space.add(body, self.shape)
 
         # draw a faint line from the gun towards the crosshair
         self.compute_atom_pointed_at()
 
         # update physics
         self.space.step(dt)
+        self.compute_arm_pos()
 
         # apply our constraints
         # man can't rotate
@@ -264,7 +280,6 @@ class Game(object):
         return pt.x >= 0 and pt.y >= 0 and pt.x < self.tank.size.x and pt.y < self.tank.size.y
 
     def compute_atom_pointed_at(self):
-        self.arm_pos = self.man.body.position - self.man_size / 2 + self.arm_offset
         self.point_start = self.arm_pos
 
         # iterate over each atom. check if intersects with line.
