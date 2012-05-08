@@ -16,7 +16,16 @@ game_size = Vec2d(1024, 600)
 
 
 atom_size = Vec2d(24, 24)
+atom_radius = 12
 atom_collide_size = Vec2d(20, 20)
+
+def sign(x):
+    if x > 0:
+        return 1
+    elif x < 0:
+        return -1
+    else:
+        return 0
 
 class Control:
     MOUSE_OFFSET = 255
@@ -234,7 +243,8 @@ class Game(object):
             self.sprite_man.image = animation
         if self.control_state[Control.ShootRope]:
             print("shoot rope at %i, %i" % (self.mouse_pos.x, self.mouse_pos.y))
-        # draw a faint line from the gun towards the crosshair to the wall
+        # draw a faint line from the gun towards the crosshair
+        self.compute_atom_pointed_at()
 
         # update physics
         self.space.step(dt)
@@ -242,6 +252,58 @@ class Game(object):
         # apply our constraints
         # man can't rotate
         self.man.body.angle = self.man_angle
+
+    def in_tank(self, pt):
+        return pt.x >= 0 and pt.y >= 0 and pt.x < self.tank.size.x and pt.y < self.tank.size.y
+
+    def compute_atom_pointed_at(self):
+        self.point_start = self.man.body.position
+
+        # iterate over each atom. check if intersects with line. if so, add to
+        # list sorted by distance squared
+        closest_atom = None
+        closest_dist = None
+        vector = self.mouse_pos - self.point_start
+        for atom in self.tank.atoms:
+            # http://stackoverflow.com/questions/1073336/circle-line-collision-detection
+            f = atom.shape.body.position - self.point_start
+            if sign(f.x) != sign(vector.x) or sign(f.y) != sign(vector.y):
+                continue
+            a = vector.dot(vector)
+            b = 2 * f.dot(vector)
+            c = f.dot(f) - atom_radius*atom_radius
+            discriminant = b*b - 4*a*c
+            if discriminant < 0:
+                continue
+
+            dist = atom.shape.body.position.get_dist_sqrd(self.point_start)
+            if closest_atom is None or dist < closest_dist:
+                closest_atom = atom
+                closest_dist = dist
+
+        if closest_atom is not None:
+            # intersection
+            # use the coords of the closest atom
+            self.point_end = closest_atom.shape.body.position
+        else:
+            # no intersection
+            # find the coords at the wall
+            slope = vector.y / vector.x
+            y_intercept = self.point_start.y - slope * self.point_start.x
+            self.point_end = self.point_start + self.tank.size.get_length() * vector.normalized()
+            if self.point_end.x > self.tank.size.x:
+                self.point_end.x = self.tank.size.x
+                self.point_end.y = slope * self.point_end.x + y_intercept
+            if self.point_end.x < 0:
+                self.point_end.x = 0
+                self.point_end.y = slope * self.point_end.x + y_intercept
+            if self.point_end.y > self.tank.size.y:
+                self.point_end.y = self.tank.size.y
+                self.point_end.x = (self.point_end.y - y_intercept) / slope
+            if self.point_end.y < 0:
+                self.point_end.y = 0
+                self.point_end.x = (self.point_end.y - y_intercept) / slope
+
 
     def on_draw(self):
         self.window.clear()
@@ -256,8 +318,19 @@ class Game(object):
         self.sprite_arm.set_position(*(self.man.body.position + self.tank_pos))
         self.sprite_arm.rotation = -(self.mouse_pos - self.man.body.position).get_angle_degrees()
 
+
         self.batch.draw()
+
+        # draw a line from gun hand to self.point_end
+        self.draw_line(self.point_start + self.tank_pos, self.point_end + self.tank_pos, (.7, .7, 0))
+
         self.fps_display.draw()
+
+    def draw_line(self, p1, p2, color):
+        pyglet.gl.glColor4f(color[0], color[1], color[2], 1.0)
+        pyglet.graphics.draw(2, pyglet.gl.GL_LINES,
+            ('v2f', (p1[0], p1[1], p2[0], p2[1]))
+        )
 
     def on_mouse_motion(self, x, y, dx, dy):
         self.mouse_pos = Vec2d(x, y) - self.tank_pos
