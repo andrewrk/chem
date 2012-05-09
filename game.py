@@ -26,6 +26,10 @@ def sign(x):
     else:
         return 0
 
+class Collision:
+    Default = 0
+    Claw = 1
+
 class Control:
     MOUSE_OFFSET = 255
 
@@ -53,6 +57,7 @@ class Atom:
         self.shape = pymunk.Circle(body, atom_radius)
         self.shape.friction = 0.5
         self.shape.elasticity = 0.05
+        self.shape.collision_type = Collision.Default
         space.add(body, self.shape)
 
 class Tank:
@@ -169,6 +174,7 @@ class Game(object):
         self.space = pymunk.Space()
         self.space.gravity = Vec2d(0, -400)
         self.space.damping = 0.99
+        self.space.add_collision_handler(Collision.Claw, Collision.Default, post_solve=self.claw_hit_something)
 
         # add the walls of the tank to space
         r = 25
@@ -186,6 +192,7 @@ class Game(object):
             shape = pymunk.Segment(pymunk.Body(), p1, p2, r)
             shape.friction = 0.99
             shape.elasticity = 0.0
+            shape.collision_type = Collision.Default
             self.space.add(shape)
 
         shape = pymunk.Poly.create_box(pymunk.Body(20, 10000000), self.man_size)
@@ -194,6 +201,7 @@ class Game(object):
         self.man_angle = shape.body.angle
         shape.elasticity = 0
         shape.friction = 3.0
+        shape.collision_type = Collision.Default
         self.space.add(shape.body, shape)
         self.man = shape
 
@@ -201,6 +209,10 @@ class Game(object):
         self.sprite_claw.visible = False
         self.claw_radius = 8
         self.claw_shoot_speed = 1200
+        self.min_claw_dist = 50
+        self.claw_pin_to_add = None
+        self.claw_pin = None
+        self.claw_attached = False
 
         self.arm_offset = Vec2d(13, 43)
         self.arm_len = 24
@@ -209,6 +221,15 @@ class Game(object):
         # opengl
         pyglet.gl.glEnable(pyglet.gl.GL_BLEND)
         pyglet.gl.glBlendFunc(pyglet.gl.GL_SRC_ALPHA, pyglet.gl.GL_ONE_MINUS_SRC_ALPHA)
+
+    def claw_hit_something(self, space, arbiter):
+        if self.claw_attached:
+            return
+        # bolt these bodies together
+        claw, shape = arbiter.shapes
+        pos = arbiter.contacts[0].position
+        self.claw_pin_to_add = pymunk.PinJoint(claw.body, shape.body, pos - claw.body.position, pos - shape.body.position)
+        self.claw_attached = True
 
     def compute_arm_pos(self):
         self.arm_pos = self.man.body.position - self.man_size / 2 + self.arm_offset
@@ -270,22 +291,31 @@ class Game(object):
             self.claw = pymunk.Circle(body, self.claw_radius)
             self.claw.friction = 1
             self.claw.elasticity = 0
-            self.claw_joint = pymunk.SlideJoint(body, self.man.body, Vec2d(0, 0), Vec2d(0, 0), 0, self.tank.size.get_length())
+            self.claw.collision_type = Collision.Claw
+            self.claw_joint = pymunk.SlideJoint(self.claw.body, self.man.body, Vec2d(0, 0), Vec2d(0, 0), 0, self.tank.size.get_length())
             self.space.add(body, self.claw, self.claw_joint)
 
-        if self.control_state[Control.FireAlt] and self.claw_in_motion:
+        if self.sprite_claw.visible:
             claw_dist = (self.claw.body.position - self.point_start).get_length()
-            if claw_dist < 40:
+
+        if self.control_state[Control.FireAlt] and self.claw_in_motion:
+            if claw_dist < self.min_claw_dist:
                 # remove the claw
                 self.claw_in_motion = False
                 self.sprite_claw.visible = False
+                self.claw_attached = False
                 self.space.remove(self.claw.body, self.claw, self.claw_joint)
             else:
-                # prevent the claw from going back out once it goes in
-                if self.claw_joint.max > claw_dist:
-                    self.claw_joint.max = claw_dist
-                else:
-                    self.claw_joint.max -= 400 * dt
+                self.claw_joint.max -= 400 * dt
+
+        # prevent the claw from going back out once it goes in
+        if self.claw_attached and self.claw_joint.max > claw_dist:
+            self.claw_joint.max = claw_dist
+
+        if self.claw_pin_to_add is not None:
+            self.claw_pin = self.claw_pin_to_add
+            self.claw_pin_to_add = None
+            self.space.add(self.claw_pin)
 
 
         self.compute_atom_pointed_at()
