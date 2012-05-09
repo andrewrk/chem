@@ -270,7 +270,23 @@ class Game(object):
             self.claw = pymunk.Circle(body, self.claw_radius)
             self.claw.friction = 1
             self.claw.elasticity = 0
-            self.space.add(body, self.claw)
+            self.claw_joint = pymunk.SlideJoint(body, self.man.body, Vec2d(0, 0), Vec2d(0, 0), 0, self.tank.size.get_length())
+            self.space.add(body, self.claw, self.claw_joint)
+
+        if self.control_state[Control.FireAlt] and self.claw_in_motion:
+            claw_dist = (self.claw.body.position - self.point_start).get_length()
+            if claw_dist < 40:
+                # remove the claw
+                self.claw_in_motion = False
+                self.sprite_claw.visible = False
+                self.space.remove(self.claw.body, self.claw, self.claw_joint)
+            else:
+                # prevent the claw from going back out once it goes in
+                if self.claw_joint.max > claw_dist:
+                    self.claw_joint.max = claw_dist
+                else:
+                    self.claw_joint.max -= 400 * dt
+
 
         self.compute_atom_pointed_at()
 
