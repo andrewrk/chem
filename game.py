@@ -209,7 +209,7 @@ class Game(object):
         self.sprite_claw.visible = False
         self.claw_radius = 8
         self.claw_shoot_speed = 1200
-        self.min_claw_dist = 50
+        self.min_claw_dist = 75
         self.claw_pin_to_add = None
         self.claw_pin = None
         self.claw_attached = False
@@ -305,12 +305,16 @@ class Game(object):
                 self.sprite_claw.visible = False
                 self.claw_attached = False
                 self.space.remove(self.claw.body, self.claw, self.claw_joint)
+                if self.claw_pin is not None:
+                    self.space.remove(self.claw_pin)
+                    self.claw_pin = None
             else:
-                self.claw_joint.max -= 400 * dt
+                # prevent the claw from going back out once it goes in
+                if self.claw_attached and self.claw_joint.max > claw_dist:
+                    self.claw_joint.max = claw_dist
+                else:
+                    self.claw_joint.max -= 400 * dt
 
-        # prevent the claw from going back out once it goes in
-        if self.claw_attached and self.claw_joint.max > claw_dist:
-            self.claw_joint.max = claw_dist
 
         if self.claw_pin_to_add is not None:
             self.claw_pin = self.claw_pin_to_add
