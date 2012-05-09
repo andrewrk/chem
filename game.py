@@ -192,6 +192,7 @@ class Game(object):
         }
         self.control_state = [False] * (len(dir(Control)) - 2)
         self.let_go_of_fire_main = True
+        self.let_go_of_fire_alt = True
         self.crosshair = window.get_system_mouse_cursor(window.CURSOR_CROSSHAIR)
         self.default_cursor = window.get_system_mouse_cursor(window.CURSOR_DEFAULT)
         self.mouse_pos = Vec2d(0, 0)
@@ -246,11 +247,12 @@ class Game(object):
         self.sprite_claw.visible = False
         self.claw_radius = 8
         self.claw_shoot_speed = 1200
-        self.min_claw_dist = 75
+        self.min_claw_dist = 60
         self.claw_pin_to_add = None
         self.claw_pin = None
         self.claw_attached = False
         self.want_to_remove_claw_pin = False
+        self.want_to_retract_claw = False
 
         self.arm_offset = Vec2d(13, 43)
         self.arm_len = 24
@@ -369,6 +371,24 @@ class Game(object):
         claw_reel_out_speed = 200
         if self.control_state[Control.FireAlt] and self.claw_in_motion:
             if claw_dist < self.min_claw_dist:
+                self.want_to_retract_claw = True
+                self.let_go_of_fire_alt = False
+            else:
+                # prevent the claw from going back out once it goes in
+                if self.claw_attached and self.claw_joint.max > claw_dist:
+                    self.claw_joint.max = claw_dist
+                else:
+                    self.claw_joint.max -= claw_reel_in_speed * dt
+                    if self.claw_joint.max < self.min_claw_dist:
+                        self.claw_joint.max = self.min_claw_dist
+        if self.let_go_of_fire_main and self.control_state[Control.FireMain] and self.claw_attached:
+            self.unattach_claw()
+        if not self.control_state[Control.FireMain]:
+            self.let_go_of_fire_main = True
+        if not self.control_state[Control.FireAlt] and not self.let_go_of_fire_alt:
+            self.let_go_of_fire_alt = True
+            if self.want_to_retract_claw:
+                self.want_to_retract_claw = False
                 # remove the claw
                 self.claw_in_motion = False
                 self.sprite_claw.visible = False
@@ -376,16 +396,6 @@ class Game(object):
                 self.claw_attached = False
                 self.space.remove(self.claw.body, self.claw, self.claw_joint)
                 self.unattach_claw()
-            else:
-                # prevent the claw from going back out once it goes in
-                if self.claw_attached and self.claw_joint.max > claw_dist:
-                    self.claw_joint.max = claw_dist
-                else:
-                    self.claw_joint.max -= claw_reel_in_speed * dt
-        if self.let_go_of_fire_main and self.control_state[Control.FireMain] and self.claw_attached:
-            self.unattach_claw()
-        if not self.control_state[Control.FireMain]:
-            self.let_go_of_fire_main = True
 
 
         # queued actions
