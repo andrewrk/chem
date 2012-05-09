@@ -278,7 +278,14 @@ class Game(object):
                 if self.man.body.velocity.x < move_boost and self.man.body.velocity.x > 0:
                     self.man.body.velocity.x = move_boost
 
+        # jumping
+        if grounded:
+            animation_name = "still"
+        else:
+            animation_name = "jump"
+
         if self.control_state[Control.MoveUp] and grounded:
+            animation_name = "jump"
             self.man.body.velocity.y = 100
             self.man.body.apply_impulse(Vec2d(0, 2000), Vec2d(0, 0))
             # apply a reverse force upon the atom we jumped from
@@ -287,8 +294,8 @@ class Game(object):
                 shape.body.apply_impulse(Vec2d(0, -power), Vec2d(0, 0))
 
         # point the man+arm in direction of mouse
-        negate = self.mouse_pos.x < self.man.body.position.x
-        animation = self.animations.get("-still" if negate else "still")
+        negate = "-" if self.mouse_pos.x < self.man.body.position.x else ""
+        animation = self.animations.get(negate + animation_name)
         if self.sprite_man.image != animation:
             self.sprite_man.image = animation
         if self.control_state[Control.FireMain] and not self.claw_in_motion:
