@@ -1,7 +1,6 @@
 from __future__ import division, print_function, unicode_literals; range = xrange
 
 import pyglet
-from pygame.locals import *
 
 import sys
 import random
