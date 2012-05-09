@@ -371,8 +371,11 @@ class Game(object):
         claw_reel_out_speed = 200
         if self.control_state[Control.FireAlt] and self.claw_in_motion:
             if claw_dist < self.min_claw_dist:
-                self.want_to_retract_claw = True
-                self.let_go_of_fire_alt = False
+                if self.claw_pin is not None:
+                    self.want_to_retract_claw = True
+                    self.let_go_of_fire_alt = False
+                else:
+                    self.retract_claw()
             else:
                 # prevent the claw from going back out once it goes in
                 if self.claw_attached and self.claw_joint.max > claw_dist:
@@ -389,13 +392,7 @@ class Game(object):
             self.let_go_of_fire_alt = True
             if self.want_to_retract_claw:
                 self.want_to_retract_claw = False
-                # remove the claw
-                self.claw_in_motion = False
-                self.sprite_claw.visible = False
-                self.sprite_arm.image = self.animations.get("arm")
-                self.claw_attached = False
-                self.space.remove(self.claw.body, self.claw, self.claw_joint)
-                self.unattach_claw()
+                self.retract_claw()
 
 
         # queued actions
@@ -425,6 +422,15 @@ class Game(object):
         # man can't rotate
         self.man.body.angle = self.man_angle
 
+    def retract_claw(self):
+        if not self.sprite_claw.visible:
+            return
+        self.claw_in_motion = False
+        self.sprite_claw.visible = False
+        self.sprite_arm.image = self.animations.get("arm")
+        self.claw_attached = False
+        self.space.remove(self.claw.body, self.claw, self.claw_joint)
+        self.unattach_claw()
 
     def in_tank(self, pt):
         return pt.x >= 0 and pt.y >= 0 and pt.x < self.tank.size.x and pt.y < self.tank.size.y
