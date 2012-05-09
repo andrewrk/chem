@@ -307,6 +307,7 @@ class Game(object):
             self.let_go_of_fire_main = False
             self.claw_in_motion = True
             self.sprite_claw.visible = True
+            self.sprite_arm.image = self.animations.get("arm-flung")
             body = pymunk.Body(mass=5, moment=1000000)
             body.position = Vec2d(self.point_start)
             body.angle = self.point_vector.get_angle()
@@ -328,6 +329,7 @@ class Game(object):
                 # remove the claw
                 self.claw_in_motion = False
                 self.sprite_claw.visible = False
+                self.sprite_arm.image = self.animations.get("arm")
                 self.claw_attached = False
                 self.space.remove(self.claw.body, self.claw, self.claw_joint)
                 self.unattach_claw()
