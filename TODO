@@ -1,10 +1,11 @@
-* atoms should bond with each other
 * man should be able to use gun to grab an atom and shoot it somewhere else
 * get randomly attacked by weapons
 
 * title screen
 * configurable controls
 
+
+* remove items from Atom.atom_for_shape when necessary
 
 Weapons. These need icons as well as weapon-specific art.
 

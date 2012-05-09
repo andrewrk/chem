@@ -28,6 +28,7 @@ def sign(x):
 class Collision:
     Default = 0
     Claw = 1
+    Atom = 2
 
 class Control:
     MOUSE_OFFSET = 255
@@ -47,6 +48,9 @@ class Atom:
         (36, 89, 100),
     ]
 
+    atom_for_shape = {}
+    max_bonds = 2
+
     def __init__(self, pos, flavor_index, sprite, space):
         self.flavor_index = flavor_index
         self.sprite = sprite
@@ -56,8 +60,39 @@ class Atom:
         self.shape = pymunk.Circle(body, atom_radius)
         self.shape.friction = 0.5
         self.shape.elasticity = 0.05
-        self.shape.collision_type = Collision.Default
-        space.add(body, self.shape)
+        self.shape.collision_type = Collision.Atom
+        self.space = space
+        self.space.add(body, self.shape)
+
+        Atom.atom_for_shape[self.shape] = self
+        # atom => joint
+        self.bonds = {}
+
+    def bond_to(self, other):
+        # already bonded
+        if other in self.bonds:
+            return
+        # too many bonds already
+        if len(self.bonds) >= Atom.max_bonds or len(other.bonds) >= Atom.max_bonds:
+            return
+        # wrong color
+        if self.flavor_index != other.flavor_index:
+            return
+
+
+        joint = pymunk.PinJoint(self.shape.body, other.shape.body)
+        joint.distance = atom_radius * 2.5
+        self.bonds[other] = joint
+        other.bonds[self] = joint
+        self.space.add(joint)
+
+
+    def clean_up(self):
+        for atom, joint in self.bonds.iteritems():
+            del atom.bonds[self]
+            self.space.remove(joint)
+        self.space.remove(self.shape, self.body)
+        del Atom.atom_for_shape[self.shape]
 
 class Tank:
     def __init__(self, dims):
@@ -166,7 +201,7 @@ class Game(object):
         self.man_dims = Vec2d(1, 2)
         self.man_size = Vec2d(self.man_dims * atom_size)
 
-        self.time_between_drops = 0.5
+        self.time_between_drops = 1
         self.time_until_next_drop = 0
 
         self.tank = Tank(self.tank_dims)
@@ -175,6 +210,8 @@ class Game(object):
         self.space.gravity = Vec2d(0, -400)
         self.space.damping = 0.99
         self.space.add_collision_handler(Collision.Claw, Collision.Default, post_solve=self.claw_hit_something)
+        self.space.add_collision_handler(Collision.Claw, Collision.Atom, post_solve=self.claw_hit_something)
+        self.space.add_collision_handler(Collision.Atom, Collision.Atom, post_solve=self.atom_hit_atom)
 
         # add the walls of the tank to space
         r = 50
@@ -219,6 +256,8 @@ class Game(object):
         self.arm_len = 24
         self.compute_arm_pos()
 
+        self.bond_queue = []
+
         # opengl
         pyglet.gl.glEnable(pyglet.gl.GL_BLEND)
         pyglet.gl.glBlendFunc(pyglet.gl.GL_SRC_ALPHA, pyglet.gl.GL_ONE_MINUS_SRC_ALPHA)
@@ -231,6 +270,11 @@ class Game(object):
         pos = arbiter.contacts[0].position
         self.claw_pin_to_add = pymunk.PinJoint(claw.body, shape.body, pos - claw.body.position, pos - shape.body.position)
         self.claw_attached = True
+
+    def atom_hit_atom(self, space, arbiter):
+        atom1, atom2 = [Atom.atom_for_shape[shape] for shape in arbiter.shapes]
+        # bond the atoms together
+        self.bond_queue.append((atom1, atom2))
 
     def compute_arm_pos(self):
         self.arm_pos = self.man.body.position - self.man_size / 2 + self.arm_offset
@@ -350,6 +394,10 @@ class Game(object):
             self.claw_pin_to_add = None
             self.space.add(self.claw_pin)
 
+        for atom1, atom2 in self.bond_queue:
+            atom1.bond_to(atom2)
+        self.bond_queue = []
+
 
         self.compute_atom_pointed_at()
 
@@ -446,6 +494,11 @@ class Game(object):
         # draw a line from gun to claw if it's out
         if self.sprite_claw.visible:
             self.draw_line(self.point_start + self.tank_pos, self.sprite_claw.position, (1, 1, 0, 1))
+
+        # draw lines for bonded atoms
+        for atom in self.tank.atoms:
+            for other, joint in atom.bonds.iteritems():
+                self.draw_line(self.tank_pos + atom.shape.body.position, self.tank_pos + other.shape.body.position, (0, 0, 1, 1))
 
         self.fps_display.draw()
 
