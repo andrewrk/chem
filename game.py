@@ -267,12 +267,14 @@ class Game(object):
         move_force = grounded_move_force if grounded else air_move_force
         move_boost = grounded_move_boost if grounded else air_move_boost
         max_speed = 200
-        if self.control_state[Control.MoveLeft] and not self.control_state[Control.MoveRight]:
+        move_left = self.control_state[Control.MoveLeft] and not self.control_state[Control.MoveRight]
+        move_right = self.control_state[Control.MoveRight] and not self.control_state[Control.MoveLeft]
+        if move_left:
             if self.man.body.velocity.x >= -max_speed and self.man.body.position.x - self.man_size.x / 2 - 2 > 0:
                 self.man.body.apply_impulse(Vec2d(-move_force, 0), Vec2d(0, 0))
                 if self.man.body.velocity.x > -move_boost and self.man.body.velocity.x < 0:
                     self.man.body.velocity.x = -move_boost
-        elif self.control_state[Control.MoveRight] and not self.control_state[Control.MoveLeft]:
+        elif move_right:
             if self.man.body.velocity.x <= max_speed and self.man.body.position.x + self.man_size.x / 2 + 3 < self.tank.size.x:
                 self.man.body.apply_impulse(Vec2d(move_force, 0), Vec2d(0, 0))
                 if self.man.body.velocity.x < move_boost and self.man.body.velocity.x > 0:
@@ -280,7 +282,10 @@ class Game(object):
 
         # jumping
         if grounded:
-            animation_name = "still"
+            if move_left or move_right:
+                animation_name = "walk"
+            else:
+                animation_name = "still"
         else:
             animation_name = "jump"
 

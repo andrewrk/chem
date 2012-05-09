@@ -10,4 +10,4 @@ atom3 :1    :1   :0    :0    :32    :32    :16      :16       = atom-3.png
 
 still :1    :1   :0    :0    :32    :64    :16      :32       = man.png
 jump  :0.1  :0   :0    :0    :32    :64    :23      :32       = jump-0.png,jump-1.png,jump-2.png,jump-3.png
-walk  :0.1  :1   :0    :0    :32    :64    :23      :32       = walk-0.png,walk-1.png,walk-2.png,walk-3.png,walk-4.png,walk-5.png
+walk  :0.05 :1   :0    :0    :32    :64    :23      :32       = walk-0.png,walk-1.png,walk-2.png,walk-3.png,walk-4.png,walk-5.png
