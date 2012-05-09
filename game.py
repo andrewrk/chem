@@ -33,9 +33,8 @@ class Control:
     MoveRight = 1
     MoveUp = 2
     MoveDown = 3
-    PullAtom = 4
-    ShootAtom = 5
-    ShootRope = 6
+    FireMain = 4
+    FireAlt = 5
 
 class Atom:
     flavors = [
@@ -149,8 +148,8 @@ class Game(object):
             pyglet.window.key.COMMA: Control.MoveUp,
             pyglet.window.key.S: Control.MoveDown,
 
-            Control.MOUSE_OFFSET+pyglet.window.mouse.LEFT: Control.ShootRope,
-            Control.MOUSE_OFFSET+pyglet.window.mouse.RIGHT: Control.ShootAtom,
+            Control.MOUSE_OFFSET+pyglet.window.mouse.LEFT: Control.FireMain,
+            Control.MOUSE_OFFSET+pyglet.window.mouse.RIGHT: Control.FireAlt,
         }
         self.control_state = [False] * (len(dir(Control)) - 2)
         self.crosshair = window.get_system_mouse_cursor(window.CURSOR_CROSSHAIR)
@@ -158,7 +157,7 @@ class Game(object):
         self.mouse_pos = Vec2d(0, 0)
 
         self.tank_dims = Vec2d(12, 16)
-        self.tank_pos = Vec2d(108, 18)
+        self.tank_pos = Vec2d(109, 41)
         self.man_dims = Vec2d(1, 2)
         self.man_size = Vec2d(self.man_dims * atom_size)
 
@@ -197,11 +196,14 @@ class Game(object):
         shape.friction = 3.0
         self.space.add(shape.body, shape)
         self.man = shape
-        self.arm_offset = Vec2d(13, 43)
 
         self.claw_in_motion = False
         self.sprite_claw.visible = False
+        self.claw_radius = 8
+        self.claw_shoot_speed = 1200
 
+        self.arm_offset = Vec2d(13, 43)
+        self.arm_len = 24
         self.compute_arm_pos()
 
         # opengl
@@ -210,6 +212,9 @@ class Game(object):
 
     def compute_arm_pos(self):
         self.arm_pos = self.man.body.position - self.man_size / 2 + self.arm_offset
+        self.point_vector = (self.mouse_pos - self.arm_pos).normalized()
+        self.point_start = self.arm_pos + self.point_vector * self.arm_len
+
 
     def update(self, dt):
         self.time_until_next_drop -= dt
@@ -255,17 +260,18 @@ class Game(object):
         animation = self.animations.get("-man" if negate else "man")
         if self.sprite_man.image != animation:
             self.sprite_man.image = animation
-        if self.control_state[Control.ShootRope] and not self.claw_in_motion:
+        if self.control_state[Control.FireMain] and not self.claw_in_motion:
             self.claw_in_motion = True
             self.sprite_claw.visible = True
-            body = pymunk.Body(mass=10, moment=100000)
-            body.position = self.arm_pos
-            self.shape = pymunk.Circle(body, atom_radius)
-            self.shape.friction = 0.5
-            self.shape.elasticity = 0.05
-            space.add(body, self.shape)
+            body = pymunk.Body(mass=5, moment=1000000)
+            body.position = Vec2d(self.point_start)
+            body.angle = self.point_vector.get_angle()
+            body.velocity = self.point_vector * self.claw_shoot_speed
+            self.claw = pymunk.Circle(body, self.claw_radius)
+            self.claw.friction = 1
+            self.claw.elasticity = 0
+            self.space.add(body, self.claw)
 
-        # draw a faint line from the gun towards the crosshair
         self.compute_atom_pointed_at()
 
         # update physics
@@ -280,19 +286,16 @@ class Game(object):
         return pt.x >= 0 and pt.y >= 0 and pt.x < self.tank.size.x and pt.y < self.tank.size.y
 
     def compute_atom_pointed_at(self):
-        self.point_start = self.arm_pos
-
         # iterate over each atom. check if intersects with line.
         closest_atom = None
         closest_dist = None
-        vector = self.mouse_pos - self.point_start
         for atom in self.tank.atoms:
             # http://stackoverflow.com/questions/1073336/circle-line-collision-detection
             f = atom.shape.body.position - self.point_start
-            if sign(f.x) != sign(vector.x) or sign(f.y) != sign(vector.y):
+            if sign(f.x) != sign(self.point_vector.x) or sign(f.y) != sign(self.point_vector.y):
                 continue
-            a = vector.dot(vector)
-            b = 2 * f.dot(vector)
+            a = self.point_vector.dot(self.point_vector)
+            b = 2 * f.dot(self.point_vector)
             c = f.dot(f) - atom_radius*atom_radius
             discriminant = b*b - 4*a*c
             if discriminant < 0:
@@ -310,9 +313,9 @@ class Game(object):
         else:
             # no intersection
             # find the coords at the wall
-            slope = vector.y / vector.x
+            slope = self.point_vector.y / self.point_vector.x
             y_intercept = self.point_start.y - slope * self.point_start.x
-            self.point_end = self.point_start + self.tank.size.get_length() * vector.normalized()
+            self.point_end = self.point_start + self.tank.size.get_length() * self.point_vector
             if self.point_end.x > self.tank.size.x:
                 self.point_end.x = self.tank.size.x
                 self.point_end.y = slope * self.point_end.x + y_intercept
@@ -340,10 +343,18 @@ class Game(object):
         self.sprite_arm.set_position(*(self.arm_pos + self.tank_pos))
         self.sprite_arm.rotation = -(self.mouse_pos - self.man.body.position).get_angle_degrees()
 
+        if self.sprite_claw.visible:
+            self.sprite_claw.set_position(*(self.claw.body.position + self.tank_pos))
+            self.sprite_claw.rotation = -self.claw.body.rotation_vector.get_angle_degrees()
+
         self.batch.draw()
 
         # draw a line from gun hand to self.point_end
         self.draw_line(self.point_start + self.tank_pos, self.point_end + self.tank_pos, (0, 0, 0, 0.23))
+
+        # draw a line from gun to claw if it's out
+        if self.sprite_claw.visible:
+            self.draw_line(self.point_start + self.tank_pos, self.sprite_claw.position, (1, 1, 0, 1))
 
         self.fps_display.draw()
 
