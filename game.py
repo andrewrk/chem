@@ -157,6 +157,7 @@ class Game(object):
             Control.MOUSE_OFFSET+pyglet.window.mouse.RIGHT: Control.FireAlt,
         }
         self.control_state = [False] * (len(dir(Control)) - 2)
+        self.let_go_of_fire_main = True
         self.crosshair = window.get_system_mouse_cursor(window.CURSOR_CROSSHAIR)
         self.default_cursor = window.get_system_mouse_cursor(window.CURSOR_DEFAULT)
         self.mouse_pos = Vec2d(0, 0)
@@ -213,6 +214,7 @@ class Game(object):
         self.claw_pin_to_add = None
         self.claw_pin = None
         self.claw_attached = False
+        self.want_to_remove_claw_pin = False
 
         self.arm_offset = Vec2d(13, 43)
         self.arm_len = 24
@@ -290,6 +292,7 @@ class Game(object):
         if self.sprite_man.image != animation:
             self.sprite_man.image = animation
         if self.control_state[Control.FireMain] and not self.claw_in_motion:
+            self.let_go_of_fire_main = False
             self.claw_in_motion = True
             self.sprite_claw.visible = True
             body = pymunk.Body(mass=5, moment=1000000)
@@ -315,19 +318,20 @@ class Game(object):
                 self.sprite_claw.visible = False
                 self.claw_attached = False
                 self.space.remove(self.claw.body, self.claw, self.claw_joint)
-                if self.claw_pin is not None:
-                    self.space.remove(self.claw_pin)
-                    self.claw_pin = None
+                self.unattach_claw()
             else:
                 # prevent the claw from going back out once it goes in
                 if self.claw_attached and self.claw_joint.max > claw_dist:
                     self.claw_joint.max = claw_dist
                 else:
                     self.claw_joint.max -= claw_reel_in_speed * dt
-        if self.control_state[Control.FireMain] and self.claw_attached:
-            self.claw_joint.max += claw_reel_out_speed * dt
+        if self.let_go_of_fire_main and self.control_state[Control.FireMain] and self.claw_attached:
+            self.unattach_claw()
+        if not self.control_state[Control.FireMain]:
+            self.let_go_of_fire_main = True
 
 
+        # queued actions
         if self.claw_pin_to_add is not None:
             self.claw_pin = self.claw_pin_to_add
             self.claw_pin_to_add = None
@@ -338,14 +342,26 @@ class Game(object):
 
         # update physics
         self.space.step(dt)
+
+        if self.want_to_remove_claw_pin:
+            self.space.remove(self.claw_pin)
+            self.claw_pin = None
+            self.want_to_remove_claw_pin = False
+
         self.compute_arm_pos()
 
         # apply our constraints
         # man can't rotate
         self.man.body.angle = self.man_angle
 
+
     def in_tank(self, pt):
         return pt.x >= 0 and pt.y >= 0 and pt.x < self.tank.size.x and pt.y < self.tank.size.y
+
+    def unattach_claw(self):
+        if self.claw_pin is not None:
+            #self.claw.body.reset_forces()
+            self.want_to_remove_claw_pin = True
 
     def compute_atom_pointed_at(self):
         # iterate over each atom. check if intersects with line.
