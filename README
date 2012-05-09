@@ -1,5 +1,8 @@
 Dr. Chemical's Lab - PyWeek #14 Entry
 
+"In Dr. Chem's Lab... physics struggles with YOU"
+
+
 Install dependencies:
 
     sudo pip install pymunk pyglet

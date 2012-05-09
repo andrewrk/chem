@@ -129,7 +129,7 @@ class Game(object):
 
         self.sprite_arm = pyglet.sprite.Sprite(self.animations.get("arm"), batch=self.batch, group=self.group_fg)
 
-        self.sprite_man = pyglet.sprite.Sprite(self.animations.get("man"), batch=self.batch, group=self.group_main)
+        self.sprite_man = pyglet.sprite.Sprite(self.animations.get("still"), batch=self.batch, group=self.group_main)
 
         self.atom_imgs = [self.animations.get("atom%i" % i) for i in range(len(Atom.flavors))]
 
@@ -177,7 +177,7 @@ class Game(object):
         self.space.add_collision_handler(Collision.Claw, Collision.Default, post_solve=self.claw_hit_something)
 
         # add the walls of the tank to space
-        r = 25
+        r = 50
         borders = [
             # top wall
             (Vec2d(0, self.tank.size.y + r), Vec2d(self.tank.size.x, self.tank.size.y + r)),
@@ -251,20 +251,27 @@ class Game(object):
             self.tank.atoms.append(atom)
 
         # input
-        grounded, grounded_atom = self.is_grounded()
+        feet_start = self.man.body.position - self.man_size / 2 + Vec2d(1, -1)
+        feet_end = Vec2d(feet_start.x + self.man_size.x - 2, feet_start.y - 2)
+        bb = pymunk.BB(feet_start.x, feet_end.y, feet_end.x, feet_start.y)
+        ground_shapes = self.space.bb_query(bb)
+        grounded = len(ground_shapes) > 0
+
         grounded_move_force = 1000
         not_moving_x = abs(self.man.body.velocity.x) < 5.0
         air_move_force = 200
+        grounded_move_boost = 30
+        air_move_boost = 0
         move_force = grounded_move_force if grounded else air_move_force
-        move_boost = 30
+        move_boost = grounded_move_boost if grounded else air_move_boost
         max_speed = 200
         if self.control_state[Control.MoveLeft] and not self.control_state[Control.MoveRight]:
-            if self.man.body.velocity.x >= -max_speed:
+            if self.man.body.velocity.x >= -max_speed and self.man.body.position.x - self.man_size.x / 2 - 2 > 0:
                 self.man.body.apply_impulse(Vec2d(-move_force, 0), Vec2d(0, 0))
                 if self.man.body.velocity.x > -move_boost and self.man.body.velocity.x < 0:
                     self.man.body.velocity.x = -move_boost
         elif self.control_state[Control.MoveRight] and not self.control_state[Control.MoveLeft]:
-            if self.man.body.velocity.x <= max_speed:
+            if self.man.body.velocity.x <= max_speed and self.man.body.position.x + self.man_size.x / 2 + 3 < self.tank.size.x:
                 self.man.body.apply_impulse(Vec2d(move_force, 0), Vec2d(0, 0))
                 if self.man.body.velocity.x < move_boost and self.man.body.velocity.x > 0:
                     self.man.body.velocity.x = move_boost
@@ -273,12 +280,13 @@ class Game(object):
             self.man.body.velocity.y = 100
             self.man.body.apply_impulse(Vec2d(0, 2000), Vec2d(0, 0))
             # apply a reverse force upon the atom we jumped from
-            if grounded_atom is not None:
-                grounded_atom.shape.body.apply_impulse(Vec2d(0, -1000), Vec2d(0, 0))
+            power = 1000 / len(ground_shapes)
+            for shape in ground_shapes:
+                shape.body.apply_impulse(Vec2d(0, -power), Vec2d(0, 0))
 
         # point the man+arm in direction of mouse
         negate = self.mouse_pos.x < self.man.body.position.x
-        animation = self.animations.get("-man" if negate else "man")
+        animation = self.animations.get("-still" if negate else "still")
         if self.sprite_man.image != animation:
             self.sprite_man.image = animation
         if self.control_state[Control.FireMain] and not self.claw_in_motion:
@@ -298,6 +306,8 @@ class Game(object):
         if self.sprite_claw.visible:
             claw_dist = (self.claw.body.position - self.point_start).get_length()
 
+        claw_reel_in_speed = 400
+        claw_reel_out_speed = 200
         if self.control_state[Control.FireAlt] and self.claw_in_motion:
             if claw_dist < self.min_claw_dist:
                 # remove the claw
@@ -313,7 +323,9 @@ class Game(object):
                 if self.claw_attached and self.claw_joint.max > claw_dist:
                     self.claw_joint.max = claw_dist
                 else:
-                    self.claw_joint.max -= 400 * dt
+                    self.claw_joint.max -= claw_reel_in_speed * dt
+        if self.control_state[Control.FireMain] and self.claw_attached:
+            self.claw_joint.max += claw_reel_out_speed * dt
 
 
         if self.claw_pin_to_add is not None:
@@ -437,24 +449,6 @@ class Game(object):
             self.control_state[control] = False
         except KeyError:
             return
-
-    def is_grounded(self):
-        close_enough = 2
-        feet_pos = Vec2d(self.man.body.position.x, self.man.body.position.y - self.man_size.y / 2)
-        if feet_pos.y - close_enough <= 0:
-            return True, None
-
-        # loop over atoms
-        for atom in self.tank.atoms:
-            atom_pos = atom.shape.body.position
-            no_touch = feet_pos.x + self.man_size.x / 2 < atom_pos.x - atom_size.x / 2 or \
-                       feet_pos.x - self.man_size.x / 2 > atom_pos.x + atom_size.x / 2 or \
-                       feet_pos.y - close_enough > atom_pos.y + atom_size.y / 2 or \
-                       feet_pos.y < atom_pos.y - atom_size.y / 2
-            if not no_touch:
-                return True, atom
-
-        return False, None
 
     def start(self):
         pyglet.app.run()
