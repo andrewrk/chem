@@ -74,26 +74,51 @@ class Atom:
         if self.flavor_index != other.flavor_index:
             return
 
-
         joint = pymunk.PinJoint(self.shape.body, other.shape.body)
         joint.distance = atom_radius * 2.5
         self.bonds[other] = joint
         other.bonds[self] = joint
         self.space.add(joint)
 
+    def bond_loop(self):
+        "returns None or a list of atoms in the bond loop which includes itself"
+        if len(self.bonds) != 2:
+            return None
+        seen = {self: True}
+        atom, dest = self.bonds.keys()
+        while True:
+            seen[atom] = True
+            if atom is dest:
+                return seen.keys()
+            found = False
+            for next_atom, joint in atom.bonds.iteritems():
+                if next_atom not in seen:
+                    atom = next_atom
+                    found = True
+                    break
+            if not found:
+                return None
 
     def clean_up(self):
         for atom, joint in self.bonds.iteritems():
             del atom.bonds[self]
             self.space.remove(joint)
-        self.space.remove(self.shape, self.body)
+        self.bonds = None
+        self.space.remove(self.shape, self.shape.body)
         del Atom.atom_for_shape[self.shape]
+        self.sprite.delete()
+        self.sprite = None
 
 class Tank:
     def __init__(self, dims):
         self.dims = dims
         self.size = dims * atom_size
-        self.atoms = []
+        self.atoms = set()
+
+    def remove_atoms(self, atoms):
+        for atom in atoms:
+            atom.clean_up()
+            self.atoms.remove(atom)
 
 class Animations:
     def __init__(self):
@@ -197,7 +222,7 @@ class Game(object):
         self.man_dims = Vec2d(1, 2)
         self.man_size = Vec2d(self.man_dims * atom_size)
 
-        self.time_between_drops = 3
+        self.time_between_drops = 1
         self.time_until_next_drop = 0
 
         self.tank = Tank(self.tank_dims)
@@ -290,7 +315,7 @@ class Game(object):
                 self.tank.size.y - atom_size.y / 2,
             )
             atom = Atom(pos, flavor_index, pyglet.sprite.Sprite(self.atom_imgs[flavor_index], batch=self.batch, group=self.group_main), self.space)
-            self.tank.atoms.append(atom)
+            self.tank.atoms.add(atom)
 
         # input
         feet_start = self.man.body.position - self.man_size / 2 + Vec2d(1, -1)
@@ -397,7 +422,15 @@ class Game(object):
             self.space.add(self.claw_pin)
 
         for atom1, atom2 in self.bond_queue:
+            if atom1.bonds is None or atom2.bonds is None:
+                print("Warning: trying to bond with an atom that doesn't exist anymore")
+                continue
             atom1.bond_to(atom2)
+            bond_loop = atom1.bond_loop()
+            if bond_loop is not None:
+                # make all the atoms in this loop disappear
+                self.tank.remove_atoms(bond_loop)
+
         self.bond_queue = []
 
 
