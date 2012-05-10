@@ -62,6 +62,7 @@ class Atom:
         Atom.atom_for_shape[self.shape] = self
         # atom => joint
         self.bonds = {}
+        self.marked_for_deletion = False
 
     def bond_to(self, other):
         # already bonded
@@ -115,10 +116,13 @@ class Tank:
         self.size = dims * atom_size
         self.atoms = set()
 
+    def remove_atom(self, atom):
+        atom.clean_up()
+        self.atoms.remove(atom)
+
     def remove_atoms(self, atoms):
         for atom in atoms:
-            atom.clean_up()
-            self.atoms.remove(atom)
+            self.remove_atom(atom)
 
 class Animations:
     def __init__(self):
@@ -422,6 +426,8 @@ class Game(object):
             self.space.add(self.claw_pin)
 
         for atom1, atom2 in self.bond_queue:
+            if atom1.marked_for_deletion or atom2.marked_for_deletion:
+                continue
             if atom1.bonds is None or atom2.bonds is None:
                 print("Warning: trying to bond with an atom that doesn't exist anymore")
                 continue
@@ -429,7 +435,12 @@ class Game(object):
             bond_loop = atom1.bond_loop()
             if bond_loop is not None:
                 # make all the atoms in this loop disappear
-                self.tank.remove_atoms(bond_loop)
+                for atom in bond_loop:
+                    atom.marked_for_deletion = True
+                    def clear_sprite(atom=atom):
+                        self.tank.remove_atom(atom)
+                    atom.sprite.image = self.animations.get("asplosion")
+                    atom.sprite.set_handler("on_animation_end", clear_sprite)
 
         self.bond_queue = []
 
@@ -541,6 +552,8 @@ class Game(object):
 
         # draw lines for bonded atoms
         for atom in self.tank.atoms:
+            if atom.marked_for_deletion:
+                continue
             for other, joint in atom.bonds.iteritems():
                 self.draw_line(self.tank_pos + atom.shape.body.position, self.tank_pos + other.shape.body.position, (0, 0, 1, 1))
 
