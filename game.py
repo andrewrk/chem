@@ -41,12 +41,7 @@ class Control:
     FireAlt = 5
 
 class Atom:
-    flavors = [
-        (70, 83, 255),
-        (357, 82, 86),
-        (139, 67, 55),
-        (36, 89, 100),
-    ]
+    flavor_count = 6
 
     atom_for_shape = {}
     max_bonds = 2
@@ -165,7 +160,7 @@ class Game(object):
 
         self.sprite_man = pyglet.sprite.Sprite(self.animations.get("still"), batch=self.batch, group=self.group_main)
 
-        self.atom_imgs = [self.animations.get("atom%i" % i) for i in range(len(Atom.flavors))]
+        self.atom_imgs = [self.animations.get("atom%i" % i) for i in range(Atom.flavor_count)]
 
         self.sprite_claw = pyglet.sprite.Sprite(self.animations.get("claw"), batch=self.batch, group=self.group_main)
 
@@ -202,7 +197,7 @@ class Game(object):
         self.man_dims = Vec2d(1, 2)
         self.man_size = Vec2d(self.man_dims * atom_size)
 
-        self.time_between_drops = 1
+        self.time_between_drops = 3
         self.time_until_next_drop = 0
 
         self.tank = Tank(self.tank_dims)
@@ -289,7 +284,7 @@ class Game(object):
         if self.time_until_next_drop <= 0:
             self.time_until_next_drop += self.time_between_drops
             # drop a random atom
-            flavor_index = random.randint(0, len(Atom.flavors)-1)
+            flavor_index = random.randint(0, Atom.flavor_count-1)
             pos = Vec2d(
                 random.random() * (self.tank.size.x - atom_size.x) + atom_size.x / 2,
                 self.tank.size.y - atom_size.y / 2,
@@ -356,7 +351,7 @@ class Game(object):
             body = pymunk.Body(mass=5, moment=1000000)
             body.position = Vec2d(self.point_start)
             body.angle = self.point_vector.get_angle()
-            body.velocity = self.point_vector * self.claw_shoot_speed
+            body.velocity = self.man.body.velocity + self.point_vector * self.claw_shoot_speed
             self.claw = pymunk.Circle(body, self.claw_radius)
             self.claw.friction = 1
             self.claw.elasticity = 0
@@ -365,7 +360,7 @@ class Game(object):
             self.space.add(body, self.claw, self.claw_joint)
 
         if self.sprite_claw.visible:
-            claw_dist = (self.claw.body.position - self.point_start).get_length()
+            claw_dist = (self.claw.body.position - self.man.body.position).get_length()
 
         claw_reel_in_speed = 400
         claw_reel_out_speed = 200

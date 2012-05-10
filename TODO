@@ -1,4 +1,17 @@
+* atoms connected in a chain should disappear
+* ceiling should slowly lower
+* cashing in atoms should raise the ceiling back up
 * man should be able to use gun to grab an atom and shoot it somewhere else
+* lazer gun which destroys atoms
+* weapons:
+  - rock
+  - bomb
+  - uncork
+  - scissors
+  - acid
+  - radiation
+  - mess with gravity
+  - mess with mass
 * get randomly attacked by weapons
 
 * title screen
