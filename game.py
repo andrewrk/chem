@@ -207,13 +207,24 @@ class Game(object):
         # init variables
         self.controls = {
             pyglet.window.key.A: Control.MoveLeft,
-            pyglet.window.key.E: Control.MoveRight,
-            pyglet.window.key.COMMA: Control.MoveUp,
+            pyglet.window.key.D: Control.MoveRight,
+            pyglet.window.key.W: Control.MoveUp,
             pyglet.window.key.S: Control.MoveDown,
 
             Control.MOUSE_OFFSET+pyglet.window.mouse.LEFT: Control.FireMain,
             Control.MOUSE_OFFSET+pyglet.window.mouse.RIGHT: Control.FireAlt,
         }
+        if '--dvorak' in sys.argv:
+            self.controls[pyglet.window.key.A] = Control.MoveLeft
+            self.controls[pyglet.window.key.E] = Control.MoveRight
+            self.controls[pyglet.window.key.COMMA] = Control.MoveUp
+            self.controls[pyglet.window.key.S] = Control.MoveDown
+        elif '--colemak' in sys.argv:
+            self.controls[pyglet.window.key.A] = Control.MoveLeft
+            self.controls[pyglet.window.key.S] = Control.MoveRight
+            self.controls[pyglet.window.key.W] = Control.MoveUp
+            self.controls[pyglet.window.key.R] = Control.MoveDown
+
         self.control_state = [False] * (len(dir(Control)) - 2)
         self.let_go_of_fire_main = True
         self.let_go_of_fire_alt = True
@@ -284,6 +295,14 @@ class Game(object):
 
         self.bond_queue = []
 
+        self.points = 0
+        self.enemy_points = 0
+        self.points_to_crush = 50
+        self.survival_point_timeout = 10
+        self.next_survival_point = self.survival_point_timeout
+
+        self.sprite_tank = pyglet.sprite.Sprite(self.animations.get("tank"), batch=self.batch, group=self.group_main)
+
         # opengl
         pyglet.gl.glEnable(pyglet.gl.GL_BLEND)
         pyglet.gl.glBlendFunc(pyglet.gl.GL_SRC_ALPHA, pyglet.gl.GL_ONE_MINUS_SRC_ALPHA)
@@ -320,6 +339,17 @@ class Game(object):
             )
             atom = Atom(pos, flavor_index, pyglet.sprite.Sprite(self.atom_imgs[flavor_index], batch=self.batch, group=self.group_main), self.space)
             self.tank.atoms.add(atom)
+
+        # give enemy points
+        self.next_survival_point -= dt
+        if self.next_survival_point <= 0:
+            self.next_survival_point += self.survival_point_timeout
+            self.enemy_points += random.randint(3, 6)
+
+        # adjust the descending ceiling as necessary
+        self.ceiling_adjust = (self.points - self.enemy_points) / self.points_to_crush * self.tank.size.y
+        if self.ceiling_adjust > 0:
+            self.ceiling_adjust = 0
 
         # input
         feet_start = self.man.body.position - self.man_size / 2 + Vec2d(1, -1)
@@ -435,12 +465,14 @@ class Game(object):
             bond_loop = atom1.bond_loop()
             if bond_loop is not None:
                 # make all the atoms in this loop disappear
+                self.points += len(bond_loop)
                 for atom in bond_loop:
                     atom.marked_for_deletion = True
                     def clear_sprite(atom=atom):
                         self.tank.remove_atom(atom)
                     atom.sprite.image = self.animations.get("asplosion")
                     atom.sprite.set_handler("on_animation_end", clear_sprite)
+                print(self.points)
 
         self.bond_queue = []
 
@@ -536,6 +568,7 @@ class Game(object):
 
         self.sprite_arm.set_position(*(self.arm_pos + self.tank_pos))
         self.sprite_arm.rotation = -(self.mouse_pos - self.man.body.position).get_angle_degrees()
+        self.sprite_tank.set_position(*(self.tank_pos + Vec2d(0, self.tank.size.y + self.ceiling_adjust)))
 
         if self.sprite_claw.visible:
             self.sprite_claw.set_position(*(self.claw.body.position + self.tank_pos))

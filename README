@@ -10,3 +10,8 @@ Install dependencies:
 Run:
 
     python game.py
+
+Alternate keyboard layouts:
+
+    python game.py --dvorak
+    python game.py --colemak
