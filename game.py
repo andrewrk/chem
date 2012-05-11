@@ -431,11 +431,11 @@ class Game(object):
 
         self.retract_claw()
 
-    def explode_atom(self, atom):
+    def explode_atom(self, atom, animation_name="asplosion"):
         atom.marked_for_deletion = True
         def clear_sprite():
             self.tank.remove_atom(atom)
-        atom.sprite.image = self.animations.get("asplosion")
+        atom.sprite.image = self.animations.get(animation_name)
         atom.sprite.set_handler("on_animation_end", clear_sprite)
 
 
@@ -561,7 +561,7 @@ class Game(object):
                 self.lazer_line_timeout = self.lazer_line_timeout_start
 
                 if self.closest_atom is not None:
-                    self.explode_atom(self.closest_atom)
+                    self.explode_atom(self.closest_atom, "atomfail")
                     self.closest_atom = None
         self.lazer_line_timeout -= dt
         if self.lazer_line_timeout <= 0:
