@@ -506,7 +506,15 @@ class Game(object):
         elif self.control_state[Control.SwitchToLazer]:
             self.equipped_gun = Control.SwitchToLazer
 
-        arm_animation = self.animations.get(negate + self.gun_animations[self.equipped_gun])
+        if self.equipped_gun is Control.SwitchToGrapple:
+            if self.claw_in_motion:
+                ani_name = "arm-flung"
+            else:
+                ani_name = "arm"
+            arm_animation = self.animations.get(negate + ani_name)
+        else:
+            arm_animation = self.animations.get(negate + self.gun_animations[self.equipped_gun])
+
         if self.sprite_arm.image != arm_animation:
             self.sprite_arm.image = arm_animation
 
@@ -517,7 +525,6 @@ class Game(object):
                 self.let_go_of_fire_main = False
                 self.claw_in_motion = True
                 self.sprite_claw.visible = True
-                self.sprite_arm.image = self.animations.get("arm-flung")
                 body = pymunk.Body(mass=5, moment=1000000)
                 body.position = Vec2d(self.point_start)
                 body.angle = self.point_vector.get_angle()
