@@ -249,34 +249,10 @@ class Game(object):
         self.space.add_collision_handler(Collision.Claw, Collision.Atom, post_solve=self.claw_hit_something)
         self.space.add_collision_handler(Collision.Atom, Collision.Atom, post_solve=self.atom_hit_atom)
 
-        # add the walls of the tank to space
-        r = 50
-        borders = [
-            # top wall
-            (Vec2d(0, self.tank.size.y + r), Vec2d(self.tank.size.x, self.tank.size.y + r)),
-            # right wall
-            (Vec2d(self.tank.size.x + r, self.tank.size.y), Vec2d(self.tank.size.x + r, 0)),
-            # bottom wall
-            (Vec2d(self.tank.size.x, -r), Vec2d(0, -r)),
-            # left wall
-            (Vec2d(-r, 0), Vec2d(-r, self.tank.size.y)),
-        ]
-        for p1, p2 in borders:
-            shape = pymunk.Segment(pymunk.Body(), p1, p2, r)
-            shape.friction = 0.99
-            shape.elasticity = 0.0
-            shape.collision_type = Collision.Default
-            self.space.add(shape)
+        self.init_walls()
+        self.init_ceiling()
 
-        shape = pymunk.Poly.create_box(pymunk.Body(20, 10000000), self.man_size)
-        shape.body.position = Vec2d(self.tank.size.x / 2, self.man_size.y / 2)
-        shape.body.angular_velocity_limit = 0
-        self.man_angle = shape.body.angle
-        shape.elasticity = 0
-        shape.friction = 3.0
-        shape.collision_type = Collision.Default
-        self.space.add(shape.body, shape)
-        self.man = shape
+        self.init_man()
 
         self.claw_in_motion = False
         self.sprite_claw.visible = False
@@ -303,9 +279,52 @@ class Game(object):
 
         self.sprite_tank = pyglet.sprite.Sprite(self.animations.get("tank"), batch=self.batch, group=self.group_main)
 
-        # opengl
+        self.init_opengl()
+
+    def init_man(self):
+        # physics for man
+        shape = pymunk.Poly.create_box(pymunk.Body(20, 10000000), self.man_size)
+        shape.body.position = Vec2d(self.tank.size.x / 2, self.man_size.y / 2)
+        shape.body.angular_velocity_limit = 0
+        self.man_angle = shape.body.angle
+        shape.elasticity = 0
+        shape.friction = 3.0
+        shape.collision_type = Collision.Default
+        self.space.add(shape.body, shape)
+        self.man = shape
+
+
+    def init_opengl(self):
         pyglet.gl.glEnable(pyglet.gl.GL_BLEND)
         pyglet.gl.glBlendFunc(pyglet.gl.GL_SRC_ALPHA, pyglet.gl.GL_ONE_MINUS_SRC_ALPHA)
+
+    def init_walls(self):
+        # add the walls of the tank to space
+        r = 50
+        borders = [
+            # right wall
+            (Vec2d(self.tank.size.x + r, self.tank.size.y), Vec2d(self.tank.size.x + r, 0)),
+            # bottom wall
+            (Vec2d(self.tank.size.x, -r), Vec2d(0, -r)),
+            # left wall
+            (Vec2d(-r, 0), Vec2d(-r, self.tank.size.y)),
+        ]
+        for p1, p2 in borders:
+            shape = pymunk.Segment(pymunk.Body(), p1, p2, r)
+            shape.friction = 0.99
+            shape.elasticity = 0.0
+            shape.collision_type = Collision.Default
+            self.space.add(shape)
+
+
+    def init_ceiling(self):
+        # physics for ceiling
+        body = pymunk.Body(10000, 100000)
+        body.position = Vec2d(self.tank.size.x / 2, self.tank.size.y * 1.5)
+        self.ceiling = pymunk.Poly.create_box(body, self.tank.size)
+        self.ceiling.collision_type = Collision.Default
+        self.space.add(self.ceiling)
+
 
     def claw_hit_something(self, space, arbiter):
         if self.claw_attached:
@@ -328,6 +347,12 @@ class Game(object):
 
 
     def update(self, dt):
+        # adjust the descending ceiling as necessary
+        self.ceiling_adjust = (self.points - self.enemy_points) / self.points_to_crush * self.tank.size.y
+        if self.ceiling_adjust > 0:
+            self.ceiling_adjust = 0
+        self.ceiling.body.position.y = self.tank.size.y * 1.5 + self.ceiling_adjust
+
         self.time_until_next_drop -= dt
         if self.time_until_next_drop <= 0:
             self.time_until_next_drop += self.time_between_drops
@@ -335,7 +360,7 @@ class Game(object):
             flavor_index = random.randint(0, Atom.flavor_count-1)
             pos = Vec2d(
                 random.random() * (self.tank.size.x - atom_size.x) + atom_size.x / 2,
-                self.tank.size.y - atom_size.y / 2,
+                self.ceiling.body.position.y - self.tank.size.y / 2 - atom_size.y / 2,
             )
             atom = Atom(pos, flavor_index, pyglet.sprite.Sprite(self.atom_imgs[flavor_index], batch=self.batch, group=self.group_main), self.space)
             self.tank.atoms.add(atom)
@@ -568,7 +593,8 @@ class Game(object):
 
         self.sprite_arm.set_position(*(self.arm_pos + self.tank_pos))
         self.sprite_arm.rotation = -(self.mouse_pos - self.man.body.position).get_angle_degrees()
-        self.sprite_tank.set_position(*(self.tank_pos + Vec2d(0, self.tank.size.y + self.ceiling_adjust)))
+
+        self.sprite_tank.set_position(*(self.tank_pos + self.ceiling.body.position))
 
         if self.sprite_claw.visible:
             self.sprite_claw.set_position(*(self.claw.body.position + self.tank_pos))
