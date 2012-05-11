@@ -12,7 +12,7 @@ atom4      :1    :1   :0    :0    :32    :32    :16      :16       = atom-4.png
 atom5      :1    :1   :0    :0    :32    :32    :16      :16       = atom-5.png
 
 asplosion  :0.1  :0   :0    :0    :32    :32    :16      :16       = asplosion-0.png,asplosion-1.png,asplosion-2.png,asplosion-3.png,asplosion-4.png,asplosion-5.png
-tank       :1    :0   :0    :0    :384   :512   :192     :256      = tank.png
+tank       :0.1  :1   :0    :0    :384   :512   :192     :256      = tankleft0001.png,tankleft0002.png,tankleft0003.png,tankleft0004.png,tankleft0005.png,tankleft0006.png,tankleft0007.png,tankleft0008.png,tankleft0009.png,tankleft0010.png
 
 still      :1    :1   :0    :0    :32    :64    :16      :32       = man.png
 jump       :0.1  :0   :0    :0    :32    :64    :23      :32       = jump-0.png,jump-1.png,jump-2.png,jump-3.png
