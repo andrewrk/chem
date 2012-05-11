@@ -261,7 +261,8 @@ class Game(object):
         # if you have this many atoms per tank y or more, you lose
         self.lose_ratio = 95 / 300
 
-        self.sprite_tank = pyglet.sprite.Sprite(self.animations.get("tank"), batch=self.batch, group=self.group_main)
+        tank_name = "tank%i" % random.randint(1, 2)
+        self.sprite_tank = pyglet.sprite.Sprite(self.animations.get(tank_name), batch=self.batch, group=self.group_main)
 
         self.game_over = False
 
@@ -713,22 +714,22 @@ class Game(object):
         if not self.game_over:
             self.draw_line(self.point_start + self.tank_pos, self.point_end + self.tank_pos, (0, 0, 0, 0.23))
 
-        # draw a line from gun to claw if it's out
-        if self.sprite_claw.visible:
-            self.draw_line(self.point_start + self.tank_pos, self.sprite_claw.position, (1, 1, 0, 1))
+            # draw a line from gun to claw if it's out
+            if self.sprite_claw.visible:
+                self.draw_line(self.point_start + self.tank_pos, self.sprite_claw.position, (1, 1, 0, 1))
 
-        # draw lines for bonded atoms
-        for atom in self.tank.atoms:
-            if atom.marked_for_deletion:
-                continue
-            for other, joint in atom.bonds.iteritems():
-                self.draw_line(self.tank_pos + atom.shape.body.position, self.tank_pos + other.shape.body.position, (0, 0, 1, 1))
+            # draw lines for bonded atoms
+            for atom in self.tank.atoms:
+                if atom.marked_for_deletion:
+                    continue
+                for other, joint in atom.bonds.iteritems():
+                    self.draw_line(self.tank_pos + atom.shape.body.position, self.tank_pos + other.shape.body.position, (0, 0, 1, 1))
 
 
-        # lazer
-        if self.lazer_line is not None:
-            start, end = self.lazer_line
-            self.draw_line(start + self.tank_pos, end + self.tank_pos, (1, 0, 0, 1))
+            # lazer
+            if self.lazer_line is not None:
+                start, end = self.lazer_line
+                self.draw_line(start + self.tank_pos, end + self.tank_pos, (1, 0, 0, 1))
 
         self.fps_display.draw()
 
