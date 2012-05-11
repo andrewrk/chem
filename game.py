@@ -183,7 +183,9 @@ class Game(object):
         self.group_fg = pyglet.graphics.OrderedGroup(2)
 
         img_bg = pyglet.resource.image("data/bg.png")
+        img_bg_top = pyglet.resource.image("data/bg-top.png")
         self.sprite_bg = pyglet.sprite.Sprite(img_bg, batch=self.batch, group=self.group_bg)
+        self.sprite_bg_top = pyglet.sprite.Sprite(img_bg_top, batch=self.batch, group=self.group_fg, x=0, y=img_bg.height-img_bg_top.height)
 
         self.sprite_arm = pyglet.sprite.Sprite(self.animations.get("arm"), batch=self.batch, group=self.group_fg)
 
