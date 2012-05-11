@@ -381,7 +381,7 @@ class Game(object):
         pos = arbiter.contacts[0].position
         shape_anchor = pos - shape.body.position
         claw_anchor = pos - claw.body.position
-        claw_delta = claw_anchor.normalized() * -(self.claw_radius + 4)
+        claw_delta = claw_anchor.normalized() * -(self.claw_radius + 8)
         self.claw.body.position += claw_delta
         self.claw_pins_to_add = [
             pymunk.PinJoint(claw.body, shape.body, claw_anchor, shape_anchor),
@@ -448,6 +448,8 @@ class Game(object):
     def explode_atom(self, atom, animation_name="asplosion"):
         if atom is self.ray_atom:
             self.ray_atom = None
+        if self.claw_pins is not None and self.claw_pins[0].b is atom.shape.body:
+            self.unattach_claw()
         atom.marked_for_deletion = True
         def clear_sprite():
             self.tank.remove_atom(atom)
@@ -480,7 +482,7 @@ class Game(object):
         move_left = self.control_state[Control.MoveLeft] and not self.control_state[Control.MoveRight]
         move_right = self.control_state[Control.MoveRight] and not self.control_state[Control.MoveLeft]
         if move_left:
-            if self.man.body.velocity.x >= -max_speed and self.man.body.position.x - self.man_size.x / 2 - 2 > 0:
+            if self.man.body.velocity.x >= -max_speed and self.man.body.position.x - self.man_size.x / 2 - 5 > 0:
                 self.man.body.apply_impulse(Vec2d(-move_force, 0), Vec2d(0, 0))
                 if self.man.body.velocity.x > -move_boost and self.man.body.velocity.x < 0:
                     self.man.body.velocity.x = -move_boost
@@ -490,6 +492,7 @@ class Game(object):
                 if self.man.body.velocity.x < move_boost and self.man.body.velocity.x > 0:
                     self.man.body.velocity.x = move_boost
 
+        negate = "-" if self.mouse_pos.x < self.man.body.position.x else ""
         # jumping
         if grounded:
             if move_left or move_right:
@@ -501,6 +504,7 @@ class Game(object):
 
         if self.control_state[Control.MoveUp] and grounded:
             animation_name = "jump"
+            self.sprite_man.image = self.animations.get(negate + animation_name)
             self.man.body.velocity.y = 100
             self.man.body.apply_impulse(Vec2d(0, 2000), Vec2d(0, 0))
             # apply a reverse force upon the atom we jumped from
@@ -509,7 +513,6 @@ class Game(object):
                 shape.body.apply_impulse(Vec2d(0, -power), Vec2d(0, 0))
 
         # point the man+arm in direction of mouse
-        negate = "-" if self.mouse_pos.x < self.man.body.position.x else ""
         animation = self.animations.get(negate + animation_name)
         if self.sprite_man.image != animation:
             self.sprite_man.image = animation
@@ -537,7 +540,7 @@ class Game(object):
         if self.equipped_gun is Control.SwitchToGrapple:
             claw_reel_in_speed = 400
             claw_reel_out_speed = 200
-            if self.let_go_of_fire_main and self.control_state[Control.FireMain] and not self.claw_in_motion:
+            if not self.want_to_remove_claw_pin and not self.want_to_retract_claw and self.let_go_of_fire_main and self.control_state[Control.FireMain] and not self.claw_in_motion:
                 self.let_go_of_fire_main = False
                 self.claw_in_motion = True
                 self.sprite_claw.visible = True
@@ -705,27 +708,30 @@ class Game(object):
             self.want_to_remove_claw_pin = True
 
     def compute_atom_pointed_at(self):
-        # iterate over each atom. check if intersects with line.
-        self.closest_atom = None
-        closest_dist = None
-        for atom in self.tank.atoms:
-            if atom.marked_for_deletion:
-                continue
-            # http://stackoverflow.com/questions/1073336/circle-line-collision-detection
-            f = atom.shape.body.position - self.point_start
-            if sign(f.x) != sign(self.point_vector.x) or sign(f.y) != sign(self.point_vector.y):
-                continue
-            a = self.point_vector.dot(self.point_vector)
-            b = 2 * f.dot(self.point_vector)
-            c = f.dot(f) - atom_radius*atom_radius
-            discriminant = b*b - 4*a*c
-            if discriminant < 0:
-                continue
+        if self.equipped_gun is Control.SwitchToGrapple:
+            self.closest_atom = None
+        else:
+            # iterate over each atom. check if intersects with line.
+            self.closest_atom = None
+            closest_dist = None
+            for atom in self.tank.atoms:
+                if atom.marked_for_deletion:
+                    continue
+                # http://stackoverflow.com/questions/1073336/circle-line-collision-detection
+                f = atom.shape.body.position - self.point_start
+                if sign(f.x) != sign(self.point_vector.x) or sign(f.y) != sign(self.point_vector.y):
+                    continue
+                a = self.point_vector.dot(self.point_vector)
+                b = 2 * f.dot(self.point_vector)
+                c = f.dot(f) - atom_radius*atom_radius
+                discriminant = b*b - 4*a*c
+                if discriminant < 0:
+                    continue
 
-            dist = atom.shape.body.position.get_dist_sqrd(self.point_start)
-            if self.closest_atom is None or dist < closest_dist:
-                self.closest_atom = atom
-                closest_dist = dist
+                dist = atom.shape.body.position.get_dist_sqrd(self.point_start)
+                if self.closest_atom is None or dist < closest_dist:
+                    self.closest_atom = atom
+                    closest_dist = dist
 
         if self.closest_atom is not None:
             # intersection
