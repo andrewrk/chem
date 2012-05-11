@@ -237,7 +237,7 @@ class Game(object):
         self.man_dims = Vec2d(1, 2)
         self.man_size = Vec2d(self.man_dims * atom_size)
 
-        self.time_between_drops = 1
+        self.time_between_drops = 0.2 if "--fastatoms" in sys.argv else 1
         self.time_until_next_drop = 0
 
         self.tank = Tank(self.tank_dims)
@@ -274,10 +274,15 @@ class Game(object):
         self.points = 0
         self.enemy_points = 0
         self.points_to_crush = 50
-        self.survival_point_timeout = 10
+        self.survival_point_timeout = 1 if "--hard" in sys.argv else 10
         self.next_survival_point = self.survival_point_timeout
 
+        # if you have this many atoms per tank y or more, you lose
+        self.lose_ratio = 90 / 300
+
         self.sprite_tank = pyglet.sprite.Sprite(self.animations.get("tank"), batch=self.batch, group=self.group_main)
+
+        self.game_over = False
 
         self.init_opengl()
 
@@ -352,6 +357,8 @@ class Game(object):
         adjust = (self.points - self.enemy_points) / self.points_to_crush * self.tank.size.y
         if adjust > 0:
             adjust = 0
+        if self.game_over:
+            adjust = 0
         target_y = self.tank.size.y * 1.5 + adjust
 
         direction = sign(target_y - self.ceiling.body.position.y)
@@ -364,9 +371,9 @@ class Game(object):
         else:
             self.ceiling.body.position.y = new_y
 
-    def update(self, dt):
-        self.adjust_ceiling(dt)
-
+    def compute_drops(self, dt):
+        if self.game_over:
+            return
         self.time_until_next_drop -= dt
         if self.time_until_next_drop <= 0:
             self.time_until_next_drop += self.time_between_drops
@@ -379,13 +386,35 @@ class Game(object):
             atom = Atom(pos, flavor_index, pyglet.sprite.Sprite(self.atom_imgs[flavor_index], batch=self.batch, group=self.group_main), self.space)
             self.tank.atoms.add(atom)
 
-        # give enemy points
-        self.next_survival_point -= dt
-        if self.next_survival_point <= 0:
-            self.next_survival_point += self.survival_point_timeout
-            self.enemy_points += random.randint(3, 6)
+            # check if we died
+            ratio = len(self.tank.atoms) / (self.ceiling.body.position.y - self.tank.size.y / 2)
+            if ratio > self.lose_ratio:
+                self.lose()
 
-        # input
+
+    def lose(self):
+        if self.game_over:
+            return
+        self.game_over = True
+        self.explode_atoms(list(self.tank.atoms))
+
+        self.sprite_man.image = self.animations.get("defeat")
+        self.sprite_arm.visible = False
+
+        self.retract_claw()
+
+    def explode_atoms(self, atoms):
+        for atom in atoms:
+            atom.marked_for_deletion = True
+            def clear_sprite(atom=atom):
+                self.tank.remove_atom(atom)
+            atom.sprite.image = self.animations.get("asplosion")
+            atom.sprite.set_handler("on_animation_end", clear_sprite)
+
+    def process_input(self, dt):
+        if self.game_over:
+            return
+
         feet_start = self.man.body.position - self.man_size / 2 + Vec2d(1, -1)
         feet_end = Vec2d(feet_start.x + self.man_size.x - 2, feet_start.y - 2)
         bb = pymunk.BB(feet_start.x, feet_end.y, feet_end.x, feet_start.y)
@@ -482,8 +511,7 @@ class Game(object):
                 self.want_to_retract_claw = False
                 self.retract_claw()
 
-
-        # queued actions
+    def process_queued_actions(self):
         if self.claw_pin_to_add is not None:
             self.claw_pin = self.claw_pin_to_add
             self.claw_pin_to_add = None
@@ -500,16 +528,25 @@ class Game(object):
             if bond_loop is not None:
                 # make all the atoms in this loop disappear
                 self.points += len(bond_loop)
-                for atom in bond_loop:
-                    atom.marked_for_deletion = True
-                    def clear_sprite(atom=atom):
-                        self.tank.remove_atom(atom)
-                    atom.sprite.image = self.animations.get("asplosion")
-                    atom.sprite.set_handler("on_animation_end", clear_sprite)
-                print(self.points)
+                self.explode_atoms(bond_loop)
 
         self.bond_queue = []
 
+    def update(self, dt):
+        self.adjust_ceiling(dt)
+        self.compute_drops(dt)
+
+        # give enemy points
+        self.next_survival_point -= dt
+        if self.next_survival_point <= 0:
+            self.next_survival_point += self.survival_point_timeout
+            self.enemy_points += random.randint(3, 6)
+
+        self.process_input(dt)
+
+
+        # queued actions
+        self.process_queued_actions()
 
         self.compute_atom_pointed_at()
 
@@ -612,7 +649,8 @@ class Game(object):
         self.batch.draw()
 
         # draw a line from gun hand to self.point_end
-        self.draw_line(self.point_start + self.tank_pos, self.point_end + self.tank_pos, (0, 0, 0, 0.23))
+        if not self.game_over:
+            self.draw_line(self.point_start + self.tank_pos, self.point_end + self.tank_pos, (0, 0, 0, 0.23))
 
         # draw a line from gun to claw if it's out
         if self.sprite_claw.visible:

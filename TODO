@@ -1,6 +1,7 @@
-* get crushed and lose
 * man should be able to use gun to grab an atom and shoot it somewhere else
 * lazer gun which destroys atoms
+* make the claw less shakey
+* preview the atoms before they drop
 * weapons:
   - rock
   - bomb
@@ -15,8 +16,10 @@
 * title screen
 * configurable controls
 
+* multiplayer
 
-* remove items from Atom.atom_for_shape when necessary
+
+Brainstorming:
 
 Weapons. These need icons as well as weapon-specific art.
 
