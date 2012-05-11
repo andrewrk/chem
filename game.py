@@ -39,6 +39,9 @@ class Control:
     MoveDown = 3
     FireMain = 4
     FireAlt = 5
+    SwitchToGrapple = 6
+    SwitchToRay = 7
+    SwitchToLazer = 8
 
 class Atom:
     flavor_count = 6
@@ -185,7 +188,7 @@ class Game(object):
         img_bg = pyglet.resource.image("data/bg.png")
         img_bg_top = pyglet.resource.image("data/bg-top.png")
         self.sprite_bg = pyglet.sprite.Sprite(img_bg, batch=self.batch, group=self.group_bg)
-        self.sprite_bg_top = pyglet.sprite.Sprite(img_bg_top, batch=self.batch, group=self.group_fg, x=0, y=img_bg.height-img_bg_top.height)
+        self.sprite_bg_top = pyglet.sprite.Sprite(img_bg_top, batch=self.batch, group=self.group_fg, y=img_bg.height-img_bg_top.height)
 
         self.sprite_arm = pyglet.sprite.Sprite(self.animations.get("arm"), batch=self.batch, group=self.group_fg)
 
@@ -207,29 +210,8 @@ class Game(object):
         self.fps_display = pyglet.clock.ClockDisplay()
 
         # init variables
-        self.controls = {
-            pyglet.window.key.A: Control.MoveLeft,
-            pyglet.window.key.D: Control.MoveRight,
-            pyglet.window.key.W: Control.MoveUp,
-            pyglet.window.key.S: Control.MoveDown,
+        self.init_controls()
 
-            Control.MOUSE_OFFSET+pyglet.window.mouse.LEFT: Control.FireMain,
-            Control.MOUSE_OFFSET+pyglet.window.mouse.RIGHT: Control.FireAlt,
-        }
-        if '--dvorak' in sys.argv:
-            self.controls[pyglet.window.key.A] = Control.MoveLeft
-            self.controls[pyglet.window.key.E] = Control.MoveRight
-            self.controls[pyglet.window.key.COMMA] = Control.MoveUp
-            self.controls[pyglet.window.key.S] = Control.MoveDown
-        elif '--colemak' in sys.argv:
-            self.controls[pyglet.window.key.A] = Control.MoveLeft
-            self.controls[pyglet.window.key.S] = Control.MoveRight
-            self.controls[pyglet.window.key.W] = Control.MoveUp
-            self.controls[pyglet.window.key.R] = Control.MoveDown
-
-        self.control_state = [False] * (len(dir(Control)) - 2)
-        self.let_go_of_fire_main = True
-        self.let_go_of_fire_alt = True
         self.crosshair = window.get_system_mouse_cursor(window.CURSOR_CROSSHAIR)
         self.default_cursor = window.get_system_mouse_cursor(window.CURSOR_DEFAULT)
         self.mouse_pos = Vec2d(0, 0)
@@ -256,20 +238,17 @@ class Game(object):
 
         self.init_man()
 
-        self.claw_in_motion = False
-        self.sprite_claw.visible = False
-        self.claw_radius = 8
-        self.claw_shoot_speed = 1200
-        self.min_claw_dist = 60
-        self.claw_pin_to_add = None
-        self.claw_pin = None
-        self.claw_attached = False
-        self.want_to_remove_claw_pin = False
-        self.want_to_retract_claw = False
-
+        self.init_grapple_gun()
         self.arm_offset = Vec2d(13, 43)
         self.arm_len = 24
         self.compute_arm_pos()
+
+        self.equipped_gun = Control.SwitchToGrapple
+        self.gun_animations = {
+            Control.SwitchToGrapple: "arm",
+            Control.SwitchToRay: "raygun",
+            Control.SwitchToLazer: "lazergun",
+        }
 
         self.bond_queue = []
 
@@ -287,6 +266,48 @@ class Game(object):
         self.game_over = False
 
         self.init_opengl()
+
+    def init_grapple_gun(self):
+        self.claw_in_motion = False
+        self.sprite_claw.visible = False
+        self.claw_radius = 8
+        self.claw_shoot_speed = 1200
+        self.min_claw_dist = 60
+        self.claw_pin_to_add = None
+        self.claw_pin = None
+        self.claw_attached = False
+        self.want_to_remove_claw_pin = False
+        self.want_to_retract_claw = False
+
+
+    def init_controls(self):
+        self.controls = {
+            pyglet.window.key.A: Control.MoveLeft,
+            pyglet.window.key.D: Control.MoveRight,
+            pyglet.window.key.W: Control.MoveUp,
+            pyglet.window.key.S: Control.MoveDown,
+
+            pyglet.window.key._1: Control.SwitchToGrapple,
+            pyglet.window.key._2: Control.SwitchToRay,
+            pyglet.window.key._3: Control.SwitchToLazer,
+
+            Control.MOUSE_OFFSET+pyglet.window.mouse.LEFT: Control.FireMain,
+            Control.MOUSE_OFFSET+pyglet.window.mouse.RIGHT: Control.FireAlt,
+        }
+        if '--dvorak' in sys.argv:
+            self.controls[pyglet.window.key.A] = Control.MoveLeft
+            self.controls[pyglet.window.key.E] = Control.MoveRight
+            self.controls[pyglet.window.key.COMMA] = Control.MoveUp
+            self.controls[pyglet.window.key.S] = Control.MoveDown
+        elif '--colemak' in sys.argv:
+            self.controls[pyglet.window.key.A] = Control.MoveLeft
+            self.controls[pyglet.window.key.S] = Control.MoveRight
+            self.controls[pyglet.window.key.W] = Control.MoveUp
+            self.controls[pyglet.window.key.R] = Control.MoveDown
+
+        self.control_state = [False] * len(dir(Control))
+        self.let_go_of_fire_main = True
+        self.let_go_of_fire_alt = True
 
     def init_man(self):
         # physics for man
@@ -467,48 +488,56 @@ class Game(object):
         animation = self.animations.get(negate + animation_name)
         if self.sprite_man.image != animation:
             self.sprite_man.image = animation
-        if self.control_state[Control.FireMain] and not self.claw_in_motion:
-            self.let_go_of_fire_main = False
-            self.claw_in_motion = True
-            self.sprite_claw.visible = True
-            self.sprite_arm.image = self.animations.get("arm-flung")
-            body = pymunk.Body(mass=5, moment=1000000)
-            body.position = Vec2d(self.point_start)
-            body.angle = self.point_vector.get_angle()
-            body.velocity = self.man.body.velocity + self.point_vector * self.claw_shoot_speed
-            self.claw = pymunk.Circle(body, self.claw_radius)
-            self.claw.friction = 1
-            self.claw.elasticity = 0
-            self.claw.collision_type = Collision.Claw
-            self.claw_joint = pymunk.SlideJoint(self.claw.body, self.man.body, Vec2d(0, 0), Vec2d(0, 0), 0, self.tank.size.get_length())
-            self.space.add(body, self.claw, self.claw_joint)
 
-        if self.sprite_claw.visible:
-            claw_dist = (self.claw.body.position - self.man.body.position).get_length()
+        arm_animation = self.animations.get(negate + self.gun_animations[self.equipped_gun])
+        if self.sprite_arm.image != arm_animation:
+            self.sprite_arm.image = arm_animation
 
-        claw_reel_in_speed = 400
-        claw_reel_out_speed = 200
-        if self.control_state[Control.FireAlt] and self.claw_in_motion:
-            if claw_dist < self.min_claw_dist:
-                if self.claw_pin is not None:
-                    self.want_to_retract_claw = True
-                    self.let_go_of_fire_alt = False
+        if self.equipped_gun is Control.SwitchToGrapple:
+            claw_reel_in_speed = 400
+            claw_reel_out_speed = 200
+            if self.control_state[Control.FireMain] and not self.claw_in_motion:
+                self.let_go_of_fire_main = False
+                self.claw_in_motion = True
+                self.sprite_claw.visible = True
+                self.sprite_arm.image = self.animations.get("arm-flung")
+                body = pymunk.Body(mass=5, moment=1000000)
+                body.position = Vec2d(self.point_start)
+                body.angle = self.point_vector.get_angle()
+                body.velocity = self.man.body.velocity + self.point_vector * self.claw_shoot_speed
+                self.claw = pymunk.Circle(body, self.claw_radius)
+                self.claw.friction = 1
+                self.claw.elasticity = 0
+                self.claw.collision_type = Collision.Claw
+                self.claw_joint = pymunk.SlideJoint(self.claw.body, self.man.body, Vec2d(0, 0), Vec2d(0, 0), 0, self.tank.size.get_length())
+                self.space.add(body, self.claw, self.claw_joint)
+
+            if self.sprite_claw.visible:
+                claw_dist = (self.claw.body.position - self.man.body.position).get_length()
+
+            if self.control_state[Control.FireAlt] and self.claw_in_motion:
+                if claw_dist < self.min_claw_dist:
+                    if self.claw_pin is not None:
+                        self.want_to_retract_claw = True
+                        self.let_go_of_fire_alt = False
+                    else:
+                        self.retract_claw()
                 else:
-                    self.retract_claw()
-            else:
-                # prevent the claw from going back out once it goes in
-                if self.claw_attached and self.claw_joint.max > claw_dist:
-                    self.claw_joint.max = claw_dist
-                else:
-                    self.claw_joint.max -= claw_reel_in_speed * dt
-                    if self.claw_joint.max < self.min_claw_dist:
-                        self.claw_joint.max = self.min_claw_dist
-        if self.let_go_of_fire_main and self.control_state[Control.FireMain] and self.claw_attached:
-            self.unattach_claw()
+                    # prevent the claw from going back out once it goes in
+                    if self.claw_attached and self.claw_joint.max > claw_dist:
+                        self.claw_joint.max = claw_dist
+                    else:
+                        self.claw_joint.max -= claw_reel_in_speed * dt
+                        if self.claw_joint.max < self.min_claw_dist:
+                            self.claw_joint.max = self.min_claw_dist
+            if self.let_go_of_fire_main and self.control_state[Control.FireMain] and self.claw_attached:
+                self.unattach_claw()
+
         if not self.control_state[Control.FireMain]:
             self.let_go_of_fire_main = True
         if not self.control_state[Control.FireAlt] and not self.let_go_of_fire_alt:
             self.let_go_of_fire_alt = True
+
             if self.want_to_retract_claw:
                 self.want_to_retract_claw = False
                 self.retract_claw()
@@ -641,6 +670,8 @@ class Game(object):
 
         self.sprite_arm.set_position(*(self.arm_pos + self.tank_pos))
         self.sprite_arm.rotation = -(self.mouse_pos - self.man.body.position).get_angle_degrees()
+        if self.mouse_pos.x < self.man.body.position.x:
+            self.sprite_arm.rotation += 180
 
         self.sprite_tank.set_position(*(self.tank_pos + self.ceiling.body.position))
 
