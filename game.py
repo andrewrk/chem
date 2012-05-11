@@ -324,6 +324,8 @@ class Game(object):
         self.ceiling = pymunk.Poly.create_box(body, self.tank.size)
         self.ceiling.collision_type = Collision.Default
         self.space.add(self.ceiling)
+        # per second
+        self.max_ceiling_delta = 200
 
 
     def claw_hit_something(self, space, arbiter):
@@ -345,13 +347,25 @@ class Game(object):
         self.point_vector = (self.mouse_pos - self.arm_pos).normalized()
         self.point_start = self.arm_pos + self.point_vector * self.arm_len
 
+    def adjust_ceiling(self, dt):
+        # adjust the descending ceiling as necessary
+        adjust = (self.points - self.enemy_points) / self.points_to_crush * self.tank.size.y
+        if adjust > 0:
+            adjust = 0
+        target_y = self.tank.size.y * 1.5 + adjust
+
+        direction = sign(target_y - self.ceiling.body.position.y)
+        amount = self.max_ceiling_delta * dt
+        new_y = self.ceiling.body.position.y + amount * direction
+        new_sign = sign(target_y - new_y)
+        if direction is -new_sign:
+            # close enough to just set
+            self.ceiling.body.position.y = target_y
+        else:
+            self.ceiling.body.position.y = new_y
 
     def update(self, dt):
-        # adjust the descending ceiling as necessary
-        self.ceiling_adjust = (self.points - self.enemy_points) / self.points_to_crush * self.tank.size.y
-        if self.ceiling_adjust > 0:
-            self.ceiling_adjust = 0
-        self.ceiling.body.position.y = self.tank.size.y * 1.5 + self.ceiling_adjust
+        self.adjust_ceiling(dt)
 
         self.time_until_next_drop -= dt
         if self.time_until_next_drop <= 0:
@@ -370,11 +384,6 @@ class Game(object):
         if self.next_survival_point <= 0:
             self.next_survival_point += self.survival_point_timeout
             self.enemy_points += random.randint(3, 6)
-
-        # adjust the descending ceiling as necessary
-        self.ceiling_adjust = (self.points - self.enemy_points) / self.points_to_crush * self.tank.size.y
-        if self.ceiling_adjust > 0:
-            self.ceiling_adjust = 0
 
         # input
         feet_start = self.man.body.position - self.man_size / 2 + Vec2d(1, -1)
