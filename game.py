@@ -676,7 +676,12 @@ class Game(object):
         self.compute_atom_pointed_at()
 
         # update physics
-        self.space.step(dt)
+        step_count = int(dt / (1 / game_fps))
+        if step_count < 1:
+            step_count = 1
+        delta = dt / step_count
+        for i in range(step_count):
+            self.space.step(delta)
 
         if self.want_to_remove_claw_pin:
             self.space.remove(*self.claw_pins)
