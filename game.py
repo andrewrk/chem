@@ -238,7 +238,7 @@ class Game(object):
 
         self.init_man()
 
-        self.init_grapple_gun()
+        self.init_guns()
         self.arm_offset = Vec2d(13, 43)
         self.arm_len = 24
         self.compute_arm_pos()
@@ -267,7 +267,7 @@ class Game(object):
 
         self.init_opengl()
 
-    def init_grapple_gun(self):
+    def init_guns(self):
         self.claw_in_motion = False
         self.sprite_claw.visible = False
         self.claw_radius = 8
@@ -278,6 +278,12 @@ class Game(object):
         self.claw_attached = False
         self.want_to_remove_claw_pin = False
         self.want_to_retract_claw = False
+
+        self.lazer_timeout = 0.5
+        self.lazer_recharge = 0
+        self.lazer_line = None
+        self.lazer_line_timeout = 0
+        self.lazer_line_timeout_start = 0.2
 
 
     def init_controls(self):
@@ -536,6 +542,20 @@ class Game(object):
             if self.let_go_of_fire_main and self.control_state[Control.FireMain] and self.claw_attached:
                 self.unattach_claw()
 
+        self.lazer_recharge -= dt
+        if self.equipped_gun is Control.SwitchToLazer:
+            if self.lazer_line is not None:
+                self.lazer_line[0] = self.point_start
+            if self.control_state[Control.FireMain] and self.lazer_recharge <= 0:
+                # IMA FIRIN MAH LAZERZ
+                self.lazer_recharge = self.lazer_timeout
+                self.lazer_line = [self.point_start, self.point_end]
+                self.lazer_line_timeout = self.lazer_line_timeout_start
+        self.lazer_line_timeout -= dt
+        if self.lazer_line_timeout <= 0:
+            self.lazer_line = None
+
+
         if not self.control_state[Control.FireMain]:
             self.let_go_of_fire_main = True
         if not self.control_state[Control.FireAlt] and not self.let_go_of_fire_alt:
@@ -658,8 +678,8 @@ class Game(object):
             if self.point_end.x < 0:
                 self.point_end.x = 0
                 self.point_end.y = slope * self.point_end.x + y_intercept
-            if self.point_end.y > self.tank.size.y:
-                self.point_end.y = self.tank.size.y
+            if self.point_end.y > self.ceiling.body.position.y - self.tank.size.y / 2:
+                self.point_end.y = self.ceiling.body.position.y - self.tank.size.y / 2
                 self.point_end.x = (self.point_end.y - y_intercept) / slope
             if self.point_end.y < 0:
                 self.point_end.y = 0
@@ -703,6 +723,12 @@ class Game(object):
                 continue
             for other, joint in atom.bonds.iteritems():
                 self.draw_line(self.tank_pos + atom.shape.body.position, self.tank_pos + other.shape.body.position, (0, 0, 1, 1))
+
+
+        # lazer
+        if self.lazer_line is not None:
+            start, end = self.lazer_line
+            self.draw_line(start + self.tank_pos, end + self.tank_pos, (1, 0, 0, 1))
 
         self.fps_display.draw()
 
