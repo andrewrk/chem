@@ -106,12 +106,14 @@ class Atom:
                     break
             if not found:
                 return None
-
-    def clean_up(self):
+    def unbond(self):
         for atom, joint in self.bonds.iteritems():
             del atom.bonds[self]
             self.space.remove(joint)
-        self.bonds = None
+        self.bonds = {}
+
+    def clean_up(self):
+        self.unbond()
         self.space.remove(self.shape)
         if not self.rogue:
             self.space.remove(self.shape.body)
@@ -566,11 +568,12 @@ class Game(object):
 
             if self.control_state[Control.FireMain] and self.claw_in_motion:
                 if claw_dist < self.min_claw_dist + 8:
-                    self.let_go_of_fire_main = False
                     if self.claw_pins is not None:
                         self.want_to_retract_claw = True
-                    elif self.claw_attached:
+                        self.let_go_of_fire_main = False
+                    elif self.claw_attached and self.let_go_of_fire_main:
                         self.retract_claw()
+                        self.let_go_of_fire_main = False
                 elif claw_dist > self.min_claw_dist:
                     # prevent the claw from going back out once it goes in
                     if self.claw_attached and self.claw_joint.max > claw_dist:
@@ -617,6 +620,7 @@ class Game(object):
                 self.closest_atom = None
                 self.space.remove(self.ray_atom.shape.body)
                 self.let_go_of_fire_main = False
+                self.ray_atom.unbond()
             elif ((self.control_state[Control.FireMain] and self.let_go_of_fire_main) or self.control_state[Control.FireAlt]) and self.ray_atom is not None:
                 self.space.add(self.ray_atom.shape.body)
                 self.ray_atom.rogue = False
@@ -645,6 +649,8 @@ class Game(object):
 
         for atom1, atom2 in self.bond_queue:
             if atom1.marked_for_deletion or atom2.marked_for_deletion:
+                continue
+            if atom1 is self.ray_atom or atom2 is self.ray_atom:
                 continue
             if atom1.bonds is None or atom2.bonds is None:
                 print("Warning: trying to bond with an atom that doesn't exist anymore")
@@ -751,7 +757,7 @@ class Game(object):
         else:
             # no intersection
             # find the coords at the wall
-            slope = self.point_vector.y / self.point_vector.x
+            slope = self.point_vector.y / (self.point_vector.x+0.00000001)
             y_intercept = self.point_start.y - slope * self.point_start.x
             self.point_end = self.point_start + self.tank.size.get_length() * self.point_vector
             if self.point_end.x > self.tank.size.x:
