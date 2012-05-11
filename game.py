@@ -17,6 +17,8 @@ game_size = Vec2d(1024, 600)
 atom_size = Vec2d(32, 32)
 atom_radius = atom_size.x / 2
 
+max_bias = 400
+
 def sign(x):
     if x > 0:
         return 1
@@ -81,6 +83,7 @@ class Atom:
 
         joint = pymunk.PinJoint(self.shape.body, other.shape.body)
         joint.distance = atom_radius * 2.5
+        joint.max_bias = max_bias
         self.bonds[other] = joint
         other.bonds[self] = joint
         self.space.add(joint)
@@ -387,6 +390,8 @@ class Game(object):
             pymunk.PinJoint(claw.body, shape.body, claw_anchor, shape_anchor),
             pymunk.PinJoint(claw.body, shape.body, Vec2d(0, 0), Vec2d(0, 0)),
         ]
+        for claw_pin in self.claw_pins_to_add:
+            claw_pin.max_bias = max_bias
         self.claw_attached = True
 
     def atom_hit_atom(self, space, arbiter):
@@ -553,6 +558,7 @@ class Game(object):
                 self.claw.elasticity = 0
                 self.claw.collision_type = Collision.Claw
                 self.claw_joint = pymunk.SlideJoint(self.claw.body, self.man.body, Vec2d(0, 0), Vec2d(0, 0), 0, self.tank.size.get_length())
+                self.claw_joint.max_bias = max_bias
                 self.space.add(body, self.claw, self.claw_joint)
 
             if self.sprite_claw.visible:
