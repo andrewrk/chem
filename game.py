@@ -259,7 +259,7 @@ class Game(object):
         self.next_survival_point = self.survival_point_timeout
 
         # if you have this many atoms per tank y or more, you lose
-        self.lose_ratio = 90 / 300
+        self.lose_ratio = 95 / 300
 
         self.sprite_tank = pyglet.sprite.Sprite(self.animations.get("tank"), batch=self.batch, group=self.group_main)
 
@@ -409,11 +409,6 @@ class Game(object):
             atom = Atom(pos, flavor_index, pyglet.sprite.Sprite(self.atom_imgs[flavor_index], batch=self.batch, group=self.group_main), self.space)
             self.tank.atoms.add(atom)
 
-            # check if we died
-            ratio = len(self.tank.atoms) / (self.ceiling.body.position.y - self.tank.size.y / 2)
-            if ratio > self.lose_ratio:
-                self.lose()
-
 
     def lose(self):
         if self.game_over:
@@ -488,6 +483,14 @@ class Game(object):
         animation = self.animations.get(negate + animation_name)
         if self.sprite_man.image != animation:
             self.sprite_man.image = animation
+
+        # selecting a different gun
+        if self.control_state[Control.SwitchToGrapple]:
+            self.equipped_gun = Control.SwitchToGrapple
+        elif self.control_state[Control.SwitchToRay]:
+            self.equipped_gun = Control.SwitchToRay
+        elif self.control_state[Control.SwitchToLazer]:
+            self.equipped_gun = Control.SwitchToLazer
 
         arm_animation = self.animations.get(negate + self.gun_animations[self.equipped_gun])
         if self.sprite_arm.image != arm_animation:
@@ -566,6 +569,11 @@ class Game(object):
     def update(self, dt):
         self.adjust_ceiling(dt)
         self.compute_drops(dt)
+
+        # check if we died
+        ratio = len(self.tank.atoms) / (self.ceiling.body.position.y - self.tank.size.y / 2)
+        if ratio > self.lose_ratio or self.ceiling.body.position.y < self.man_size.y:
+            self.lose()
 
         # give enemy points
         self.next_survival_point -= dt

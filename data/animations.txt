@@ -4,8 +4,8 @@ arm        :1    :1   :0    :0    :55    :23    :5       :11       = arm.png
 arm-flung  :1    :1   :0    :0    :55    :23    :5       :11       = arm-flung.png
 claw       :1    :1   :0    :0    :32    :32    :16      :16       = claw.png
 
-lazergun   :1    :1   :0    :0    :55    :23    :16      :16       = lazergun.png
-raygun     :1    :1   :0    :0    :55    :23    :16      :16       = raygun.png
+lazergun   :1    :1   :0    :0    :55    :23    :5       :11       = lazergun.png
+raygun     :1    :1   :0    :0    :55    :23    :5       :11       = raygun.png
 
 atom0      :1    :1   :0    :0    :32    :32    :16      :16       = atom-0.png
 atom1      :1    :1   :0    :0    :32    :32    :16      :16       = atom-1.png
