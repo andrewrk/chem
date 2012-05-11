@@ -377,7 +377,9 @@ class Game(object):
         # bolt these bodies together
         claw, shape = arbiter.shapes
         pos = arbiter.contacts[0].position
-        self.claw_pin_to_add = pymunk.PinJoint(claw.body, shape.body, pos - claw.body.position, pos - shape.body.position)
+        claw_pos = pos - claw.body.position
+        shape_pos = pos - shape.body.position
+        self.claw_pin_to_add = pymunk.PinJoint(claw.body, shape.body, claw_pos, shape_pos)
         self.claw_attached = True
 
     def atom_hit_atom(self, space, arbiter):
@@ -528,7 +530,7 @@ class Game(object):
         if self.equipped_gun is Control.SwitchToGrapple:
             claw_reel_in_speed = 400
             claw_reel_out_speed = 200
-            if self.control_state[Control.FireMain] and not self.claw_in_motion:
+            if self.let_go_of_fire_main and self.control_state[Control.FireMain] and not self.claw_in_motion:
                 self.let_go_of_fire_main = False
                 self.claw_in_motion = True
                 self.sprite_claw.visible = True
@@ -546,12 +548,12 @@ class Game(object):
             if self.sprite_claw.visible:
                 claw_dist = (self.claw.body.position - self.man.body.position).get_length()
 
-            if self.control_state[Control.FireAlt] and self.claw_in_motion:
+            if self.control_state[Control.FireMain] and self.claw_in_motion:
                 if claw_dist < self.min_claw_dist:
+                    self.let_go_of_fire_main = False
                     if self.claw_pin is not None:
                         self.want_to_retract_claw = True
-                        self.let_go_of_fire_alt = False
-                    else:
+                    elif self.claw_attached:
                         self.retract_claw()
                 else:
                     # prevent the claw from going back out once it goes in
@@ -561,7 +563,7 @@ class Game(object):
                         self.claw_joint.max -= claw_reel_in_speed * dt
                         if self.claw_joint.max < self.min_claw_dist:
                             self.claw_joint.max = self.min_claw_dist
-            if self.let_go_of_fire_main and self.control_state[Control.FireMain] and self.claw_attached:
+            if self.control_state[Control.FireAlt] and self.claw_attached:
                 self.unattach_claw()
 
         self.lazer_recharge -= dt
@@ -612,12 +614,12 @@ class Game(object):
 
         if not self.control_state[Control.FireMain]:
             self.let_go_of_fire_main = True
-        if not self.control_state[Control.FireAlt] and not self.let_go_of_fire_alt:
-            self.let_go_of_fire_alt = True
 
             if self.want_to_retract_claw:
                 self.want_to_retract_claw = False
                 self.retract_claw()
+        if not self.control_state[Control.FireAlt] and not self.let_go_of_fire_alt:
+            self.let_go_of_fire_alt = True
 
     def process_queued_actions(self):
         if self.claw_pin_to_add is not None:
