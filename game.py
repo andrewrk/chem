@@ -201,6 +201,7 @@ class Game(object):
         self.window = window
         self.window.set_handler('on_draw', self.on_draw)
         self.window.set_handler('on_mouse_motion', self.on_mouse_motion)
+        self.window.set_handler('on_mouse_drag', self.on_mouse_drag)
         self.window.set_handler('on_mouse_press', self.on_mouse_press)
         self.window.set_handler('on_mouse_release', self.on_mouse_release)
         self.window.set_handler('on_key_press', self.on_key_press)
@@ -242,6 +243,8 @@ class Game(object):
         self.arm_offset = Vec2d(13, 43)
         self.arm_len = 24
         self.compute_arm_pos()
+
+        self.closest_atom = None
 
         self.equipped_gun = Control.SwitchToGrapple
         self.gun_animations = {
@@ -428,13 +431,17 @@ class Game(object):
 
         self.retract_claw()
 
+    def explode_atom(self, atom):
+        atom.marked_for_deletion = True
+        def clear_sprite():
+            self.tank.remove_atom(atom)
+        atom.sprite.image = self.animations.get("asplosion")
+        atom.sprite.set_handler("on_animation_end", clear_sprite)
+
+
     def explode_atoms(self, atoms):
         for atom in atoms:
-            atom.marked_for_deletion = True
-            def clear_sprite(atom=atom):
-                self.tank.remove_atom(atom)
-            atom.sprite.image = self.animations.get("asplosion")
-            atom.sprite.set_handler("on_animation_end", clear_sprite)
+            self.explode_atom(atom)
 
     def process_input(self, dt):
         if self.game_over:
@@ -552,6 +559,10 @@ class Game(object):
                 self.lazer_recharge = self.lazer_timeout
                 self.lazer_line = [self.point_start, self.point_end]
                 self.lazer_line_timeout = self.lazer_line_timeout_start
+
+                if self.closest_atom is not None:
+                    self.explode_atom(self.closest_atom)
+                    self.closest_atom = None
         self.lazer_line_timeout -= dt
         if self.lazer_line_timeout <= 0:
             self.lazer_line = None
@@ -644,9 +655,11 @@ class Game(object):
 
     def compute_atom_pointed_at(self):
         # iterate over each atom. check if intersects with line.
-        closest_atom = None
+        self.closest_atom = None
         closest_dist = None
         for atom in self.tank.atoms:
+            if atom.marked_for_deletion:
+                continue
             # http://stackoverflow.com/questions/1073336/circle-line-collision-detection
             f = atom.shape.body.position - self.point_start
             if sign(f.x) != sign(self.point_vector.x) or sign(f.y) != sign(self.point_vector.y):
@@ -659,14 +672,14 @@ class Game(object):
                 continue
 
             dist = atom.shape.body.position.get_dist_sqrd(self.point_start)
-            if closest_atom is None or dist < closest_dist:
-                closest_atom = atom
+            if self.closest_atom is None or dist < closest_dist:
+                self.closest_atom = atom
                 closest_dist = dist
 
-        if closest_atom is not None:
+        if self.closest_atom is not None:
             # intersection
             # use the coords of the closest atom
-            self.point_end = closest_atom.shape.body.position
+            self.point_end = self.closest_atom.shape.body.position
         else:
             # no intersection
             # find the coords at the wall
@@ -739,7 +752,7 @@ class Game(object):
             ('v2f', (p1[0], p1[1], p2[0], p2[1]))
         )
 
-    def on_mouse_motion(self, x, y, dx, dy):
+    def move_mouse(self, x, y):
         self.mouse_pos = Vec2d(x, y) - self.tank_pos
 
         use_crosshair = self.mouse_pos.x >= 0 and \
@@ -748,6 +761,12 @@ class Game(object):
                         self.mouse_pos.y <= self.tank.size.y
         cursor = self.crosshair if use_crosshair else self.default_cursor
         self.window.set_mouse_cursor(cursor)
+
+    def on_mouse_motion(self, x, y, dx, dy):
+        self.move_mouse(x, y)
+
+    def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
+        self.move_mouse(x, y)
 
     def on_mouse_press(self, x, y, button, modifiers):
         try:
