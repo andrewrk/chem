@@ -66,6 +66,7 @@ class Atom:
         # atom => joint
         self.bonds = {}
         self.marked_for_deletion = False
+        self.rogue = False
 
     def bond_to(self, other):
         # already bonded
@@ -108,7 +109,9 @@ class Atom:
             del atom.bonds[self]
             self.space.remove(joint)
         self.bonds = None
-        self.space.remove(self.shape, self.shape.body)
+        self.space.remove(self.shape)
+        if not self.rogue:
+            self.space.remove(self.shape.body)
         del Atom.atom_for_shape[self.shape]
         self.sprite.delete()
         self.sprite = None
@@ -289,6 +292,8 @@ class Game(object):
         self.lazer_line_timeout = 0
         self.lazer_line_timeout_start = 0.2
 
+        self.ray_atom = None
+        self.ray_shoot_speed = 900
 
     def init_controls(self):
         self.controls = {
@@ -432,6 +437,8 @@ class Game(object):
         self.retract_claw()
 
     def explode_atom(self, atom, animation_name="asplosion"):
+        if atom is self.ray_atom:
+            self.ray_atom = None
         atom.marked_for_deletion = True
         def clear_sprite():
             self.tank.remove_atom(atom)
@@ -574,6 +581,34 @@ class Game(object):
         if self.lazer_line_timeout <= 0:
             self.lazer_line = None
 
+        if self.ray_atom is not None:
+            # move the atom closer to the ray gun
+            vector = self.point_start - self.ray_atom.shape.body.position
+            delta = vector.normalized() * 1000 * dt
+            if delta.get_length() > vector.get_length():
+                # just move the atom to final location
+                self.ray_atom.shape.body.position = self.point_start
+            else:
+                self.ray_atom.shape.body.position += delta
+
+        if self.equipped_gun is Control.SwitchToRay:
+            if (self.control_state[Control.FireMain] and self.let_go_of_fire_main) and self.closest_atom is not None and self.ray_atom is None and not self.closest_atom.marked_for_deletion:
+                # remove the atom from physics
+                self.ray_atom = self.closest_atom
+                self.ray_atom.rogue = True
+                self.closest_atom = None
+                self.space.remove(self.ray_atom.shape.body)
+                self.let_go_of_fire_main = False
+            elif ((self.control_state[Control.FireMain] and self.let_go_of_fire_main) or self.control_state[Control.FireAlt]) and self.ray_atom is not None:
+                self.space.add(self.ray_atom.shape.body)
+                self.ray_atom.rogue = False
+                if self.control_state[Control.FireMain]:
+                    # shoot it!!
+                    self.ray_atom.shape.body.velocity = self.man.body.velocity + self.point_vector * self.ray_shoot_speed
+                else:
+                    self.ray_atom.shape.body.velocity = Vec2d(self.man.body.velocity)
+                self.ray_atom = None
+                self.let_go_of_fire_main = False
 
         if not self.control_state[Control.FireMain]:
             self.let_go_of_fire_main = True

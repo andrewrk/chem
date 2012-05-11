@@ -1,4 +1,4 @@
-* man should be able to use gun to grab an atom and shoot it somewhere else
+* get randomly attacked by weapons
 * make the claw less shakey
 * preview the atoms before they drop
 * weapons:
@@ -10,10 +10,26 @@
   - radiation
   - mess with gravity
   - mess with mass
-* get randomly attacked by weapons
 
 * title screen
 * configurable controls
+
+* sound effects
+  - shooting the claw
+  - claw hitting something
+  - atom collision
+  - retracting the claw
+  - jumping
+  - landing on a surface
+  - switching weapons
+  - atoms bonding
+  - atoms asploding
+  - shooting a lazer
+  - shooting a ray gun
+  - losing
+  - winning
+
+* theme music
 
 * multiplayer
 
