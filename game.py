@@ -180,6 +180,8 @@ class Animations:
 
 class Game(object):
     def __init__(self, window):
+        self.debug = "--debug" in sys.argv
+
         self.animations = Animations()
         self.animations.load()
 
@@ -280,8 +282,8 @@ class Game(object):
         self.claw_radius = 8
         self.claw_shoot_speed = 1200
         self.min_claw_dist = 60
-        self.claw_pin_to_add = None
-        self.claw_pin = None
+        self.claw_pins_to_add = None
+        self.claw_pins = None
         self.claw_attached = False
         self.want_to_remove_claw_pin = False
         self.want_to_retract_claw = False
@@ -377,9 +379,14 @@ class Game(object):
         # bolt these bodies together
         claw, shape = arbiter.shapes
         pos = arbiter.contacts[0].position
-        claw_pos = pos - claw.body.position
-        shape_pos = pos - shape.body.position
-        self.claw_pin_to_add = pymunk.PinJoint(claw.body, shape.body, claw_pos, shape_pos)
+        shape_anchor = pos - shape.body.position
+        claw_anchor = pos - claw.body.position
+        claw_delta = claw_anchor.normalized() * -(self.claw_radius + 4)
+        self.claw.body.position += claw_delta
+        self.claw_pins_to_add = [
+            pymunk.PinJoint(claw.body, shape.body, claw_anchor, shape_anchor),
+            pymunk.PinJoint(claw.body, shape.body, Vec2d(0, 0), Vec2d(0, 0)),
+        ]
         self.claw_attached = True
 
     def atom_hit_atom(self, space, arbiter):
@@ -549,13 +556,13 @@ class Game(object):
                 claw_dist = (self.claw.body.position - self.man.body.position).get_length()
 
             if self.control_state[Control.FireMain] and self.claw_in_motion:
-                if claw_dist < self.min_claw_dist:
+                if claw_dist < self.min_claw_dist + 8:
                     self.let_go_of_fire_main = False
-                    if self.claw_pin is not None:
+                    if self.claw_pins is not None:
                         self.want_to_retract_claw = True
                     elif self.claw_attached:
                         self.retract_claw()
-                else:
+                elif claw_dist > self.min_claw_dist:
                     # prevent the claw from going back out once it goes in
                     if self.claw_attached and self.claw_joint.max > claw_dist:
                         self.claw_joint.max = claw_dist
@@ -622,10 +629,10 @@ class Game(object):
             self.let_go_of_fire_alt = True
 
     def process_queued_actions(self):
-        if self.claw_pin_to_add is not None:
-            self.claw_pin = self.claw_pin_to_add
-            self.claw_pin_to_add = None
-            self.space.add(self.claw_pin)
+        if self.claw_pins_to_add is not None:
+            self.claw_pins = self.claw_pins_to_add
+            self.claw_pins_to_add = None
+            self.space.add(*self.claw_pins)
 
         for atom1, atom2 in self.bond_queue:
             if atom1.marked_for_deletion or atom2.marked_for_deletion:
@@ -669,8 +676,8 @@ class Game(object):
         self.space.step(dt)
 
         if self.want_to_remove_claw_pin:
-            self.space.remove(self.claw_pin)
-            self.claw_pin = None
+            self.space.remove(*self.claw_pins)
+            self.claw_pins = None
             self.want_to_remove_claw_pin = False
 
         self.compute_arm_pos()
@@ -693,7 +700,7 @@ class Game(object):
         return pt.x >= 0 and pt.y >= 0 and pt.x < self.tank.size.x and pt.y < self.tank.size.y
 
     def unattach_claw(self):
-        if self.claw_pin is not None:
+        if self.claw_pins is not None:
             #self.claw.body.reset_forces()
             self.want_to_remove_claw_pin = True
 
@@ -782,6 +789,10 @@ class Game(object):
                 for other, joint in atom.bonds.iteritems():
                     self.draw_line(self.tank_pos + atom.shape.body.position, self.tank_pos + other.shape.body.position, (0, 0, 1, 1))
 
+            if self.debug:
+                if self.claw_pins:
+                    for claw_pin in self.claw_pins:
+                        self.draw_line(self.tank_pos + claw_pin.a.position + claw_pin.anchr1, self.tank_pos + claw_pin.b.position + claw_pin.anchr2, (1, 0, 1, 1))
 
             # lazer
             if self.lazer_line is not None:
