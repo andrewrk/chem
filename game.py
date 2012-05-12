@@ -1365,7 +1365,7 @@ class Title(object):
         self.nick = "Guest %i" % random.randint(1, 99999)
         try:
             import getpass
-            self.nick = getpass.getuser()
+            self.nick = "%s_%i" % (getpass.getuser(), random.randint(1, 9999))
         except:
             pass
         server.send_msg("UpdateNick", self.nick)
