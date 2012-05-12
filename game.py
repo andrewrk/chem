@@ -731,6 +731,11 @@ class Game(object):
             bomb.tick(dt)
             if bomb.timeout <= 0:
                 # cause explosion
+                sprite = pyglet.sprite.Sprite(self.animations.get("bombsplode"), batch=self.batch, group=self.group_fg)
+                sprite.set_position(*(self.tank_pos + bomb.shape.body.position))
+                def remove_bomb_sprite(sprite=sprite):
+                    sprite.delete()
+                sprite.set_handler("on_animation_end", remove_bomb_sprite)
                 self.tank.remove_bomb(bomb)
 
         self.process_input(dt)
