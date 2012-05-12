@@ -6,7 +6,6 @@ import sys
 import random
 import math
 import itertools
-import getpass
 
 import pymunk
 from pymunk import Vec2d
@@ -893,7 +892,6 @@ class Tank:
 
         # re-create everything
         # man
-        data = data[0]
         body = data['man']['shape']['body']
         self.init_man(pos=Vec2d(body['position']), vel=Vec2d(body['velocity']))
 
@@ -1363,7 +1361,15 @@ class Title(object):
         self.nick_label = {}
         self.nick_user = {}
 
-        server.send_msg("UpdateNick", getpass.getuser())
+        # guess a good nick
+        self.nick = "Guest %i" % random.randint(1, 99999)
+        try:
+            import getpass
+            self.nick = getpass.getuser()
+        except:
+            pass
+        server.send_msg("UpdateNick", self.nick)
+        self.my_nick_label = pyglet.text.Label(self.nick, font_size=16, x=748, y=137)
 
     def create_labels(self):
         self.labels = []
@@ -1373,6 +1379,8 @@ class Title(object):
         next_pos = self.lobby_pos + Vec2d(0, self.lobby_size.y - h)
         for user in self.users:
             nick = user['nick']
+            if nick == self.nick:
+                continue
             text = nick
             if user['playing'] is not None:
                 text += " (playing vs %s)" % user['playing']
@@ -1390,12 +1398,6 @@ class Title(object):
         for name, payload in server.get_messages():
             if name == 'LobbyList':
                 self.users = payload
-                self.users = [
-                    {'nick': "one", "playing": "derp", "wants2playme": False},
-                    {'nick': "derp", "playing": "one", "wants2playme": False},
-                    {'nick': "arododoj", "playing": None, "wants2playme": False},
-                    {'nick': "pirate", "playing": None, "wants2playme": True},
-                ]
                 self.create_labels()
 
         
@@ -1405,6 +1407,7 @@ class Title(object):
         self.img.blit(0, 0)
         for label in self.labels:
             label.draw()
+        self.my_nick_label.draw()
 
     def end(self):
         self.window.remove_handler('on_draw', self.on_draw)
@@ -1413,7 +1416,7 @@ class Title(object):
 
     def on_mouse_press(self, x, y, button, modifiers):
         click_pos = Vec2d(x, y)
-        #print(click_pos)
+        print(click_pos)
         if click_pos.get_distance(self.start_pos) < self.click_radius:
             self.gw.play()
             return
@@ -1476,7 +1479,8 @@ def send_event(ws, name, payload) :
 
 def on_message(ws, message):
     payload = from_socketio(message)
-    recieve_event(ws, payload['name'], payload['args'])
+    print(payload)
+    recieve_event(ws, payload['name'], payload['args'][0])
 
 def on_error(ws, error):
     print(error)

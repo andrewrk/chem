@@ -30,7 +30,9 @@ users = new UserCollection()
 io.sockets.on 'connection', (socket) ->
 
   me = new User
-    nick: "Guest User " + Math.floor( Math.random() * 1000 )
+    nick: "Guest User " + Math.floor( Math.random() * 10000 )
+    playing: null
+    wants2playme: false
 
   me.socket = socket
 
