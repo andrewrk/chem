@@ -270,11 +270,7 @@ class Tank:
         self.bond_queue = []
 
         self.points = 0
-        self.survival_points = 0
         self.points_to_crush = 50
-        self.survival_point_timeout = 1 if "--hard" in sys.argv else 10
-        self.next_survival_point = self.survival_point_timeout
-        self.weapon_drop_interval = 3 if "--bomb" in sys.argv else 10
 
         self.point_end = Vec2d(0.000001, 0.000001)
         
@@ -1041,7 +1037,8 @@ class Animations:
 
 
 class Game(object):
-    def __init__(self, window):
+    def __init__(self, window, server):
+        self.server = server
         self.debug = "--debug" in sys.argv
 
         self.animations = Animations()
@@ -1084,6 +1081,12 @@ class Game(object):
 
         self.enemy_tank.atom_drop_enabled = False
 
+        self.survival_points = 0
+        self.survival_point_timeout = 1 if "--hard" in sys.argv else 10
+        self.next_survival_point = self.survival_point_timeout
+        self.weapon_drop_interval = 3 if "--bomb" in sys.argv else 10
+
+
         self.window = window
         self.window.set_handler('on_draw', self.on_draw)
         self.window.set_handler('on_mouse_motion', self.control_tank.on_mouse_motion)
@@ -1098,7 +1101,6 @@ class Game(object):
         pyglet.gl.glBlendFunc(pyglet.gl.GL_SRC_ALPHA, pyglet.gl.GL_ONE_MINUS_SRC_ALPHA)
 
 
-        self.server = Server()
         self.state_render_timeout = 0.3
         self.next_state_render = self.state_render_timeout
 
@@ -1161,6 +1163,8 @@ import websocket
 import thread
 import time
 import httplib
+import threading
+import socket
 
 # See: https://github.com/liris/websocket-client
 
@@ -1205,8 +1209,6 @@ def on_open(ws):
 
 class Server:
     def __init__(self):
-        global server
-        server = self
         self.msgs = []
 
     def get_messages(self):
@@ -1219,31 +1221,41 @@ class Server:
         send_event(ws, name, obj)
 
 
+server = None
+def network():
 
+    websocket.enableTrace(False)
 
-websocket.enableTrace(False)
+    host = 'localhost' if "--localhost" in sys.argv else 'superjoe.zapto.org'
+    port = '9000'
 
-server = 'localhost' if "--localhost" in sys.argv else 'superjoe.zapto.org'
-port = '9000'
+    conn  = httplib.HTTPConnection(host + ":" + str(port))
+    try:
+        conn.request('POST','/socket.io/1/')
+    except socket.error:
+        print("can't connect to lobby")
+        return
+    resp  = conn.getresponse() 
+    hskey = resp.read().split(':')[0]
 
-conn  = httplib.HTTPConnection(server + ":" + str(port))
-conn.request('POST','/socket.io/1/')
-resp  = conn.getresponse() 
-hskey = resp.read().split(':')[0]
+    global ws
+    ws = websocket.WebSocketApp('ws://'+host+':'+str(port)+'/socket.io/1/websocket/'+hskey,
+                                on_message = on_message,
+                                on_error = on_error,
+                                on_open = on_open,
+                                on_close = on_close)
 
-ws = websocket.WebSocketApp('ws://'+server+':'+str(port)+'/socket.io/1/websocket/'+hskey,
-                            on_message = on_message,
-                            on_error = on_error,
-                            on_open = on_open,
-                            on_close = on_close)
+    global net_thread
+    net_thread = threading.Thread(target=ws.run_forever)
+    net_thread.daemon = True
+    net_thread.start()
 
-import threading
-thread = threading.Thread(target=ws.run_forever)
-thread.daemon = True
-thread.start()
+    global server
+    server = Server()
 
+network()
 
 
 window = pyglet.window.Window(width=int(game_size.x), height=int(game_size.y), caption=game_title)
-game = Game(window)
+game = Game(window, server)
 game.start()
