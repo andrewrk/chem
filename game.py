@@ -9,6 +9,7 @@ import itertools
 
 import pymunk
 from pymunk import Vec2d
+import json
 
 import websocket
 
@@ -22,11 +23,12 @@ atom_radius = atom_size.x / 2
 
 max_bias = 400
 
+
 def serialize_shape(shape):
     return {
         'body': {
-            'position': shape.body.position,
-            'velocity': shape.body.velocity,
+            'position': list(shape.body.position),
+            'velocity': list(shape.body.velocity),
         },
     }
         
@@ -63,6 +65,8 @@ class Atom:
     atom_for_shape = {}
     max_bonds = 2
 
+    id_count = 0
+
     def __init__(self, pos, flavor_index, sprite, space):
         self.flavor_index = flavor_index
         self.sprite = sprite
@@ -81,6 +85,9 @@ class Atom:
         self.bonds = {}
         self.marked_for_deletion = False
         self.rogue = False
+
+        self.id = Atom.id_count
+        Atom.id_count += 1
 
     def bond_to(self, other):
         # already bonded
@@ -138,7 +145,8 @@ class Atom:
             return None
 
         return {
-            'id': self.id(),
+            'type': "Atom",
+            'id': self.id,
             'shape': serialize_shape(self.shape),
             'flavor': self.flavor_index,
             'bonds': [b.id() for b in self.bonds],
@@ -202,7 +210,7 @@ class Rock:
 
     def serialize(self):
         return {
-            'type': "Bomb",
+            'type': "Rock",
             'shape': serialize_shape(self.shape),
         }
 
@@ -274,6 +282,26 @@ class Animations:
 
             self.animation_offset[animation] = Vec2d(-int(off_x), -int(off_y))
             self.animation_offset[rev_animation] = Vec2d(int(off_x) + int(size_x), -int(off_y))
+
+dummy_state = """{"objects": [{"bonds": [], "shape": {"body": {"position": [201.1620302617581, 15.899907160551637], "velocity": [0.0, 4.440892098500626e-16]}}, "rogue": false, "flavor": 4, "type": "Atom", "id": 3}, {"bonds": [], "shape": {"body": {"position": [296.4885716930263, 15.899999805000231], "velocity": [0.0, 4.440892098500626e-16]}}, "rogue": false, "flavor": 1, "type": "Atom", "id": 2}, {"bonds": [], "shape": {"body": {"position": [106.09483697541798, 74.90244777819458], "velocity": [0.7970640523466013, -65.38298539603122]}}, "rogue": false, "flavor": 4, "type": "Atom", "id": 4}, {"bonds": [], "shape": {"body": {"position": [199.73446520455178, 495.77808866792657], "velocity": [0.0, -19.972573828109734]}}, "rogue": false, "flavor": 0, "type": "Atom", "id": 6}, {"bonds": [], "shape": {"body": {"position": [365.02667895189603, 15.899999998509555], "velocity": [0.0, 4.440892098500626e-16]}}, "rogue": false, "flavor": 4, "type": "Atom", "id": 0}, {"bonds": [], "shape": {"body": {"position": [42.39048079530272, 15.899999995404194], "velocity": [0.0, 4.440892098500626e-16]}}, "rogue": false, "flavor": 4, "type": "Atom", "id": 1}, {"bonds": [], "shape": {"body": {"position": [300.4244308544384, 281.2751674010951], "velocity": [0.0, -417.93498837612646]}}, "rogue": false, "flavor": 4, "type": "Atom", "id": 5}], "man": {"shape": {"body": {"position": [148.36946327657165, 31.93161481123989], "velocity": [199.3770075475592, 0.02096626808907933]}}}}"""
+
+class Server:
+    def __init__(self):
+        pass
+
+    def get_messages(self):
+        return [
+            ('UpdateState', json.loads(dummy_state)),
+        ]
+
+    def send(self, string):
+        print("<out>")
+        print(string)
+        print("</out>")
+
+    def send_msg(self, name, obj):
+        self.send("%s:\n%s" % (name, json.dumps(obj)))
+
 
 class Game(object):
     def __init__(self, window):
@@ -372,6 +400,11 @@ class Game(object):
 
         self.game_over = False
 
+
+        self.server = Server()
+        self.state_render_timeout = 2
+        self.next_state_render = self.state_render_timeout
+
         self.init_opengl()
 
     def init_guns(self):
@@ -426,15 +459,16 @@ class Game(object):
 
     def init_man(self):
         # physics for man
-        shape = pymunk.Poly.create_box(pymunk.Body(20, 10000000), self.man_size)
-        shape.body.position = Vec2d(self.tank.size.x / 2, self.man_size.y / 2)
-        shape.body.angular_velocity_limit = 0
-        self.man_angle = shape.body.angle
-        shape.elasticity = 0
-        shape.friction = 3.0
-        shape.collision_type = Collision.Default
-        self.space.add(shape.body, shape)
-        self.man = shape
+        #for tank in self.tanks:
+            shape = pymunk.Poly.create_box(pymunk.Body(20, 10000000), self.man_size)
+            shape.body.position = Vec2d(self.tank.size.x / 2, self.man_size.y / 2)
+            shape.body.angular_velocity_limit = 0
+            self.man_angle = shape.body.angle
+            shape.elasticity = 0
+            shape.friction = 3.0
+            shape.collision_type = Collision.Default
+            self.space.add(shape.body, shape)
+            self.man = shape
 
 
     def init_opengl(self):
@@ -842,6 +876,22 @@ class Game(object):
         # man can't rotate
         self.man.body.angle = self.man_angle
 
+        # send state to network
+        if self.server is not None:
+            self.next_state_render -= dt
+            if self.next_state_render <= 0:
+                self.next_state_render = self.state_render_timeout
+
+                self.server.send_msg("StateUpdate", self.serialize_state())
+
+                # get all server messages
+                for msg_name, data in self.server.get_messages():
+                    if msg_name is 'UpdateState':
+                        self.restore_state(data)
+
+    def restore_state(self, data):
+        pass
+
     def retract_claw(self):
         if not self.sprite_claw.visible:
             return
@@ -917,7 +967,7 @@ class Game(object):
                 'shape': serialize_shape(self.man),
             },
         }
-        return json.dumps(state)
+        return state
 
     def on_draw(self):
         self.window.clear()
@@ -1023,23 +1073,23 @@ class Game(object):
         except KeyError:
             return
 
-import threading
-import asyncore
-
-def run_network():
-    def onmessage():
-        print("got message")
-    def onerror(msg):
-        print("got error: %s" % msg)
-    def onopen():
-        print("on open")
-    def onclose():
-        print("on close")
-    socket = websocket.WebSocket("ws://superjoe.zapto.org/dr-chemicals-lab", onmessage=onmessage, onopen=onopen, onerror=onerror, onclose=onclose)
-
-    asyncore.loop()
-net_thread = threading.Thread(target=run_network)
-net_thread.start()
+#import threading
+#import asyncore
+#
+#def run_network():
+#    def onmessage():
+#        print("got message")
+#    def onerror(msg):
+#        print("got error: %s" % msg)
+#    def onopen():
+#        print("on open")
+#    def onclose():
+#        print("on close")
+#    socket = websocket.WebSocket("ws://superjoe.zapto.org/dr-chemicals-lab", onmessage=onmessage, onopen=onopen, onerror=onerror, onclose=onclose)
+#
+#    asyncore.loop()
+#net_thread = threading.Thread(target=run_network)
+#net_thread.start()
 
 window = pyglet.window.Window(width=int(game_size.x), height=int(game_size.y), caption=game_title)
 game = Game(window)
