@@ -15,11 +15,11 @@ License: see LICENSE
 Running the Game
 ----------------
 
-    Install on Linux:
+    Install Dependencies on Linux:
 
         sudo pip install pymunk pyglet
 
-    Install on OSX:
+    Install Dependencies on OSX:
 
       Install pymunk, avbin, and pyglet from source:
 
@@ -39,6 +39,13 @@ Running the Game
         hg clone https://pyglet.googlecode.com/hg/ pyglet
         cd pyglet
         sudo python setup.py install
+
+    Install Dependencies on Windows:
+
+        Untested:
+
+            Install http://pyglet.googlecode.com/files/pyglet-1.1.4.msi
+            Install http://code.google.com/p/pymunk/downloads/list
 
 
     Run:
