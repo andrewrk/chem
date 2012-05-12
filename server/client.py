@@ -7,11 +7,30 @@ import json
 # See: https://github.com/liris/websocket-client
 
 
-def on_message(ws, message):
-    payload = message.replace('5:::', '')
-    payload = json.loads(payload)
-    recieve_event(ws, payload['name'], payload['args'])
+def to_socketio(event_name, payload)
+    message = {'name': event_name, 'args': [json.dumps(payload)]}
+    return "5:::" + json.dumps(message)
 
+def from_socketio(message)
+    message = message.replace('5:::', '')
+    return json.loads(message)
+
+
+
+
+def recieve_event(ws, name, payload) :
+    print "recieve_event: ", name, payload
+
+def send_event(ws, name, payload) :
+    ws.send(to_socketio(name, payload))
+
+
+
+
+
+def on_message(ws, message):
+    payload = from_socketio(message)
+    recieve_event(ws, payload['name'], payload['args'])
 
 def on_error(ws, error):
     print error
@@ -31,13 +50,6 @@ def on_open(ws):
 
 
 
-def recieve_event(ws, name, payload) :
-    print "recieve_event: ", name, payload
-
-def send_event(ws, name, payload) :
-    event = {'name': name, 'args': [json.dumps(payload)]}
-    msg = "5:::" + json.dumps(event)
-    ws.send(msg)
 
 
 

@@ -44,7 +44,7 @@ io.sockets.on 'connection', (socket) ->
       user.playing = u
 
       user.socket.emit('StartGame', {playing: u})
-      u.socket.emit('StartGame', {playing: u})
+      u.socket.emit('StartGame', {playing: user})
 
 
 
