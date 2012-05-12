@@ -1,47 +1,65 @@
-Dr. Chemical's Lab - PyWeek #14 Entry
+Dr. Chemical's Lab
+==================
+
+Entry in PyWeek #14  <http://www.pyweek.org/14/>
+URL: http://pyweek.org/e/tboxthonton
+Team: T Box Thon Ton
+Members: superjoe, Squish
+License: see LICENSE
+
+
 
 "In Dr. Chem's Lab... physics struggles with YOU"
 
 
-Install on Linux:
+Running the Game
+----------------
 
-    sudo pip install pymunk pyglet
+    Install on Linux:
 
-Install on OSX:
+        sudo pip install pymunk pyglet
 
-  Install pymunk, avbin, and pyglet from source:
+    Install on OSX:
 
-    svn checkout http://pymunk.googlecode.com/svn/trunk/ pymunk-read-only
-    cd pymunk-read-only
-    python setup.py build_chipmunk
-    sudo python setup.py install
+      Install pymunk, avbin, and pyglet from source:
 
-    Untested:
-        wget https://github.com/downloads/AVbin/AVbin/avbin-src-7.tar.gz
-        tar xzvf avbin-src-7.tar.gz
-        cd avbin-src-7
-        ./configure
-        make
-        sudo make install
+        svn checkout http://pymunk.googlecode.com/svn/trunk/ pymunk-read-only
+        cd pymunk-read-only
+        python setup.py build_chipmunk
+        sudo python setup.py install
 
-    hg clone https://pyglet.googlecode.com/hg/ pyglet
-    cd pyglet
-    sudo python setup.py install
+        Untested:
+            wget https://github.com/downloads/AVbin/AVbin/avbin-src-7.tar.gz
+            tar xzvf avbin-src-7.tar.gz
+            cd avbin-src-7
+            ./configure
+            make
+            sudo make install
+
+        hg clone https://pyglet.googlecode.com/hg/ pyglet
+        cd pyglet
+        sudo python setup.py install
 
 
-Run:
+    Run:
 
-    python game.py
+        python run_game.py
 
-Alternate keyboard layouts:
+    Alternate keyboard layouts:
 
-    python game.py --dvorak
-    python game.py --colemak
+        python run_game.py --dvorak
+        python run_game.py --colemak
 
-Disable networking (prevents crashes in 1player mode):
+    Disable networking (prevents crashes in 1player mode):
 
-    python game.py --survival
+        python run_game.py --survival
 
-Disable sound efects (removes dependecy on AVBin):
+    Disable sound efects (removes dependecy on AVBin):
 
-    python game.py --nofx
+        python run_game.py --nofx
+
+
+How to Play the Game
+--------------------
+
+    Start the game and click Controls. It will tell you how to play.
