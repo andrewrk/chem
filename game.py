@@ -111,13 +111,13 @@ class Atom:
     def bond_to(self, other):
         # already bonded
         if other in self.bonds:
-            return
+            return False
         # too many bonds already
         if len(self.bonds) >= Atom.max_bonds or len(other.bonds) >= Atom.max_bonds:
-            return
+            return False
         # wrong color
         if self.flavor_index != other.flavor_index:
-            return
+            return False
 
         joint = pymunk.PinJoint(self.shape.body, other.shape.body)
         joint.distance = atom_radius * 2.5
@@ -125,6 +125,8 @@ class Atom:
         self.bonds[other] = joint
         other.bonds[self] = joint
         self.space.add(joint)
+
+        return True
 
     def bond_loop(self):
         "returns None or a list of atoms in the bond loop which includes itself"
@@ -311,6 +313,7 @@ class Tank:
 
         self.atom_drop_enabled = True
         self.enable_point_calculation = True
+        self.sfx_enabled = True
 
     def init_guns(self):
         self.claw_in_motion = False
@@ -639,7 +642,7 @@ class Tank:
             power = 1000 / len(ground_shapes)
             for shape in ground_shapes:
                 shape.body.apply_impulse(Vec2d(0, -power), Vec2d(0, 0))
-            self.game.sfx['jump'].play()
+            self.play_sfx('jump')
 
         # point the man+arm in direction of mouse
         animation = self.game.animations.get(negate + animation_name)
@@ -720,6 +723,8 @@ class Tank:
                 if self.closest_atom is not None:
                     self.explode_atom(self.closest_atom, "atomfail")
                     self.closest_atom = None
+
+                self.play_sfx('lazer')
         self.lazer_line_timeout -= dt
         if self.lazer_line_timeout <= 0:
             self.lazer_line = None
@@ -743,12 +748,15 @@ class Tank:
                 self.space.remove(self.ray_atom.shape.body)
                 self.let_go_of_fire_main = False
                 self.ray_atom.unbond()
+
+                self.play_sfx('ray')
             elif ((self.control_state[Control.FireMain] and self.let_go_of_fire_main) or self.control_state[Control.FireAlt]) and self.ray_atom is not None:
                 self.space.add(self.ray_atom.shape.body)
                 self.ray_atom.rogue = False
                 if self.control_state[Control.FireMain]:
                     # shoot it!!
                     self.ray_atom.shape.body.velocity = self.man.body.velocity + self.point_vector * self.ray_shoot_speed
+                    self.play_sfx('lazer')
                 else:
                     self.ray_atom.shape.body.velocity = Vec2d(self.man.body.velocity)
                 self.ray_atom = None
@@ -777,15 +785,17 @@ class Tank:
             if atom1.bonds is None or atom2.bonds is None:
                 print("Warning: trying to bond with an atom that doesn't exist anymore")
                 continue
-            atom1.bond_to(atom2)
-            bond_loop = atom1.bond_loop()
-            if bond_loop is not None:
-                len_bond_loop = len(bond_loop)
-                # make all the atoms in this loop disappear
-                if self.enable_point_calculation:
-                    self.points += len_bond_loop
-                self.explode_atoms(bond_loop)
-                self.queued_asplosions.append((atom1.flavor_index, len_bond_loop))
+            if atom1.bond_to(atom2):
+                bond_loop = atom1.bond_loop()
+                if bond_loop is not None:
+                    len_bond_loop = len(bond_loop)
+                    # make all the atoms in this loop disappear
+                    if self.enable_point_calculation:
+                        self.points += len_bond_loop
+                    self.explode_atoms(bond_loop)
+                    self.queued_asplosions.append((atom1.flavor_index, len_bond_loop))
+
+                self.play_sfx("bond")
 
         self.bond_queue = []
 
@@ -810,7 +820,15 @@ class Tank:
     def atom_hit_atom(self, space, arbiter):
         atom1, atom2 = [Atom.atom_for_shape[shape] for shape in arbiter.shapes]
         # bond the atoms together
-        self.bond_queue.append((atom1, atom2))
+        if atom1.flavor_index == atom2.flavor_index:
+            self.bond_queue.append((atom1, atom2))
+
+        #elif arbiter.total_impulse.get_length_sqrd() > 500000:
+            #self.game.sfx['atom_hit_atom'].play()
+
+    def play_sfx(self, name):
+        if self.sfx_enabled:
+            self.game.sfx[name].play()
 
     def retract_claw(self):
         if not self.sprite_claw.visible:
@@ -1221,7 +1239,11 @@ class Game(object):
 
 
         self.sfx = {
-            'jump': pyglet.resource.media('data/jump__dave-des__fast-simple-chop-5.ogg', streaming=False),
+            'jump': pyglet.resource.media('data/sfx/jump__dave-des__fast-simple-chop-5.ogg', streaming=False),
+            'atom_hit_atom': pyglet.resource.media('data/sfx/atomscolide__batchku__colide-18-005.ogg', streaming=False),
+            'ray': pyglet.resource.media('data/sfx/raygun__owyheesound__decelerate-discharge.ogg', streaming=False),
+            'lazer': pyglet.resource.media('data/sfx/lazer__supraliminal__laser-short.ogg', streaming=False),
+            'bond': pyglet.resource.media('data/sfx/atomsmerge__tigersound__disappear.ogg', streaming=False),
         }
 
         pyglet.clock.schedule_interval(self.update, 1/game_fps)
@@ -1262,6 +1284,7 @@ class Game(object):
 
             self.enemy_tank.atom_drop_enabled = False
             self.enemy_tank.enable_point_calculation = False
+            self.enemy_tank.sfx_enabled = False
 
 
 
