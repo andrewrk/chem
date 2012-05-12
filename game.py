@@ -865,6 +865,8 @@ class Tank:
         self.mouse_pos = Vec2d(data['mouse_pos'])
         atoms_by_id = {}
         for obj in data['objects']:
+            if obj is None:
+                return
             # atoms
             if obj['type'] == 'Atom':
                 body = obj['shape']['body']
@@ -1097,7 +1099,7 @@ class Game(object):
 
 
         self.server = Server()
-        self.state_render_timeout = 2
+        self.state_render_timeout = 0.3
         self.next_state_render = self.state_render_timeout
 
 
