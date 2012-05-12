@@ -24,12 +24,30 @@ atom_radius = atom_size.x / 2
 max_bias = 400
 
 
+def serialize_body(body):
+    return {
+        'position': list(body.position),
+        'velocity': list(body.velocity),
+        'angle': body.angle,
+    }
+
 def serialize_shape(shape):
     return {
-        'body': {
-            'position': list(shape.body.position),
-            'velocity': list(shape.body.velocity),
-        },
+        'body': serialize_body(shape.body),
+    }
+
+def serialize_pin_joint(joint):
+    return {
+        'anchr1': list(joint.anchr1),
+        'anchr2': list(joint.anchr2),
+        'distance': joint.distance,
+    }
+        
+
+def serialize_slide_joint(joint):
+    return {
+        'min': joint.min,
+        'max': joint.max,
     }
         
 
@@ -789,6 +807,7 @@ class Tank:
         self.sprite_arm.image = self.game.animations.get("arm")
         self.claw_attached = False
         self.space.remove(self.claw.body, self.claw, self.claw_joint)
+        self.claw = None
         self.unattach_claw()
 
     def unattach_claw(self):
@@ -856,6 +875,15 @@ class Tank:
         for atom in self.atoms:
             atom.clean_up()
         self.atoms = set()
+        # claw gun
+        if self.sprite_claw.visible:
+            self.space.remove(self.claw.body, self.claw, self.claw_joint)
+        if self.claw_pins is not None:
+            self.space.remove(*self.claw_pins)
+
+        self.claw_pins_to_add = None
+        self.want_to_remove_claw_pin = False
+        self.want_to_retract_claw = False
 
         # re-create everything
         # man
@@ -877,6 +905,7 @@ class Tank:
                 atom = Atom(pos, flavor, pyglet.sprite.Sprite(self.game.atom_imgs[flavor], batch=self.game.batch, group=self.game.group_main), self.space)
                 atom.shape.body.position = pos
                 atom.shape.body.velocity = vel
+                atom.shape.body.angle = body['angle']
                 if obj['rogue']:
                     atom.rogue = True
                     self.space.remove(atom.shape.body)
@@ -903,7 +932,35 @@ class Tank:
                 self.win()
 
         self.equipped_gun = data['equipped_gun']
-            
+
+        # claw
+        self.claw_in_motion = data['claw_in_motion']
+        self.sprite_claw.visible = data['claw_visible']
+        in_claw_pins = data['claw_pins']
+        self.claw_attached = data['claw_attached']
+        if self.claw_in_motion:
+            in_body = data['claw']['body']
+            # create claw
+            body = pymunk.Body(mass=5, moment=1000000)
+            body.position = Vec2d(in_body['position'])
+            body.angle = in_body['angle']
+            body.velocity = Vec2d(in_body['velocity'])
+            self.claw = pymunk.Circle(body, self.claw_radius)
+            self.claw.friction = 1
+            self.claw.elasticity = 0
+            self.claw.collision_type = Collision.Claw
+            self.claw_joint = pymunk.SlideJoint(self.claw.body, self.man.body, Vec2d(0, 0), Vec2d(0, 0), 0, data['claw_joint']['max'])
+            self.claw_joint.max_bias = max_bias
+            self.space.add(body, self.claw, self.claw_joint)
+        if in_claw_pins is None:
+            self.claw_pins = None
+        else:
+            self.claw_pins = []
+            for in_joint in in_claw_pins:
+                joint = pymunk.PinJoint(self.claw.body, self.ceiling.body, Vec2d(0, 0), Vec2d(0, 0))
+                joint.max_bias = max_bias
+                self.claw_pins.append(joint)
+                self.space.add(joint)
 
 
     def serialize_state(self):
@@ -916,7 +973,17 @@ class Tank:
             'points': self.points,
             'winner': self.winner,
             'equipped_gun': self.equipped_gun,
+            'claw_pins': None,
+            'claw_in_motion': self.claw_in_motion,
+            'claw_visible': self.sprite_claw.visible,
+            'claw_attached': self.claw_attached,
+            'claw': None,
         }
+        if self.claw_pins is not None:
+            state['claw_pins'] = [serialize_pin_joint(joint) for joint in self.claw_pins]
+        if self.sprite_claw.visible:
+            state['claw'] = serialize_shape(self.claw)
+            state['claw_joint'] = serialize_slide_joint(self.claw_joint)
         return state
 
     def on_key_press(self, symbol, modifiers):
