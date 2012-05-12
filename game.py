@@ -514,12 +514,28 @@ class Tank:
         if self.game_over:
             return
         self.game_over = True
-        self.explode_atoms(list(self.atoms))
+        self.explode_atoms(list(self.atoms), "atomfail")
 
         self.sprite_man.image = self.game.animations.get("defeat")
         self.sprite_arm.visible = False
 
         self.retract_claw()
+
+        self.other_tank.win()
+
+    def win(self):
+        if self.game_over:
+            return
+
+        self.game_over = True
+        self.explode_atoms(list(self.atoms))
+
+        self.sprite_man.image = self.game.animations.get("victory")
+        self.sprite_arm.visible = False
+
+        self.retract_claw()
+
+        self.other_tank.lose()
 
     def explode_atom(self, atom, animation_name="asplosion"):
         if atom is self.ray_atom:
@@ -533,9 +549,9 @@ class Tank:
         atom.sprite.set_handler("on_animation_end", clear_sprite)
 
 
-    def explode_atoms(self, atoms):
+    def explode_atoms(self, atoms, animation_name="asplosion"):
         for atom in atoms:
-            self.explode_atom(atom)
+            self.explode_atom(atom, animation_name)
 
     def process_input(self, dt):
         if self.game_over:
