@@ -21,8 +21,8 @@ bombsplode :0.1  :0   :0    :0    :150   :150   :75      :75       = bigbadaboom
 
 asplosion  :0.1  :0   :0    :0    :32    :32    :16      :16       = asplosion-0.png,asplosion-1.png,asplosion-2.png,asplosion-3.png,asplosion-4.png,asplosion-5.png
 atomfail   :0.02 :0   :0    :0    :32    :32    :16      :16       = atomfail-00.png,atomfail-01.png,atomfail-02.png,atomfail-03.png,atomfail-04.png,atomfail-05.png,atomfail-06.png,atomfail-07.png,atomfail-08.png,atomfail-09.png,atomfail-10.png,atomfail-11.png
-tank1      :0.1  :1   :0    :0    :384   :512   :192     :256      = tankleft0001.png,tankleft0002.png,tankleft0003.png,tankleft0004.png,tankleft0005.png,tankleft0006.png,tankleft0007.png,tankleft0008.png,tankleft0009.png,tankleft0010.png
-tank2      :0.1  :1   :0    :0    :384   :512   :192     :256      = tankright0001.png,tankright0002.png,tankright0003.png,tankright0004.png,tankright0005.png,tankright0006.png,tankright0007.png,tankright0008.png,tankright0009.png,tankright0010.png
+tank0      :0.1  :1   :0    :0    :384   :512   :192     :256      = tankleft0001.png,tankleft0002.png,tankleft0003.png,tankleft0004.png,tankleft0005.png,tankleft0006.png,tankleft0007.png,tankleft0008.png,tankleft0009.png,tankleft0010.png
+tank1      :0.1  :1   :0    :0    :384   :512   :192     :256      = tankright0001.png,tankright0002.png,tankright0003.png,tankright0004.png,tankright0005.png,tankright0006.png,tankright0007.png,tankright0008.png,tankright0009.png,tankright0010.png
 
 still      :1    :1   :0    :0    :32    :64    :16      :32       = man.png
 jump       :0.1  :0   :0    :0    :32    :64    :23      :32       = jump-0.png,jump-1.png,jump-2.png,jump-3.png

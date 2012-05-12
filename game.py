@@ -216,7 +216,7 @@ class Rock:
 
 
 class Tank:
-    def __init__(self, pos, dims, game):
+    def __init__(self, pos, dims, game, tank_index=None):
         self.pos = pos
         self.dims = dims
         self.size = dims * atom_size
@@ -281,7 +281,9 @@ class Tank:
         # if you have this many atoms per tank y or more, you lose
         self.lose_ratio = 95 / 300
 
-        tank_name = "tank%i" % random.randint(1, 2)
+        if tank_index is None:
+            tank_index = random.randint(0, 1)
+        tank_name = "tank%i" % tank_index
         self.sprite_tank = pyglet.sprite.Sprite(self.game.animations.get(tank_name), batch=self.game.batch, group=self.game.group_main)
 
         self.game_over = False
@@ -1029,7 +1031,7 @@ class Game(object):
             Vec2d(531, 41),
         ]
 
-        self.tanks = [Tank(pos, tank_dims, self) for pos in tank_pos]
+        self.tanks = [Tank(pos, tank_dims, self, tank_index=i) for i, pos in enumerate(tank_pos)]
 
         self.control_tank = self.tanks[0]
         self.enemy_tank = self.tanks[1]
