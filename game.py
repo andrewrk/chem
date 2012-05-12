@@ -10,6 +10,8 @@ import itertools
 import pymunk
 from pymunk import Vec2d
 
+import websocket
+
 game_title = "Dr. Chemical's Lab"
 game_fps = 60
 game_size = Vec2d(1024, 600)
@@ -19,6 +21,15 @@ atom_size = Vec2d(32, 32)
 atom_radius = atom_size.x / 2
 
 max_bias = 400
+
+def serialize_shape(shape):
+    return {
+        'body': {
+            'position': shape.body.position,
+            'velocity': shape.body.velocity,
+        },
+    }
+        
 
 def sign(x):
     if x > 0:
@@ -122,6 +133,18 @@ class Atom:
         self.sprite.delete()
         self.sprite = None
 
+    def serialize(self):
+        if self.marked_for_deletion:
+            return None
+
+        return {
+            'id': self.id(),
+            'shape': serialize_shape(self.shape),
+            'flavor': self.flavor_index,
+            'bonds': [b.id() for b in self.bonds],
+            'rogue': self.rogue,
+        }
+
 class Bomb:
     radius = 16
     size = Vec2d(radius*2, radius*2)
@@ -147,6 +170,12 @@ class Bomb:
         self.sprite.delete()
         self.sprite = None
 
+    def serialize(self):
+        return {
+            'type': "Bomb",
+            'shape': serialize_shape(self.shape),
+        }
+
 class Rock:
     radius = 16
     size = Vec2d(radius*2, radius*2)
@@ -170,6 +199,12 @@ class Rock:
         self.space.remove(self.shape, self.shape.body)
         self.sprite.delete()
         self.sprite = None
+
+    def serialize(self):
+        return {
+            'type': "Bomb",
+            'shape': serialize_shape(self.shape),
+        }
 
 
 class Tank:
@@ -875,6 +910,15 @@ class Game(object):
                 self.point_end.x = (self.point_end.y - y_intercept) / slope
 
 
+    def serialize_state(self):
+        state = {
+            'objects': [thing.serialize() for thing in itertools.chain(self.tank.atoms, self.tank.bombs, self.tank.rocks)],
+            'man': {
+                'shape': serialize_shape(self.man),
+            },
+        }
+        return json.dumps(state)
+
     def on_draw(self):
         self.window.clear()
 
@@ -978,6 +1022,24 @@ class Game(object):
             self.control_state[control] = False
         except KeyError:
             return
+
+import threading
+import asyncore
+
+def run_network():
+    def onmessage():
+        print("got message")
+    def onerror(msg):
+        print("got error: %s" % msg)
+    def onopen():
+        print("on open")
+    def onclose():
+        print("on close")
+    socket = websocket.WebSocket("ws://superjoe.zapto.org/dr-chemicals-lab", onmessage=onmessage, onopen=onopen, onerror=onerror, onclose=onclose)
+
+    asyncore.loop()
+net_thread = threading.Thread(target=run_network)
+net_thread.start()
 
 window = pyglet.window.Window(width=int(game_size.x), height=int(game_size.y), caption=game_title)
 game = Game(window)
