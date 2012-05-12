@@ -639,6 +639,7 @@ class Tank:
             power = 1000 / len(ground_shapes)
             for shape in ground_shapes:
                 shape.body.apply_impulse(Vec2d(0, -power), Vec2d(0, 0))
+            self.game.sfx['jump'].play()
 
         # point the man+arm in direction of mouse
         animation = self.game.animations.get(negate + animation_name)
@@ -1217,6 +1218,11 @@ class Game(object):
         self.sprite_bg_top = pyglet.sprite.Sprite(img_bg_top, batch=self.batch, group=self.group_fg, y=img_bg.height-img_bg_top.height)
 
         self.atom_imgs = [self.animations.get("atom%i" % i) for i in range(Atom.flavor_count)]
+
+
+        self.sfx = {
+            'jump': pyglet.resource.media('data/jump__dave-des__fast-simple-chop-5.ogg', streaming=False),
+        }
 
         pyglet.clock.schedule_interval(self.update, 1/game_fps)
         if "--fps" in sys.argv:
