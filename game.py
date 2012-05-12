@@ -866,7 +866,7 @@ class Tank:
         atoms_by_id = {}
         for obj in data['objects']:
             if obj is None:
-                return
+                continue
             # atoms
             if obj['type'] == 'Atom':
                 body = obj['shape']['body']
