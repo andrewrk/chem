@@ -7,11 +7,11 @@ import json
 # See: https://github.com/liris/websocket-client
 
 
-def to_socketio(event_name, payload)
+def to_socketio(event_name, payload):
     message = {'name': event_name, 'args': [json.dumps(payload)]}
     return "5:::" + json.dumps(message)
 
-def from_socketio(message)
+def from_socketio(message):
     message = message.replace('5:::', '')
     return json.loads(message)
 
