@@ -1173,23 +1173,75 @@ class Game(object):
     def start(self):
         pyglet.app.run()
 
-#import threading
-#import asyncore
-#
-#def run_network():
-#    def onmessage():
-#        print("got message")
-#    def onerror(msg):
-#        print("got error: %s" % msg)
-#    def onopen():
-#        print("on open")
-#    def onclose():
-#        print("on close")
-#    socket = websocket.WebSocket("ws://superjoe.zapto.org/dr-chemicals-lab", onmessage=onmessage, onopen=onopen, onerror=onerror, onclose=onclose)
-#
-#    asyncore.loop()
-#net_thread = threading.Thread(target=run_network)
-#net_thread.start()
+import websocket
+import thread
+import time
+import httplib
+
+# See: https://github.com/liris/websocket-client
+
+
+def to_socketio(event_name, payload):
+    message = {'name': event_name, 'args': [json.dumps(payload)]}
+    return "5:::" + json.dumps(message)
+
+def from_socketio(message):
+    message = message.replace('5:::', '')
+    return json.loads(message)
+
+
+
+
+def recieve_event(ws, name, payload) :
+    print("recieve_event: ", name, payload)
+
+def send_event(ws, name, payload) :
+    ws.send(to_socketio(name, payload))
+
+
+
+
+
+def on_message(ws, message):
+    payload = from_socketio(message)
+    recieve_event(ws, payload['name'], payload['args'])
+
+def on_error(ws, error):
+    print(error)
+
+def on_close(ws):
+    print("### closed ###")
+
+def on_open(ws):
+    print("open connection")
+
+
+
+
+
+
+websocket.enableTrace(False)
+
+server = 'localhost' if "--localhost" in sys.argv else 'superjoe.zapto.org'
+port = '9000'
+
+conn  = httplib.HTTPConnection(server + ":" + str(port))
+conn.request('POST','/socket.io/1/')
+resp  = conn.getresponse() 
+hskey = resp.read().split(':')[0]
+
+ws = websocket.WebSocketApp('ws://'+server+':'+str(port)+'/socket.io/1/websocket/'+hskey,
+                            on_message = on_message,
+                            on_error = on_error,
+                            on_open = on_open,
+                            on_close = on_close)
+
+import threading
+thread = threading.Thread(target=ws.run_forever)
+thread.daemon = True
+thread.start()
+
+
 
 window = pyglet.window.Window(width=int(game_size.x), height=int(game_size.y), caption=game_title)
 game = Game(window)
