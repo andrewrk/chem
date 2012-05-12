@@ -559,7 +559,9 @@ class Tank:
 
         self.retract_claw()
 
-        self.other_tank.win()
+        if self.other_tank is not None:
+            self.other_tank.win()
+        self.play_sfx("defeat")
 
     def win(self):
         if self.game_over:
@@ -574,7 +576,10 @@ class Tank:
 
         self.retract_claw()
 
-        self.other_tank.lose()
+        if self.other_tank is not None:
+            self.other_tank.lose()
+
+        self.play_sfx("victory")
 
     def explode_atom(self, atom, animation_name="asplosion"):
         if atom is self.ray_atom:
@@ -650,12 +655,15 @@ class Tank:
             self.sprite_man.image = animation
 
         # selecting a different gun
-        if self.control_state[Control.SwitchToGrapple]:
+        if self.control_state[Control.SwitchToGrapple] and self.equipped_gun is not Control.SwitchToGrapple:
             self.equipped_gun = Control.SwitchToGrapple
-        elif self.control_state[Control.SwitchToRay]:
+            self.play_sfx('switch_weapon')
+        elif self.control_state[Control.SwitchToRay] and self.equipped_gun is not Control.SwitchToRay:
             self.equipped_gun = Control.SwitchToRay
-        elif self.control_state[Control.SwitchToLazer]:
+            self.play_sfx('switch_weapon')
+        elif self.control_state[Control.SwitchToLazer] and self.equipped_gun is not Control.SwitchToLazer:
             self.equipped_gun = Control.SwitchToLazer
+            self.play_sfx('switch_weapon')
 
         if self.equipped_gun is Control.SwitchToGrapple:
             if self.claw_in_motion:
@@ -1244,6 +1252,9 @@ class Game(object):
             'ray': pyglet.resource.media('data/sfx/raygun__owyheesound__decelerate-discharge.ogg', streaming=False),
             'lazer': pyglet.resource.media('data/sfx/lazer__supraliminal__laser-short.ogg', streaming=False),
             'bond': pyglet.resource.media('data/sfx/atomsmerge__tigersound__disappear.ogg', streaming=False),
+            'victory': pyglet.resource.media('data/sfx/victory__iut-paris8__labbefabrice-2011-01.ogg', streaming=False),
+            'defeat': pyglet.resource.media('data/sfx/defeat__freqman__lostspace.ogg', streaming=False),
+            'switch_weapon': pyglet.resource.media('data/sfx/switchweapons__erdie__metallic-weapon-low.ogg', streaming=False),
         }
 
         pyglet.clock.schedule_interval(self.update, 1/game_fps)
