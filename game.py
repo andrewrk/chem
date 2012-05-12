@@ -846,6 +846,8 @@ class Tank:
 
 
     def restore_state(self, data):
+        if self.game_over:
+            return
         # destroy everything
         # man
         self.space.remove(self.man, self.man.body)
@@ -853,7 +855,6 @@ class Tank:
         for atom in self.atoms:
             atom.clean_up()
         self.atoms = set()
-        Atom.id_count = 0
 
         # re-create everything
         # man
