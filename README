@@ -7,6 +7,20 @@ Install dependencies:
 
     sudo pip install pymunk pyglet
 
+Install OSX:
+
+  Install both pymunk and pyglet from source:
+
+    svn checkout http://pymunk.googlecode.com/svn/trunk/ pymunk-read-only
+    cd pymunk-read-only
+    python setup.py build_chipmunk
+    sudo python setup.py install
+
+    hg clone https://pyglet.googlecode.com/hg/ pyglet
+    cd pyglet
+    sudo python setup.py install
+
+
 Run:
 
     python game.py
