@@ -30,6 +30,10 @@ Alternate keyboard layouts:
     python game.py --dvorak
     python game.py --colemak
 
-Disable networking:
+Disable networking (prevents crashes in 1player mode):
 
     python game.py --survival
+
+Disable sound efects (removes dependecy on AVBin):
+
+    python game.py --nofx

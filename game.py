@@ -841,7 +841,7 @@ class Tank:
             #self.game.sfx['atom_hit_atom'].play()
 
     def play_sfx(self, name):
-        if self.sfx_enabled:
+        if self.sfx_enabled and self.game.sfx is not None:
             self.game.sfx[name].play()
 
     def retract_claw(self):
@@ -1253,20 +1253,23 @@ class Game(object):
         self.atom_imgs = [self.animations.get("atom%i" % i) for i in range(Atom.flavor_count)]
 
 
-        self.sfx = {
-            'jump': pyglet.resource.media('data/sfx/jump__dave-des__fast-simple-chop-5.ogg', streaming=False),
-            'atom_hit_atom': pyglet.resource.media('data/sfx/atomscolide__batchku__colide-18-005.ogg', streaming=False),
-            'ray': pyglet.resource.media('data/sfx/raygun__owyheesound__decelerate-discharge.ogg', streaming=False),
-            'lazer': pyglet.resource.media('data/sfx/lazer__supraliminal__laser-short.ogg', streaming=False),
-            'bond': pyglet.resource.media('data/sfx/atomsmerge__tigersound__disappear.ogg', streaming=False),
-            'victory': pyglet.resource.media('data/sfx/victory__iut-paris8__labbefabrice-2011-01.ogg', streaming=False),
-            'defeat': pyglet.resource.media('data/sfx/defeat__freqman__lostspace.ogg', streaming=False),
-            'switch_weapon': pyglet.resource.media('data/sfx/switchweapons__erdie__metallic-weapon-low.ogg', streaming=False),
-            'explode': pyglet.resource.media('data/sfx/atomsexplode3-1.ogg', streaming=False),
-            'claw_hit': pyglet.resource.media('data/sfx/shootingtheclaw__smcameron__rocks2.ogg', streaming=False),
-            'shoot_claw': pyglet.resource.media('data/sfx/landonsurface__juskiddink__thud-dry.ogg', streaming=False),
-            'retract': pyglet.resource.media('data/sfx/clawcomesback__simon-rue__studs-moln-v4.ogg', streaming=False),
-        }
+        if "--nofx" not in self.argv:
+            self.sfx = {
+                'jump': pyglet.resource.media('data/sfx/jump__dave-des__fast-simple-chop-5.ogg', streaming=False),
+                'atom_hit_atom': pyglet.resource.media('data/sfx/atomscolide__batchku__colide-18-005.ogg', streaming=False),
+                'ray': pyglet.resource.media('data/sfx/raygun__owyheesound__decelerate-discharge.ogg', streaming=False),
+                'lazer': pyglet.resource.media('data/sfx/lazer__supraliminal__laser-short.ogg', streaming=False),
+                'bond': pyglet.resource.media('data/sfx/atomsmerge__tigersound__disappear.ogg', streaming=False),
+                'victory': pyglet.resource.media('data/sfx/victory__iut-paris8__labbefabrice-2011-01.ogg', streaming=False),
+                'defeat': pyglet.resource.media('data/sfx/defeat__freqman__lostspace.ogg', streaming=False),
+                'switch_weapon': pyglet.resource.media('data/sfx/switchweapons__erdie__metallic-weapon-low.ogg', streaming=False),
+                'explode': pyglet.resource.media('data/sfx/atomsexplode3-1.ogg', streaming=False),
+                'claw_hit': pyglet.resource.media('data/sfx/shootingtheclaw__smcameron__rocks2.ogg', streaming=False),
+                'shoot_claw': pyglet.resource.media('data/sfx/landonsurface__juskiddink__thud-dry.ogg', streaming=False),
+                'retract': pyglet.resource.media('data/sfx/clawcomesback__simon-rue__studs-moln-v4.ogg', streaming=False),
+            }
+        else:
+            self.sfx = None
 
         pyglet.clock.schedule_interval(self.update, 1/game_fps)
         if "--fps" in sys.argv:
@@ -1416,6 +1419,7 @@ class ControlsScene(object):
         self.window = window
         self.img = pyglet.resource.image("data/howtoplay.png")
         self.window.set_handler('on_draw', self.on_draw)
+        self.window.set_handler('on_mouse_press', self.on_mouse_press)
         pyglet.clock.schedule_interval(self.update, 1/game_fps)
 
     def update(self, dt):
@@ -1427,7 +1431,11 @@ class ControlsScene(object):
 
     def end(self):
         self.window.remove_handler('on_draw', self.on_draw)
+        self.window.remove_handler('on_mouse_press', self.on_mouse_press)
         pyglet.clock.unschedule(self.update)
+
+    def on_mouse_press(self, x, y, button, modifiers):
+        self.gw.title()
 
 
 class Credits(object):

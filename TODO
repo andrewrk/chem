@@ -1,18 +1,8 @@
 * fix the bug that makes the game crash
 * sound effects
-  - shooting the claw
-  - claw hitting something
   - atom collision
-  - retracting the claw
-  - jumping
   - landing on a surface
-  - switching weapons
-  - atoms bonding
   - atoms asploding
-  - shooting a lazer
-  - shooting a ray gun
-  - losing
-  - winning
 * theme music
 * preview the atoms before they drop
 * set up to follow rules/instructions
