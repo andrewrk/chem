@@ -807,7 +807,9 @@ class Tank:
                     self.explode_atoms(bond_loop)
                     self.queued_asplosions.append((atom1.flavor_index, len_bond_loop))
 
-                self.play_sfx("bond")
+                    self.play_sfx("merge")
+                else:
+                    self.play_sfx("bond")
 
         self.bond_queue = []
 
@@ -1259,7 +1261,8 @@ class Game(object):
                 'atom_hit_atom': pyglet.resource.media('data/sfx/atomscolide__batchku__colide-18-005.ogg', streaming=False),
                 'ray': pyglet.resource.media('data/sfx/raygun__owyheesound__decelerate-discharge.ogg', streaming=False),
                 'lazer': pyglet.resource.media('data/sfx/lazer__supraliminal__laser-short.ogg', streaming=False),
-                'bond': pyglet.resource.media('data/sfx/atomsmerge__tigersound__disappear.ogg', streaming=False),
+                'merge': pyglet.resource.media('data/sfx/atomsmerge__tigersound__disappear.ogg', streaming=False),
+                'bond': pyglet.resource.media('data/sfx/bond.ogg', streaming=False),
                 'victory': pyglet.resource.media('data/sfx/victory__iut-paris8__labbefabrice-2011-01.ogg', streaming=False),
                 'defeat': pyglet.resource.media('data/sfx/defeat__freqman__lostspace.ogg', streaming=False),
                 'switch_weapon': pyglet.resource.media('data/sfx/switchweapons__erdie__metallic-weapon-low.ogg', streaming=False),
@@ -1623,7 +1626,7 @@ def on_error(ws, error):
     print(error)
 
 def on_close(ws):
-    print("### closed ###")
+    print("socket connection closed")
 
 def on_open(ws):
     print("open connection")
