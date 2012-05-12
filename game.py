@@ -283,8 +283,10 @@ class Tank:
         self.sprite_tank = pyglet.sprite.Sprite(self.game.animations.get(tank_name), batch=self.game.batch, group=self.game.group_main)
 
         self.game_over = False
+        self.winner = None
 
         self.atom_drop_enabled = True
+        self.enable_point_calculation = True
 
     def init_guns(self):
         self.claw_in_motion = False
@@ -518,6 +520,7 @@ class Tank:
         if self.game_over:
             return
         self.game_over = True
+        self.winner = False
         self.explode_atoms(list(self.atoms), "atomfail")
 
         self.sprite_man.image = self.game.animations.get("defeat")
@@ -532,6 +535,7 @@ class Tank:
             return
 
         self.game_over = True
+        self.winner = True
         self.explode_atoms(list(self.atoms))
 
         self.sprite_man.image = self.game.animations.get("victory")
@@ -748,7 +752,8 @@ class Tank:
             bond_loop = atom1.bond_loop()
             if bond_loop is not None:
                 # make all the atoms in this loop disappear
-                self.points += len(bond_loop)
+                if self.enable_point_calculation:
+                    self.points += len(bond_loop)
                 self.explode_atoms(bond_loop)
 
         self.bond_queue = []
@@ -878,7 +883,21 @@ class Tank:
                 self.atoms.add(atom)
         for atom in self.atoms:
             for bond_id in atom.in_bonds:
-                atom.bond_to(atoms_by_id[bond_id])
+                try:
+                    atom.bond_to(atoms_by_id[bond_id])
+                except KeyError:
+                    print("warn: keyerror for bonds")
+
+        # state vars
+        self.points = data['points']
+
+        winner = data['winner']
+        if self.winner is None and winner is not None:
+            if winner:
+                self.lose()
+            else:
+                self.win()
+            
 
 
     def serialize_state(self):
@@ -888,6 +907,8 @@ class Tank:
                 'shape': serialize_shape(self.man),
             },
             'mouse_pos': list(self.mouse_pos),
+            'points': self.points,
+            'winner': self.winner,
         }
         return state
 
@@ -1080,6 +1101,7 @@ class Game(object):
         self.enemy_tank.other_tank = self.control_tank
 
         self.enemy_tank.atom_drop_enabled = False
+        self.enemy_tank.enable_point_calculation = False
 
         self.survival_points = 0
         self.survival_point_timeout = 1 if "--hard" in sys.argv else 10

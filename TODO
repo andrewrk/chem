@@ -1,15 +1,11 @@
-* preview the atoms before they drop
-* weapons:
-  - uncork
-  - scissors
-  - acid
-  - radiation
-  - mess with gravity
-  - mess with mass
-
+* synchronize points
+* lobby
+* claw / joints
+* which gun is out
+* win/loss
 * title screen
-* configurable controls
-
+* credits
+* weapons
 * sound effects
   - shooting the claw
   - claw hitting something
@@ -24,10 +20,21 @@
   - shooting a ray gun
   - losing
   - winning
-
 * theme music
+* preview the atoms before they drop
+* set up to follow rules/instructions
 
-* multiplayer
+
+* weapons:
+  - uncork
+  - scissors
+  - acid
+  - radiation
+  - mess with gravity
+  - mess with mass
+
+
+
 
 
 Brainstorming:
