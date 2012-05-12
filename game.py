@@ -730,7 +730,17 @@ class Game(object):
         for bomb in list(self.tank.bombs):
             bomb.tick(dt)
             if bomb.timeout <= 0:
-                # cause explosion
+                # physics explosion
+                # loop over every object in the space and apply an impulse
+                for shape in self.space.shapes:
+                    vector = shape.body.position - bomb.shape.body.position
+                    dist = vector.get_length()
+                    direction = vector.normalized()
+                    power = 6000
+                    damp = 1 - dist / 800
+                    shape.body.apply_impulse(direction * power * damp)
+
+                # explosion animation
                 sprite = pyglet.sprite.Sprite(self.animations.get("bombsplode"), batch=self.batch, group=self.group_fg)
                 sprite.set_position(*(self.tank_pos + bomb.shape.body.position))
                 def remove_bomb_sprite(sprite=sprite):
