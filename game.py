@@ -1284,9 +1284,10 @@ class GameWindow(object):
         self.end_current()
         self.current = Title(self, self.window, self.server)
 
-    def play(self):
+    def play(self, server_on=True):
+        server = self.server if server_on else None
         self.end_current()
-        self.current = Game(self, self.window, self.server)
+        self.current = Game(self, self.window, server)
 
     def credits(self):
         self.end_current()
@@ -1425,9 +1426,8 @@ class Title(object):
 
     def on_mouse_press(self, x, y, button, modifiers):
         click_pos = Vec2d(x, y)
-        print(click_pos)
         if click_pos.get_distance(self.start_pos) < self.click_radius:
-            self.gw.play()
+            self.gw.play(server_on=False)
             return
         elif click_pos.get_distance(self.credits_pos) < self.click_radius:
             self.gw.credits()

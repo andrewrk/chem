@@ -3,11 +3,11 @@ Dr. Chemical's Lab - PyWeek #14 Entry
 "In Dr. Chem's Lab... physics struggles with YOU"
 
 
-Install dependencies:
+Install on Linux:
 
     sudo pip install pymunk pyglet
 
-Install OSX:
+Install on OSX:
 
   Install both pymunk and pyglet from source:
 
@@ -29,3 +29,7 @@ Alternate keyboard layouts:
 
     python game.py --dvorak
     python game.py --colemak
+
+Disable networking:
+
+    python game.py --survival
