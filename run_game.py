@@ -1444,6 +1444,7 @@ class Credits(object):
         self.window = window
         self.img = pyglet.resource.image("data/credits.png")
         self.window.set_handler('on_draw', self.on_draw)
+        self.window.set_handler('on_mouse_press', self.on_mouse_press)
         pyglet.clock.schedule_interval(self.update, 1/game_fps)
 
     def update(self, dt):
@@ -1455,7 +1456,11 @@ class Credits(object):
 
     def end(self):
         self.window.remove_handler('on_draw', self.on_draw)
+        self.window.remove_handler('on_mouse_press', self.on_mouse_press)
         pyglet.clock.unschedule(self.update)
+
+    def on_mouse_press(self, x, y, button, modifiers):
+        self.gw.title()
 
 
 class Title(object):
