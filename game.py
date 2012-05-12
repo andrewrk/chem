@@ -1253,7 +1253,7 @@ class Game(object):
         self.atom_imgs = [self.animations.get("atom%i" % i) for i in range(Atom.flavor_count)]
 
 
-        if "--nofx" not in self.argv:
+        if "--nofx" not in sys.argv:
             self.sfx = {
                 'jump': pyglet.resource.media('data/sfx/jump__dave-des__fast-simple-chop-5.ogg', streaming=False),
                 'atom_hit_atom': pyglet.resource.media('data/sfx/atomscolide__batchku__colide-18-005.ogg', streaming=False),
