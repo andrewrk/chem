@@ -398,6 +398,8 @@ class Tank:
                 sprite.set_handler("on_animation_end", remove_bomb_sprite)
                 self.remove_bomb(bomb)
 
+                self.play_sfx("explode")
+
         self.process_input(dt)
 
 
@@ -696,6 +698,8 @@ class Tank:
                 self.claw_joint.max_bias = max_bias
                 self.space.add(body, self.claw, self.claw_joint)
 
+                self.play_sfx('shoot_claw')
+
             if self.sprite_claw.visible:
                 claw_dist = (self.claw.body.position - self.man.body.position).get_length()
 
@@ -825,6 +829,8 @@ class Tank:
             claw_pin.max_bias = max_bias
         self.claw_attached = True
 
+        self.play_sfx("claw_hit")
+
     def atom_hit_atom(self, space, arbiter):
         atom1, atom2 = [Atom.atom_for_shape[shape] for shape in arbiter.shapes]
         # bond the atoms together
@@ -848,6 +854,7 @@ class Tank:
         self.space.remove(self.claw.body, self.claw, self.claw_joint)
         self.claw = None
         self.unattach_claw()
+        self.play_sfx("retract")
 
     def unattach_claw(self):
         if self.claw_pins is not None:
@@ -1255,6 +1262,10 @@ class Game(object):
             'victory': pyglet.resource.media('data/sfx/victory__iut-paris8__labbefabrice-2011-01.ogg', streaming=False),
             'defeat': pyglet.resource.media('data/sfx/defeat__freqman__lostspace.ogg', streaming=False),
             'switch_weapon': pyglet.resource.media('data/sfx/switchweapons__erdie__metallic-weapon-low.ogg', streaming=False),
+            'explode': pyglet.resource.media('data/sfx/atomsexplode3-1.ogg', streaming=False),
+            'claw_hit': pyglet.resource.media('data/sfx/shootingtheclaw__smcameron__rocks2.ogg', streaming=False),
+            'shoot_claw': pyglet.resource.media('data/sfx/landonsurface__juskiddink__thud-dry.ogg', streaming=False),
+            'retract': pyglet.resource.media('data/sfx/clawcomesback__simon-rue__studs-moln-v4.ogg', streaming=False),
         }
 
         pyglet.clock.schedule_interval(self.update, 1/game_fps)
@@ -1403,7 +1414,7 @@ class ControlsScene(object):
     def __init__(self, gw, window):
         self.gw = gw
         self.window = window
-        self.img = pyglet.resource.image("data/controls.png")
+        self.img = pyglet.resource.image("data/howtoplay.png")
         self.window.set_handler('on_draw', self.on_draw)
         pyglet.clock.schedule_interval(self.update, 1/game_fps)
 
