@@ -147,6 +147,29 @@ class Bomb:
         self.sprite.delete()
         self.sprite = None
 
+class Rock:
+    radius = 16
+    size = Vec2d(radius*2, radius*2)
+
+    def __init__(self, pos, sprite, space):
+        self.sprite = sprite
+
+        body = pymunk.Body(70, 100000)
+        body.position = pos
+        self.shape = pymunk.Circle(body, Rock.radius)
+        self.shape.friction = 0.9
+        self.shape.elasticity = 0.01
+        self.shape.collision_type = Collision.Default
+        self.space = space
+        self.space.add(body, self.shape)
+
+    def tick(self, dt):
+        pass
+
+    def clean_up(self):
+        self.space.remove(self.shape, self.shape.body)
+        self.sprite.delete()
+        self.sprite = None
 
 
 class Tank:
@@ -155,6 +178,7 @@ class Tank:
         self.size = dims * atom_size
         self.atoms = set()
         self.bombs = set()
+        self.rocks = set()
 
     def remove_atom(self, atom):
         atom.clean_up()
@@ -719,12 +743,20 @@ class Game(object):
             new_number = self.enemy_points // self.weapon_drop_interval
 
             if new_number > old_number:
-                # drop a bomb
-                pos = self.get_drop_pos(Bomb.size)
-                sprite = pyglet.sprite.Sprite(self.animations.get("bomb"), batch=self.batch, group=self.group_main)
-                timeout = random.randint(2, 6)
-                bomb = Bomb(pos, sprite, self.space, timeout)
-                self.tank.bombs.add(bomb)
+                n = random.randint(1, 2)
+                if n == 1:
+                    # drop a bomb
+                    pos = self.get_drop_pos(Bomb.size)
+                    sprite = pyglet.sprite.Sprite(self.animations.get("bomb"), batch=self.batch, group=self.group_main)
+                    timeout = random.randint(2, 6)
+                    bomb = Bomb(pos, sprite, self.space, timeout)
+                    self.tank.bombs.add(bomb)
+                elif n == 2:
+                    # drop a rock
+                    pos = self.get_drop_pos(Rock.size)
+                    sprite = pyglet.sprite.Sprite(self.animations.get("rock"), batch=self.batch, group=self.group_main)
+                    rock = Rock(pos, sprite, self.space)
+                    self.tank.rocks.add(rock)
 
         # process bombs
         for bomb in list(self.tank.bombs):
@@ -847,7 +879,7 @@ class Game(object):
         self.window.clear()
 
         # drawable things
-        for drawable in itertools.chain(self.tank.atoms, self.tank.bombs):
+        for drawable in itertools.chain(self.tank.atoms, self.tank.bombs, self.tank.rocks):
             drawable.sprite.set_position(*(drawable.shape.body.position + self.tank_pos))
             drawable.sprite.rotation = -drawable.shape.body.rotation_vector.get_angle_degrees()
 
