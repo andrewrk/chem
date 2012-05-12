@@ -1250,7 +1250,7 @@ class Game(object):
                         self.enemy_tank.restore_state(data)
                     elif msg_name == 'YourOpponentLeftSorryBro':
                         print("you win - your opponent disconnected.")
-                        self.win()
+                        self.control_tank.win()
 
 
     def on_draw(self):
@@ -1355,21 +1355,25 @@ class Title(object):
 
         self.lobby_pos = Vec2d(746, 203)
         self.lobby_size = Vec2d(993.0 - self.lobby_pos.x, 522.0 - self.lobby_pos.y)
-        self.labels = []
-        self.users = []
 
-        self.nick_label = {}
-        self.nick_user = {}
+        if self.server is not None:
+            self.labels = []
+            self.users = []
 
-        # guess a good nick
-        self.nick = "Guest %i" % random.randint(1, 99999)
-        try:
-            import getpass
-            self.nick = "%s_%i" % (getpass.getuser(), random.randint(1, 9999))
-        except:
-            pass
-        server.send_msg("UpdateNick", self.nick)
-        self.my_nick_label = pyglet.text.Label(self.nick, font_size=16, x=748, y=137)
+            self.nick_label = {}
+            self.nick_user = {}
+
+            # guess a good nick
+            self.nick = "Guest %i" % random.randint(1, 99999)
+            try:
+                import getpass
+                self.nick = "%s_%i" % (getpass.getuser(), random.randint(1, 9999))
+            except:
+                pass
+            server.send_msg("UpdateNick", self.nick)
+            self.my_nick_label = pyglet.text.Label(self.nick, font_size=16, x=748, y=137)
+
+            self.challenged = {}
 
     def create_labels(self):
         self.labels = []
@@ -1384,8 +1388,10 @@ class Title(object):
             text = nick
             if user['playing'] is not None:
                 text += " (playing vs %s)" % user['playing']
-            elif user['wants2playme']:
+            elif self.nick in user['want_to_play']:
                 text += " (click to accept challenge)"
+            elif nick in self.challenged:
+                text += " (challenge sent)"
             else:
                 text += " (click to challenge)"
             label = pyglet.text.Label(text, font_size=13, x=next_pos.x, y=next_pos.y)
@@ -1395,19 +1401,22 @@ class Title(object):
             self.labels.append(label)
 
     def update(self, dt):
-        for name, payload in server.get_messages():
-            if name == 'LobbyList':
-                self.users = payload
-                self.create_labels()
-
-        
+        if self.server is not None:
+            for name, payload in server.get_messages():
+                if name == 'LobbyList':
+                    self.users = payload
+                    self.create_labels()
+                elif name == 'StartGame':
+                    self.gw.play()
+                    return
 
     def on_draw(self):
         self.window.clear()
         self.img.blit(0, 0)
-        for label in self.labels:
-            label.draw()
-        self.my_nick_label.draw()
+        if self.server is not None:
+            for label in self.labels:
+                label.draw()
+            self.my_nick_label.draw()
 
     def end(self):
         self.window.remove_handler('on_draw', self.on_draw)
@@ -1427,22 +1436,25 @@ class Title(object):
             self.gw.controls()
             return
 
-        for nick, label in self.nick_label.iteritems():
-            label_pos = Vec2d(label.x, label.y)
-            label_size = Vec2d(200, 18)
-            if click_pos.x > label_pos.x and click_pos.y > label_pos.y and click_pos.x < label_pos.x + label_size.x and click_pos.y < label_pos.y + label_size.y:
-                try:
-                    user = self.nick_user[nick]
-                except KeyError:
-                    print("warn missing nick" + nick)
-                    return
+        if self.server is not None:
+            for nick, label in self.nick_label.iteritems():
+                label_pos = Vec2d(label.x, label.y)
+                label_size = Vec2d(200, 18)
+                if click_pos.x > label_pos.x and click_pos.y > label_pos.y and click_pos.x < label_pos.x + label_size.x and click_pos.y < label_pos.y + label_size.y:
+                    try:
+                        user = self.nick_user[nick]
+                    except KeyError:
+                        print("warn missing nick" + nick)
+                        return
 
-                if not user['playing']:
-                    if user['wants2playme']:
-                        self.server.send_msg("AcceptPlayRequest", nick)
-                    else:
-                        self.server.send_msg("PlayRequest", nick)
-                return
+                    if not user['playing']:
+                        if self.nick in user['want_to_play']:
+                            self.server.send_msg("AcceptPlayRequest", nick)
+                        else:
+                            self.server.send_msg("PlayRequest", nick)
+                            self.challenged[nick] = True
+                            self.create_labels()
+                    return
 
 
 import websocket
