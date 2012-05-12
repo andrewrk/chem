@@ -288,6 +288,8 @@ class Tank:
 
         self.game_over = False
 
+        self.atom_drop_enabled = True
+
     def init_guns(self):
         self.claw_in_motion = False
         self.sprite_claw.visible = False
@@ -341,7 +343,8 @@ class Tank:
 
     def update(self, dt):
         self.adjust_ceiling(dt)
-        self.compute_drops(dt)
+        if self.atom_drop_enabled:
+            self.compute_drops(dt)
 
         # check if we died
         ratio = len(self.atoms) / (self.ceiling.body.position.y - self.size.y / 2)
@@ -844,12 +847,39 @@ class Tank:
 
     def restore_state(self, data):
         # destroy everything
+        # man
         self.space.remove(self.man, self.man.body)
-        # re create everything
-        man_shape_body = data['man']['shape']['body']
-        self.init_man(pos=Vec2d(man_shape_body['position']), vel=Vec2d(man_shape_body['velocity']))
+        # atoms
+        for atom in self.atoms:
+            atom.clean_up()
+        self.atoms = set()
+        Atom.id_count = 0
+
+        # re-create everything
+        # man
+        body = data['man']['shape']['body']
+        self.init_man(pos=Vec2d(body['position']), vel=Vec2d(body['velocity']))
 
         self.mouse_pos = Vec2d(data['mouse_pos'])
+        atoms_by_id = {}
+        for obj in data['objects']:
+            # atoms
+            if obj['type'] == 'Atom':
+                body = obj['shape']['body']
+                pos = Vec2d(body['position'])
+                vel = Vec2d(body['velocity'])
+                flavor = obj['flavor']
+                atom = Atom(pos, flavor, pyglet.sprite.Sprite(self.game.atom_imgs[flavor], batch=self.game.batch, group=self.game.group_main), self.space)
+                atom.shape.body.position = pos
+                atom.shape.body.velocity = vel
+                atom.in_id = obj['id']
+                atom.in_bonds = obj['bonds']
+                atoms_by_id[atom.in_id] = atom
+                self.atoms.add(atom)
+        for atom in self.atoms:
+            for bond_id in atom.in_bonds:
+                atom.bond_to(atoms_by_id[bond_id])
+
 
     def serialize_state(self):
         state = {
@@ -1066,6 +1096,8 @@ class Game(object):
 
         self.control_tank.other_tank = self.enemy_tank
         self.enemy_tank.other_tank = self.control_tank
+
+        self.enemy_tank.atom_drop_enabled = False
 
         self.window = window
         self.window.set_handler('on_draw', self.on_draw)
