@@ -1137,7 +1137,8 @@ class Animations:
 
 
 class Game(object):
-    def __init__(self, window, server):
+    def __init__(self, gw, window, server):
+        self.gw = gw
         self.server = server
         self.debug = "--debug" in sys.argv
 
@@ -1265,9 +1266,113 @@ class Game(object):
         if self.fps_display is not None:
             self.fps_display.draw()
 
+class GameWindow(object):
+    def __init__(self, window, server):
+        self.window = window
+        self.server = server
 
-    def start(self):
-        pyglet.app.run()
+        self.current = None
+
+    def end_current(self):
+        if self.current is not None:
+            self.current.end()
+        self.current = None
+
+    def title(self):
+        self.end_current()
+        self.current = Title(self, self.window, self.server)
+
+    def play(self):
+        self.end_current()
+        self.current = Game(self, self.window, self.server)
+
+    def credits(self):
+        self.end_current()
+        self.current = Credits(self, self.window)
+
+    def controls(self):
+        self.end_current()
+        self.current = ControlsScene(self, self.window)
+
+class ControlsScene(object):
+    def __init__(self, gw, window):
+        self.gw = gw
+        self.window = window
+        self.img = pyglet.resource.image("data/controls.png")
+        self.window.set_handler('on_draw', self.on_draw)
+        pyglet.clock.schedule_interval(self.update, 1/game_fps)
+
+    def update(self, dt):
+        pass
+
+    def on_draw(self):
+        self.window.clear()
+        self.img.blit(0, 0)
+
+    def end(self):
+        self.window.remove_handler('on_draw', self.on_draw)
+        pyglet.clock.unschedule(self.update)
+
+
+class Credits(object):
+    def __init__(self, gw, window):
+        self.gw = gw
+        self.window = window
+        self.img = pyglet.resource.image("data/credits.png")
+        self.window.set_handler('on_draw', self.on_draw)
+        pyglet.clock.schedule_interval(self.update, 1/game_fps)
+
+    def update(self, dt):
+        pass
+
+    def on_draw(self):
+        self.window.clear()
+        self.img.blit(0, 0)
+
+    def end(self):
+        self.window.remove_handler('on_draw', self.on_draw)
+        pyglet.clock.unschedule(self.update)
+
+
+class Title(object):
+    def __init__(self, gw, window, server):
+        self.gw = gw
+        self.window = window
+        self.server = server
+
+        self.window.set_handler('on_mouse_press', self.on_mouse_press)
+        self.window.set_handler('on_draw', self.on_draw)
+        pyglet.clock.schedule_interval(self.update, 1/game_fps)
+
+        self.img = pyglet.resource.image("data/title.png")
+
+        self.start_pos = Vec2d(409, 305)
+        self.credits_pos = Vec2d(360, 229)
+        self.controls_pos = Vec2d(525, 242)
+        self.click_radius = 50
+
+    def update(self, dt):
+        pass
+
+    def on_draw(self):
+        self.window.clear()
+        self.img.blit(0, 0)
+
+    def end(self):
+        self.window.remove_handler('on_draw', self.on_draw)
+        self.window.remove_handler('on_mouse_press', self.on_mouse_press)
+        pyglet.clock.unschedule(self.update)
+
+    def on_mouse_press(self, x, y, button, modifiers):
+        click_pos = Vec2d(x, y)
+        print(click_pos.get_distance(self.credits_pos))
+        if click_pos.get_distance(self.start_pos) < self.click_radius:
+            self.gw.play()
+        elif click_pos.get_distance(self.credits_pos) < self.click_radius:
+            self.gw.credits()
+        elif click_pos.get_distance(self.controls_pos) < self.click_radius:
+            self.gw.controls()
+
 
 import websocket
 import thread
@@ -1368,5 +1473,6 @@ if "--survival" not in sys.argv:
 
 
 window = pyglet.window.Window(width=int(game_size.x), height=int(game_size.y), caption=game_title)
-game = Game(window, server)
-game.start()
+w = GameWindow(window, server)
+w.title()
+pyglet.app.run()
