@@ -1,5 +1,6 @@
 app = require('express').createServer()
 io = require('socket.io').listen(app)
+io.set 'log level', 2
 fs = require('fs')
 _ = require('underscore')
 Backbone = require('backbone')
@@ -56,7 +57,7 @@ io.sockets.on 'connection', (socket) ->
   socket.on 'StateUpdate', (data) ->
     me.set('state', data)
     if me.opponent
-      me.opponent.socket.emit 'OpponentStatusUpdate', me.toJSON()
+      me.opponent.socket.emit 'StateUpdate', me.toJSON().state
 
     # send my state to the other player if I'm in a game
     #socket.broadcast.emit 'StateUpdate', user.toJSON()

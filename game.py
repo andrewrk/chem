@@ -858,6 +858,7 @@ class Tank:
 
         # re-create everything
         # man
+        data = data[0]
         body = data['man']['shape']['body']
         self.init_man(pos=Vec2d(body['position']), vel=Vec2d(body['velocity']))
 
@@ -1036,25 +1037,6 @@ class Animations:
             self.animation_offset[animation] = Vec2d(-int(off_x), -int(off_y))
             self.animation_offset[rev_animation] = Vec2d(int(off_x) + int(size_x), -int(off_y))
 
-dummy_state = """{"objects": [{"bonds": [], "shape": {"body": {"position": [201.1620302617581, 15.899907160551637], "velocity": [0.0, 4.440892098500626e-16]}}, "rogue": false, "flavor": 4, "type": "Atom", "id": 3}, {"bonds": [], "shape": {"body": {"position": [296.4885716930263, 15.899999805000231], "velocity": [0.0, 4.440892098500626e-16]}}, "rogue": false, "flavor": 1, "type": "Atom", "id": 2}, {"bonds": [], "shape": {"body": {"position": [106.09483697541798, 74.90244777819458], "velocity": [0.7970640523466013, -65.38298539603122]}}, "rogue": false, "flavor": 4, "type": "Atom", "id": 4}, {"bonds": [], "shape": {"body": {"position": [199.73446520455178, 495.77808866792657], "velocity": [0.0, -19.972573828109734]}}, "rogue": false, "flavor": 0, "type": "Atom", "id": 6}, {"bonds": [], "shape": {"body": {"position": [365.02667895189603, 15.899999998509555], "velocity": [0.0, 4.440892098500626e-16]}}, "rogue": false, "flavor": 4, "type": "Atom", "id": 0}, {"bonds": [], "shape": {"body": {"position": [42.39048079530272, 15.899999995404194], "velocity": [0.0, 4.440892098500626e-16]}}, "rogue": false, "flavor": 4, "type": "Atom", "id": 1}, {"bonds": [], "shape": {"body": {"position": [300.4244308544384, 281.2751674010951], "velocity": [0.0, -417.93498837612646]}}, "rogue": false, "flavor": 4, "type": "Atom", "id": 5}], "man": {"shape": {"body": {"position": [148.36946327657165, 131.93161481123989], "velocity": [199.3770075475592, 0.02096626808907933]}}}, "mouse_pos": [200, 200]}"""
-
-class Server:
-    def __init__(self):
-        pass
-
-    def get_messages(self):
-        return [
-            ('UpdateState', json.loads(dummy_state)),
-        ]
-
-    def send(self, string):
-        print("<out>")
-        print(string)
-        print("</out>")
-
-    def send_msg(self, name, obj):
-        self.send("%s:\n%s" % (name, json.dumps(obj)))
-
 
 class Game(object):
     def __init__(self, window):
@@ -1146,11 +1128,11 @@ class Game(object):
             if self.next_state_render <= 0:
                 self.next_state_render = self.state_render_timeout
 
-                self.server.send_msg("UpdateState", self.control_tank.serialize_state())
+                self.server.send_msg("StateUpdate", self.control_tank.serialize_state())
 
                 # get all server messages
                 for msg_name, data in self.server.get_messages():
-                    if msg_name == 'UpdateState':
+                    if msg_name == 'StateUpdate':
                         self.enemy_tank.restore_state(data)
 
 
@@ -1182,7 +1164,7 @@ import httplib
 
 
 def to_socketio(event_name, payload):
-    message = {'name': event_name, 'args': [json.dumps(payload)]}
+    message = {'name': event_name, 'args': payload}
     return "5:::" + json.dumps(message)
 
 def from_socketio(message):
@@ -1193,7 +1175,8 @@ def from_socketio(message):
 
 
 def recieve_event(ws, name, payload) :
-    print("recieve_event: ", name, payload)
+    global server
+    server.msgs.append((name, payload))
 
 def send_event(ws, name, payload) :
     ws.send(to_socketio(name, payload))
@@ -1216,6 +1199,22 @@ def on_open(ws):
     print("open connection")
 
 
+
+
+class Server:
+    def __init__(self):
+        global server
+        server = self
+        self.msgs = []
+
+    def get_messages(self):
+        ret = self.msgs
+        self.msgs = []
+        return ret
+
+    def send_msg(self, name, obj):
+        global ws
+        send_event(ws, name, obj)
 
 
 
