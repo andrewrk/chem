@@ -29,6 +29,7 @@ def serialize_body(body):
         'position': list(body.position),
         'velocity': list(body.velocity),
         'angle': body.angle,
+        'torque': body.torque,
     }
 
 def serialize_shape(shape):
@@ -243,6 +244,10 @@ class Tank:
         self.atoms = set()
         self.bombs = set()
         self.rocks = set()
+
+        self.queued_asplosions = []
+
+        self.min_power = 2 if "--power" in sys.argv else 3
 
 
         self.sprite_arm = pyglet.sprite.Sprite(self.game.animations.get("arm"), batch=self.game.batch, group=self.game.group_fg)
@@ -774,10 +779,12 @@ class Tank:
             atom1.bond_to(atom2)
             bond_loop = atom1.bond_loop()
             if bond_loop is not None:
+                len_bond_loop = len(bond_loop)
                 # make all the atoms in this loop disappear
                 if self.enable_point_calculation:
-                    self.points += len(bond_loop)
+                    self.points += len_bond_loop
                 self.explode_atoms(bond_loop)
+                self.queued_asplosions.append((atom1.flavor_index, len_bond_loop))
 
         self.bond_queue = []
 
@@ -869,6 +876,22 @@ class Tank:
                 self.point_end.y = 0
                 self.point_end.x = (self.point_end.y - y_intercept) / slope
 
+    def respond_to_asplosion(self, asplosion):
+        flavor, quantity = asplosion
+
+        power = quantity - self.min_power
+        if power <= 0:
+            return
+
+        if flavor <= 3:
+            # bombs
+            for i in range(power):
+                self.drop_bomb()
+        else:
+            # rocks
+            for i in range(power):
+                self.drop_rock()
+
 
     def restore_state(self, data):
         if self.game_over:
@@ -880,6 +903,14 @@ class Tank:
         for atom in self.atoms:
             atom.clean_up()
         self.atoms = set()
+        # bombs
+        for bomb in self.bombs:
+            bomb.clean_up()
+        self.bombs = set()
+        # rocks
+        for rock in self.rocks:
+            rock.clean_up()
+        self.rocks = set()
         # claw gun
         if self.sprite_claw.visible:
             self.space.remove(self.claw.body, self.claw, self.claw_joint)
@@ -910,6 +941,7 @@ class Tank:
                 atom.shape.body.position = pos
                 atom.shape.body.velocity = vel
                 atom.shape.body.angle = body['angle']
+                atom.shape.body.torque = body['torque']
                 if obj['rogue']:
                     atom.rogue = True
                     self.space.remove(atom.shape.body)
@@ -918,6 +950,29 @@ class Tank:
                 atom.in_bonds = obj['bonds']
                 atoms_by_id[atom.in_id] = atom
                 self.atoms.add(atom)
+            elif obj['type'] == 'Bomb':
+                body = obj['shape']['body']
+                pos = Vec2d(body['position'])
+                vel = Vec2d(body['velocity'])
+                sprite = pyglet.sprite.Sprite(self.game.animations.get("bomb"), batch=self.game.batch, group=self.game.group_main)
+                bomb = Bomb(pos, sprite, self.space, 99)
+                bomb.shape.body.position = pos
+                bomb.shape.body.velocity = vel
+                bomb.shape.body.angle = body['angle']
+                bomb.shape.body.torque = body['torque']
+                self.bombs.add(bomb)
+            elif obj['type'] == 'Rock':
+                body = obj['shape']['body']
+                pos = Vec2d(body['position'])
+                vel = Vec2d(body['velocity'])
+                sprite = pyglet.sprite.Sprite(self.game.animations.get("rock"), batch=self.game.batch, group=self.game.group_main)
+                rock = Rock(pos, sprite, self.space)
+                rock.shape.body.position = pos
+                rock.shape.body.velocity = vel
+                rock.shape.body.angle = body['angle']
+                rock.shape.body.torque = body['torque']
+                self.rocks.add(rock)
+
         for atom in self.atoms:
             for bond_id in atom.in_bonds:
                 try:
@@ -966,6 +1021,10 @@ class Tank:
                 self.claw_pins.append(joint)
                 self.space.add(joint)
 
+        # weapon drops
+        for asplosion in data['queued_asplosions']:
+            self.other_tank.respond_to_asplosion(asplosion)
+
 
     def serialize_state(self):
         state = {
@@ -982,12 +1041,15 @@ class Tank:
             'claw_visible': self.sprite_claw.visible,
             'claw_attached': self.claw_attached,
             'claw': None,
+            'queued_asplosions': self.queued_asplosions,
         }
         if self.claw_pins is not None:
             state['claw_pins'] = [serialize_pin_joint(joint) for joint in self.claw_pins]
         if self.sprite_claw.visible:
             state['claw'] = serialize_shape(self.claw)
             state['claw_joint'] = serialize_slide_joint(self.claw_joint)
+        self.queued_asplosions = []
+
         return state
 
     def on_key_press(self, symbol, modifiers):
@@ -1491,7 +1553,6 @@ def send_event(ws, name, payload) :
 
 def on_message(ws, message):
     payload = from_socketio(message)
-    print(payload)
     recieve_event(ws, payload['name'], payload['args'][0])
 
 def on_error(ws, error):
