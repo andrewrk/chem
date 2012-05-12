@@ -6,6 +6,7 @@ import sys
 import random
 import math
 import itertools
+import getpass
 
 import pymunk
 from pymunk import Vec2d
@@ -1359,22 +1360,44 @@ class Title(object):
         self.labels = []
         self.users = []
 
+        self.nick_label = {}
+        self.nick_user = {}
+
+        server.send_msg("UpdateNick", getpass.getuser())
+
     def create_labels(self):
         self.labels = []
-        next_pos = self.lobby_pos + Vec2d(self.lobby_size.x, 0)
+        self.nick_label = {}
+        self.nick_user = {}
+        h = 18
+        next_pos = self.lobby_pos + Vec2d(0, self.lobby_size.y - h)
         for user in self.users:
-            text = user['nick']
+            nick = user['nick']
+            text = nick
             if user['playing'] is not None:
-                text += " (playing vs %s" % user['playing']
+                text += " (playing vs %s)" % user['playing']
             elif user['wants2playme']:
-                text += " (has challenged you)"
-            label = pyglet.text.Label(text, font_size=16, x=next_pos.x, y=next_pos.y, anchor_y="top")
-            next_pos.y += label.height + 4
+                text += " (click to accept challenge)"
+            else:
+                text += " (click to challenge)"
+            label = pyglet.text.Label(text, font_size=13, x=next_pos.x, y=next_pos.y)
+            self.nick_label[nick] = label
+            self.nick_user[nick] = user
+            next_pos.y -= h
+            self.labels.append(label)
 
     def update(self, dt):
         for name, payload in server.get_messages():
             if name == 'LobbyList':
                 self.users = payload
+                self.users = [
+                    {'nick': "one", "playing": "derp", "wants2playme": False},
+                    {'nick': "derp", "playing": "one", "wants2playme": False},
+                    {'nick': "arododoj", "playing": None, "wants2playme": False},
+                    {'nick': "pirate", "playing": None, "wants2playme": True},
+                ]
+                self.create_labels()
+
         
 
     def on_draw(self):
@@ -1390,13 +1413,33 @@ class Title(object):
 
     def on_mouse_press(self, x, y, button, modifiers):
         click_pos = Vec2d(x, y)
-        print(click_pos)
+        #print(click_pos)
         if click_pos.get_distance(self.start_pos) < self.click_radius:
             self.gw.play()
+            return
         elif click_pos.get_distance(self.credits_pos) < self.click_radius:
             self.gw.credits()
+            return
         elif click_pos.get_distance(self.controls_pos) < self.click_radius:
             self.gw.controls()
+            return
+
+        for nick, label in self.nick_label.iteritems():
+            label_pos = Vec2d(label.x, label.y)
+            label_size = Vec2d(200, 18)
+            if click_pos.x > label_pos.x and click_pos.y > label_pos.y and click_pos.x < label_pos.x + label_size.x and click_pos.y < label_pos.y + label_size.y:
+                try:
+                    user = self.nick_user[nick]
+                except KeyError:
+                    print("warn missing nick" + nick)
+                    return
+
+                if not user['playing']:
+                    if user['wants2playme']:
+                        self.server.send_msg("AcceptPlayRequest", nick)
+                    else:
+                        self.server.send_msg("PlayRequest", nick)
+                return
 
 
 import websocket
