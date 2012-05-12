@@ -299,6 +299,7 @@ class Tank:
             tank_index = random.randint(0, 1)
         tank_name = "tank%i" % tank_index
         self.sprite_tank = pyglet.sprite.Sprite(self.game.animations.get(tank_name), batch=self.game.batch, group=self.game.group_main)
+        self.tank_index = tank_index
 
         self.game_over = False
         self.winner = None
@@ -459,7 +460,11 @@ class Tank:
 
     def adjust_ceiling(self, dt):
         # adjust the descending ceiling as necessary
-        adjust = (self.points - self.other_tank.points) / self.points_to_crush * self.size.y
+        if self.game.server is None:
+            other_points = self.game.survival_points
+        else:
+            other_points = self.other_tank.points
+        adjust = (self.points - other_points) / self.points_to_crush * self.size.y
         if adjust > 0:
             adjust = 0
         if self.game_over:
@@ -1166,21 +1171,30 @@ class Game(object):
             Vec2d(531, 41),
         ]
 
-        self.tanks = [Tank(pos, tank_dims, self, tank_index=i) for i, pos in enumerate(tank_pos)]
+        if self.server is None:
+            self.tanks = [Tank(tank_pos[0], tank_dims, self)]
+            self.control_tank = self.tanks[0]
 
-        self.control_tank = self.tanks[0]
-        self.enemy_tank = self.tanks[1]
+            self.survival_points = 0
+            self.survival_point_timeout = 1 if "--hard" in sys.argv else 10
+            self.next_survival_point = self.survival_point_timeout
+            self.weapon_drop_interval = 3 if "--bomb" in sys.argv else 10
 
-        self.control_tank.other_tank = self.enemy_tank
-        self.enemy_tank.other_tank = self.control_tank
+            tank_index = int(not self.control_tank.tank_index)
+            tank_name = "tank%i" % tank_index
+            self.sprite_other_tank = pyglet.sprite.Sprite(self.animations.get(tank_name), batch=self.batch, group=self.group_main, x=tank_pos[1].x + self.control_tank.size.x / 2, y=tank_pos[1].y + self.control_tank.size.y / 2)
+        else:
+            self.tanks = [Tank(pos, tank_dims, self, tank_index=i) for i, pos in enumerate(tank_pos)]
 
-        self.enemy_tank.atom_drop_enabled = False
-        self.enemy_tank.enable_point_calculation = False
+            self.control_tank = self.tanks[0]
+            self.enemy_tank = self.tanks[1]
 
-        self.survival_points = 0
-        self.survival_point_timeout = 1 if "--hard" in sys.argv else 10
-        self.next_survival_point = self.survival_point_timeout
-        self.weapon_drop_interval = 3 if "--bomb" in sys.argv else 10
+            self.control_tank.other_tank = self.enemy_tank
+            self.enemy_tank.other_tank = self.control_tank
+
+            self.enemy_tank.atom_drop_enabled = False
+            self.enemy_tank.enable_point_calculation = False
+
 
 
         self.window = window
@@ -1349,7 +1363,8 @@ def network():
     global server
     server = Server()
 
-network()
+if "--survival" not in sys.argv:
+    network()
 
 
 window = pyglet.window.Window(width=int(game_size.x), height=int(game_size.y), caption=game_title)
