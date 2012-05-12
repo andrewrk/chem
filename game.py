@@ -1249,6 +1249,9 @@ class Game(object):
                 for msg_name, data in self.server.get_messages():
                     if msg_name == 'StateUpdate':
                         self.enemy_tank.restore_state(data)
+                    elif msg_name == 'YourOpponentLeftSorryBro':
+                        print("you win - your opponent disconnected.")
+                        self.win()
 
 
     def on_draw(self):
@@ -1351,12 +1354,34 @@ class Title(object):
         self.controls_pos = Vec2d(525, 242)
         self.click_radius = 50
 
+        self.lobby_pos = Vec2d(746, 203)
+        self.lobby_size = Vec2d(993.0 - self.lobby_pos.x, 522.0 - self.lobby_pos.y)
+        self.labels = []
+        self.users = []
+
+    def create_labels(self):
+        self.labels = []
+        next_pos = self.lobby_pos + Vec2d(self.lobby_size.x, 0)
+        for user in self.users:
+            text = user['nick']
+            if user['playing'] is not None:
+                text += " (playing vs %s" % user['playing']
+            elif user['wants2playme']:
+                text += " (has challenged you)"
+            label = pyglet.text.Label(text, font_size=16, x=next_pos.x, y=next_pos.y, anchor_y="top")
+            next_pos.y += label.height + 4
+
     def update(self, dt):
-        pass
+        for name, payload in server.get_messages():
+            if name == 'LobbyList':
+                self.users = payload
+        
 
     def on_draw(self):
         self.window.clear()
         self.img.blit(0, 0)
+        for label in self.labels:
+            label.draw()
 
     def end(self):
         self.window.remove_handler('on_draw', self.on_draw)
@@ -1365,7 +1390,7 @@ class Title(object):
 
     def on_mouse_press(self, x, y, button, modifiers):
         click_pos = Vec2d(x, y)
-        print(click_pos.get_distance(self.credits_pos))
+        print(click_pos)
         if click_pos.get_distance(self.start_pos) < self.click_radius:
             self.gw.play()
         elif click_pos.get_distance(self.credits_pos) < self.click_radius:
