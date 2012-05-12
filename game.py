@@ -5,6 +5,7 @@ import pyglet
 import sys
 import random
 import math
+import itertools
 
 import pymunk
 from pymunk import Vec2d
@@ -121,11 +122,39 @@ class Atom:
         self.sprite.delete()
         self.sprite = None
 
+class Bomb:
+    radius = 16
+    size = Vec2d(radius*2, radius*2)
+    def __init__(self, pos, sprite, space, timeout):
+        self.sprite = sprite
+
+        body = pymunk.Body(50, 10)
+        body.position = pos
+        self.shape = pymunk.Circle(body, Bomb.radius)
+        self.shape.friction = 0.7
+        self.shape.elasticity = 0.02
+        self.shape.collision_type = Collision.Default
+        self.space = space
+        self.space.add(body, self.shape)
+
+        self.timeout = timeout
+
+    def tick(self, dt):
+        self.timeout -= dt
+
+    def clean_up(self):
+        self.space.remove(self.shape, self.shape.body)
+        self.sprite.delete()
+        self.sprite = None
+
+
+
 class Tank:
     def __init__(self, dims):
         self.dims = dims
         self.size = dims * atom_size
         self.atoms = set()
+        self.bombs = set()
 
     def remove_atom(self, atom):
         atom.clean_up()
@@ -134,6 +163,10 @@ class Tank:
     def remove_atoms(self, atoms):
         for atom in atoms:
             self.remove_atom(atom)
+
+    def remove_bomb(self, bomb):
+        bomb.clean_up()
+        self.bombs.remove(bomb)
 
 class Animations:
     def __init__(self):
@@ -270,6 +303,7 @@ class Game(object):
         self.points_to_crush = 50
         self.survival_point_timeout = 1 if "--hard" in sys.argv else 10
         self.next_survival_point = self.survival_point_timeout
+        self.weapon_drop_interval = 3 if "--bomb" in sys.argv else 10
 
         # if you have this many atoms per tank y or more, you lose
         self.lose_ratio = 95 / 300
@@ -425,6 +459,12 @@ class Game(object):
         else:
             self.ceiling.body.position.y = new_y
 
+    def get_drop_pos(self, size):
+        return Vec2d(
+            random.random() * (self.tank.size.x - size.x) + size.x / 2,
+            self.ceiling.body.position.y - self.tank.size.y / 2 - size.y / 2,
+        )
+
     def compute_drops(self, dt):
         if self.game_over:
             return
@@ -433,10 +473,7 @@ class Game(object):
             self.time_until_next_drop += self.time_between_drops
             # drop a random atom
             flavor_index = random.randint(0, Atom.flavor_count-1)
-            pos = Vec2d(
-                random.random() * (self.tank.size.x - atom_size.x) + atom_size.x / 2,
-                self.ceiling.body.position.y - self.tank.size.y / 2 - atom_size.y / 2,
-            )
+            pos = self.get_drop_pos(atom_size)
             atom = Atom(pos, flavor_index, pyglet.sprite.Sprite(self.atom_imgs[flavor_index], batch=self.batch, group=self.group_main), self.space)
             self.tank.atoms.add(atom)
 
@@ -677,7 +714,24 @@ class Game(object):
         self.next_survival_point -= dt
         if self.next_survival_point <= 0:
             self.next_survival_point += self.survival_point_timeout
+            old_number = self.enemy_points // self.weapon_drop_interval
             self.enemy_points += random.randint(3, 6)
+            new_number = self.enemy_points // self.weapon_drop_interval
+
+            if new_number > old_number:
+                # drop a bomb
+                pos = self.get_drop_pos(Bomb.size)
+                sprite = pyglet.sprite.Sprite(self.animations.get("bomb"), batch=self.batch, group=self.group_main)
+                timeout = random.randint(2, 6)
+                bomb = Bomb(pos, sprite, self.space, timeout)
+                self.tank.bombs.add(bomb)
+
+        # process bombs
+        for bomb in list(self.tank.bombs):
+            bomb.tick(dt)
+            if bomb.timeout <= 0:
+                # cause explosion
+                self.tank.remove_bomb(bomb)
 
         self.process_input(dt)
 
@@ -777,9 +831,10 @@ class Game(object):
     def on_draw(self):
         self.window.clear()
 
-        for atom in self.tank.atoms:
-            atom.sprite.set_position(*(atom.shape.body.position + self.tank_pos))
-            atom.sprite.rotation = -atom.shape.body.rotation_vector.get_angle_degrees()
+        # drawable things
+        for drawable in itertools.chain(self.tank.atoms, self.tank.bombs):
+            drawable.sprite.set_position(*(drawable.shape.body.position + self.tank_pos))
+            drawable.sprite.rotation = -drawable.shape.body.rotation_vector.get_angle_degrees()
 
         self.sprite_man.set_position(*(self.man.body.position + self.tank_pos))
         self.sprite_man.rotation = -self.man.body.rotation_vector.get_angle_degrees()
