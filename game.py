@@ -877,6 +877,10 @@ class Tank:
                 atom = Atom(pos, flavor, pyglet.sprite.Sprite(self.game.atom_imgs[flavor], batch=self.game.batch, group=self.game.group_main), self.space)
                 atom.shape.body.position = pos
                 atom.shape.body.velocity = vel
+                if obj['rogue']:
+                    atom.rogue = True
+                    self.space.remove(atom.shape.body)
+                    self.ray_atom = atom
                 atom.in_id = obj['id']
                 atom.in_bonds = obj['bonds']
                 atoms_by_id[atom.in_id] = atom
@@ -897,6 +901,8 @@ class Tank:
                 self.lose()
             else:
                 self.win()
+
+        self.equipped_gun = data['equipped_gun']
             
 
 
@@ -909,6 +915,7 @@ class Tank:
             'mouse_pos': list(self.mouse_pos),
             'points': self.points,
             'winner': self.winner,
+            'equipped_gun': self.equipped_gun,
         }
         return state
 
