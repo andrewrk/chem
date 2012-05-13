@@ -66,6 +66,8 @@ io.sockets.on 'connection', (socket) ->
         me.socket.emit('StartGame', {opponent: u})
         u.socket.emit('StartGame', {opponent: me})
 
+        socket.broadcast.emit('LobbyList', users.toJSON())
+
 
   socket.on 'UpdateNick', (data) ->
     me.set('nick', data)
