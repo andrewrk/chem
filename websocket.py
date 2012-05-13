@@ -723,7 +723,6 @@ class WebSocketApp(object):
         except Exception, e:
             self._run_with_no_err(self.on_error, e)
         finally:
-            print("ws: finally")
             self.sock.close()
             self._run_with_no_err(self.on_close)
             self.sock = None

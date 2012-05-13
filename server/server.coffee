@@ -1,6 +1,7 @@
 app = require('express').createServer()
 io = require('socket.io').listen(app)
 io.set 'log level', 2
+io.disable('heartbeats')
 fs = require('fs')
 _ = require('underscore')
 Backbone = require('backbone')
