@@ -44,7 +44,6 @@ io.sockets.on 'connection', (socket) ->
   socket.emit('LobbyList', users.toJSON())
 
   socket.on 'PlayRequest', (nick) ->
-    console.log(users)
     h = me.get("want_to_play")
     h[nick] = true
     me.set("want_to_play", h)
