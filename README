@@ -21,23 +21,36 @@ Running the Game
 
     Install Dependencies on OSX:
 
-      Install pymunk, avbin, and pyglet from source:
+      If you don't have a C compiler set up, install XCode or this:
+
+        https://github.com/kennethreitz/osx-gcc-installer
+
+      Install pymunk from source:
 
         svn checkout http://pymunk.googlecode.com/svn/trunk/ pymunk-read-only
         cd pymunk-read-only
+        python setup.py build
         python setup.py build_chipmunk
         sudo python setup.py install
 
-        Untested:
-            wget https://github.com/downloads/AVbin/AVbin/avbin-src-7.tar.gz
-            tar xzvf avbin-src-7.tar.gz
-            cd avbin-src-7
-            ./configure
-            make
-            sudo make install
+      Install avbin:
+
+        If 32-bit:
+          wget https://github.com/downloads/AVbin/AVbin/avbin-darwin-x86-32-v8.tar.bz2
+          tar xjvf avbin-darwin-x86-32-v8.tar.bz2
+          cd avbin-darwin-x86-32-v8
+          ./install.sh
+        Else If 64-bit:
+          wget https://github.com/downloads/AVbin/AVbin/avbin-darwin-x86-64-v8.tar.bz2
+          tar xjvf avbin-darwin-x86-64-v8.tar.bz2
+          cd avbin-darwin-x86-64-v8
+          ./install.sh
+
+      Install pyglet from source:
 
         hg clone https://pyglet.googlecode.com/hg/ pyglet
         cd pyglet
+        python setup.py build
         sudo python setup.py install
 
     Install Dependencies on Windows:
