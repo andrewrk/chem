@@ -15,8 +15,9 @@ License: see LICENSE
 Running the Game
 ----------------
 
-    Install Dependencies on Linux:
+    Install Dependencies on Ubuntu:
 
+        sudo apt-get install libavbin0 python-pip
         sudo pip install pymunk pyglet
 
     Install Dependencies on OSX:
