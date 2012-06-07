@@ -1,0 +1,3 @@
+while developing:
+
+    coffee -wcbj game.js engine.coffee game.coffee
