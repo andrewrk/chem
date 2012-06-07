@@ -35,7 +35,11 @@ class EventEmitter
 
 class Engine extends EventEmitter
   target_fps = 60
-  target_delta = 1 / target_fps
+  min_fps = 20
+  target_spf = 1 / target_fps
+
+  schedule = (sec, cb) -> setInterval(cb, sec * 1000)
+  unschedule = clearInterval
 
   constructor: (@canvas) ->
     super
@@ -47,15 +51,34 @@ class Engine extends EventEmitter
     @canvas.height = @size.y
 
   start: ->
-    previous_update = null
-    main_loop = =>
+    previous_update = new Date()
+    max_frame_skips = target_fps - min_fps
+    fps_time_passed = 0
+    fps_refresh_rate = 1
+    fps_count = 0
+    @interval = schedule target_spf, =>
       now = new Date()
-      delta = if previous_update? then (now - previous_update) / 1000 else target_delta
-      @emit 'update', delta
+      delta = (now - previous_update) / 1000
       previous_update = now
 
-    @interval = setInterval main_loop, target_delta
+      fps_time_passed += delta
+
+      skip_count = 0
+      while delta > target_spf and skip_count < max_frame_skips
+        @emit 'update', target_spf, 1
+        skip_count += 1
+        delta -= target_spf
+
+      multiplier = delta / target_spf
+      @emit 'update', delta, multiplier
+      @emit 'draw', @context
+      fps_count += 1
+
+      if fps_time_passed >= fps_refresh_rate
+        fps_time_passed = 0
+        @fps = fps_count / fps_refresh_rate
+        fps_count = 0
 
   stop: ->
-    clearInterval @interval
+    unschedule @interval
 
