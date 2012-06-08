@@ -1,3 +1,12 @@
 while developing:
 
     coffee -wcbj game.js engine.coffee game.coffee
+
+
+things left to fix:
+
+    serialization
+    Atom.bonds
+    Atom_for_shape
+    pymunk/box2d
+    Atom.bond_loop.seen
