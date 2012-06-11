@@ -1,6 +1,8 @@
 class Vec2d
   constructor: (@x, @y) ->
 
+  mult: (other) -> new Vec2d(@x * other.x, @y * other.y)
+
 class EventEmitter
   extend = (obj, args...) ->
     for arg in args
@@ -32,6 +34,23 @@ class EventEmitter
   # private
   handlers: (event_name) -> @event_handlers[event_name] ?= []
 
+Key =
+  _1: 49
+  _2: 50
+  _3: 51
+  A: 65
+  D: 68
+  E: 69
+  O: 79
+  R: 82
+  S: 83
+  W: 87
+  Comma: 188
+
+Mouse =
+  Left: 0
+  Middle: 1
+  Right: 2
 
 class Engine extends EventEmitter
   target_fps = 60
@@ -40,6 +59,9 @@ class Engine extends EventEmitter
 
   schedule = (sec, cb) -> setInterval(cb, sec * 1000)
   unschedule = clearInterval
+
+  @Key = Key
+  @Mouse = Mouse
 
   constructor: (@canvas) ->
     super
