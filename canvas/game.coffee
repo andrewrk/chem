@@ -180,6 +180,7 @@ do ->
     @size = new Vec2d(@radius*2, @radius*2)
 
     constructor: (pos, @sprite, @space, @timeout) ->
+      super
       body = new cp.Body(50, 10)
       body.position = pos
       @shape = new cp.Circle(body, Bomb.radius)
@@ -201,6 +202,7 @@ do ->
     @size = new Vec2d(@radius*2, @radius*2)
 
     constructor: (pos, @sprite, @space) ->
+      super
       body = new cp.Body(70, 100000)
       body.position = pos
       @shape = new cp.Circle(body, Rock.radius)
