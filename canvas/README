@@ -10,7 +10,6 @@ things left to fix:
     Atom_for_shape
     pymunk/chipmunkjs
     Atom.bond_loop.seen
-    Tank.atoms/bombs/rocks are sets
     sprite / batch / orderedgroup
     animations
     mouse_pos

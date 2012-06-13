@@ -32,15 +32,44 @@ do ->
     COUNT: 9
     MOUSE_OFFSET: 255
 
-  class Atom
+  class Set
+    @assertItemHasId: (item) ->
+      throw "item missing id" unless item.id?
+
+    constructor: ->
+      # id to item
+      @items = {}
+      @length = 0
+
+    add: (item) ->
+      @assertItemHasId item
+      unless @items[item.id]?
+        @length += 1
+      @items[item.id] = item
+
+    remove: (item) ->
+      @assertItemHasId item
+      if @items[item.id]?
+        @length -= 1
+        delete @items[item.id]
+
+    each: (cb) ->
+      cb item for id, item in @items
+
+  class Indexable
+    @id_count = 0
+
+    constructor: ->
+      @id = Indexable.id_count++
+
+  class Atom extends Indexable
     @flavor_count = 6
 
     @atom_for_shape = {}
     @max_bonds = 2
 
-    @id_count = 0
-
     constructor: (pos, @flavor_index, @sprite, @space) ->
+      super
       body = new cp.Body(10, 100000)
       body.position = pos
       @shape = new cp.Circle(body, atom_radius)
@@ -54,9 +83,6 @@ do ->
       @bonds = {}
       @marked_for_deletion = false
       @rogue = false
-
-      @id = Atom.id_count
-      Atom.id_count += 1
 
     bondTo: (other) ->
       # already bonded
@@ -112,7 +138,7 @@ do ->
       @sprite.delete()
       @sprite = null
 
-  class Bomb
+  class Bomb extends Indexable
     @radius = 16
     @size = new Vec2d(@radius*2, @radius*2)
 
@@ -133,7 +159,7 @@ do ->
       @sprite.delete()
       @sprite = null
 
-  class Rock
+  class Rock extends Indexable
     @radius = 16
     @size = new Vec2d(@radius*2, @radius*2)
 
@@ -157,9 +183,9 @@ do ->
     constructor: (@pos, @dims, @game, @tank_index) ->
       @size = @dims * atom_size
       @other_tank = null
-      @atoms = set()
-      @bombs = set()
-      @rocks = set()
+      @atoms = new Set()
+      @bombs = new Set()
+      @rocks = new Set()
 
       @queued_asplosions = []
 
@@ -279,12 +305,12 @@ do ->
         @computeDrops(dt)
 
       # check if we died
-      ratio = len(@atoms) / (@ceiling.body.position.y - @size.y / 2)
+      ratio = @atoms.length / (@ceiling.body.position.y - @size.y / 2)
       if ratio > @lose_ratio or @ceiling.body.position.y < @man_size.y
         @lose()
 
       # process bombs
-      for bomb in list(@bombs)
+      @bombs.clone().each (bomb) ->
         bomb.tick(dt)
         if bomb.timeout <= 0
           # physics explosion
@@ -457,7 +483,7 @@ do ->
         return
       @game_over = true
       @winner = false
-      @explode_atoms(list(@atoms), "atomfail")
+      @explode_atoms(@atoms.clone(), "atomfail")
 
       @sprite_man.image = @game.animations.get("defeat")
       @sprite_arm.visible = false
@@ -474,7 +500,7 @@ do ->
 
       @game_over = true
       @winner = true
-      @explode_atoms(list(@atoms))
+      @explode_atoms(@atoms.clone())
 
       @sprite_man.image = @game.animations.get("victory")
       @sprite_arm.visible = false
@@ -770,7 +796,7 @@ do ->
         # iterate over each atom. check if intersects with line.
         @closest_atom = null
         closest_dist = null
-        for atom in @atoms
+        @atoms.each (atom) ->
           if atom.marked_for_deletion
             continue
           # http://stackoverflow.com/questions/1073336/circle-line-collision-detection
@@ -836,17 +862,17 @@ do ->
       # man
       @space.remove(@man, @man.body)
       # atoms
-      for atom in @atoms
+      @atoms.each (atom) ->
         atom.cleanUp()
-      @atoms = set()
+      @atoms = new Set()
       # bombs
-      for bomb in @bombs
+      @bombs.each (bomb) ->
         bomb.cleanUp()
-      @bombs = set()
+      @bombs = new Set()
       # rocks
-      for rock in @rocks
+      @rocks.each (rock) ->
         rock.cleanUp()
-      @rocks = set()
+      @rocks = new Set()
       # claw gun
       if @sprite_claw.visible
         @space.remove(@claw.body, @claw, @claw_joint)
@@ -909,7 +935,7 @@ do ->
           rock.shape.body.torque = body['torque']
           @rocks.add(rock)
 
-      for atom in @atoms
+      @atoms.each (atom) ->
         for bond_id in atom.in_bonds
           atom.bondTo(atoms_by_id[bond_id])
 
@@ -997,9 +1023,12 @@ do ->
 
     moveSprites: ->
       # drawable things
-      for drawable in itertools.chain(@atoms, @bombs, @rocks)
+      drawDrawable = ->
         drawable.sprite.setPosition(drawable.shape.body.position.plus(@pos))
         drawable.sprite.rotation = -drawable.shape.body.rotation_vector.get_angle_degrees()
+      @atoms.each drawDrawable
+      @bombs.each drawDrawable
+      @rocks.each drawDrawable
 
       @sprite_man.setPosition(@man.body.position.plus(@pos))
       @sprite_man.rotation = -@man.body.rotation_vector.get_angle_degrees()
@@ -1025,7 +1054,7 @@ do ->
           @drawLine(@point_start + @pos, @sprite_claw.position, [1, 1, 0, 1])
 
         # draw lines for bonded atoms
-        for atom in @atoms
+        @atoms.each (atom) ->
           if atom.marked_for_deletion
             continue
           for other, joint of atom.bonds
