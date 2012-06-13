@@ -848,7 +848,7 @@ do ->
             continue
 
           dist = atom.shape.body.position.get_dist_sqrd(@point_start)
-          if @closest_atom is null or dist < closest_dist
+          if not @closest_atom? or dist < closest_dist
             @closest_atom = atom
             closest_dist = dist
 
