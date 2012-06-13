@@ -41,9 +41,9 @@ do ->
     @id_count = 0
 
     constructor: (pos, @flavor_index, @sprite, @space) ->
-      body = pymunk.Body(10, 100000)
+      body = new cp.Body(10, 100000)
       body.position = pos
-      @shape = pymunk.Circle(body, atom_radius)
+      @shape = new cp.Circle(body, atom_radius)
       @shape.friction = 0.5
       @shape.elasticity = 0.05
       @shape.collision_type = Collision.Atom
@@ -69,7 +69,7 @@ do ->
       if @flavor_index isnt other.flavor_index
         return false
 
-      joint = pymunk.PinJoint(@shape.body, other.shape.body)
+      joint = new cp.PinJoint(@shape.body, other.shape.body)
       joint.distance = atom_radius * 2.5
       joint.max_bias = max_bias
       @bonds[other] = joint
@@ -117,9 +117,9 @@ do ->
     @size = new Vec2d(@radius*2, @radius*2)
 
     constructor: (pos, @sprite, @space, @timeout) ->
-      body = pymunk.Body(50, 10)
+      body = new cp.Body(50, 10)
       body.position = pos
-      @shape = pymunk.Circle(body, Bomb.radius)
+      @shape = new cp.Circle(body, Bomb.radius)
       @shape.friction = 0.7
       @shape.elasticity = 0.02
       @shape.collision_type = Collision.Default
@@ -138,9 +138,9 @@ do ->
     @size = new Vec2d(@radius*2, @radius*2)
 
     constructor: (pos, @sprite, @space) ->
-      body = pymunk.Body(70, 100000)
+      body = new cp.Body(70, 100000)
       body.position = pos
-      @shape = pymunk.Circle(body, Rock.radius)
+      @shape = new cp.Circle(body, Rock.radius)
       @shape.friction = 0.9
       @shape.elasticity = 0.01
       @shape.collision_type = Collision.Default
@@ -169,7 +169,7 @@ do ->
       @sprite_man = new engine.Sprite('still', batch=@game.batch, group=@game.group_main)
       @sprite_claw = new engine.Sprite('claw', batch=@game.batch, group=@game.group_main)
 
-      @space = pymunk.Space()
+      @space = new cp.Space()
       @space.gravity = new Vec2d(0, -400)
       @space.damping = 0.99
       @space.add_collision_handler(Collision.Claw, Collision.Default, post_solve=@clawHitSomething)
@@ -355,7 +355,7 @@ do ->
         [new Vec2d(-r, 0), new Vec2d(-r, @size.y)],
       ]
       for [p1, p2] in borders
-        shape = pymunk.Segment(pymunk.Body(), p1, p2, r)
+        shape = new cp.Segment(new cp.Body(), p1, p2, r)
         shape.friction = 0.99
         shape.elasticity = 0.0
         shape.collision_type = Collision.Default
@@ -363,9 +363,9 @@ do ->
 
     initCeiling: ->
       # physics for ceiling
-      body = pymunk.Body(10000, 100000)
+      body = new cp.Body(10000, 100000)
       body.position = new Vec2d(@size.x / 2, @size.y * 1.5)
-      @ceiling = pymunk.Poly.create_box(body, @size)
+      @ceiling = new cp.Poly.create_box(body, @size)
       @ceiling.collision_type = Collision.Default
       @space.add(@ceiling)
       # per second
@@ -400,7 +400,7 @@ do ->
       if not vel?
         vel = new Vec2d(0, 0)
       # physics for man
-      shape = pymunk.Poly.create_box(pymunk.Body(20, 10000000), @man_size)
+      shape = new cp.Poly.create_box(new cp.Body(20, 10000000), @man_size)
       shape.body.position = pos
       shape.body.velocity = vel
       shape.body.angular_velocity_limit = 0
@@ -508,7 +508,7 @@ do ->
 
       feet_start = @man.body.position - @man_size / 2 + new Vec2d(1, -1)
       feet_end = new Vec2d(feet_start.x + @man_size.x - 2, feet_start.y - 2)
-      bb = pymunk.BB(feet_start.x, feet_end.y, feet_end.x, feet_start.y)
+      bb = new cp.BB(feet_start.x, feet_end.y, feet_end.x, feet_start.y)
       ground_shapes = @space.bb_query(bb)
       grounded = len(ground_shapes) > 0
 
@@ -589,15 +589,15 @@ do ->
           @let_go_of_fire_main = false
           @claw_in_motion = true
           @sprite_claw.visible = true
-          body = pymunk.Body(mass=5, moment=1000000)
+          body = new cp.Body(mass=5, moment=1000000)
           body.position = new Vec2d(@point_start)
           body.angle = @point_vector.get_angle()
           body.velocity = @man.body.velocity + @point_vector * @claw_shoot_speed
-          @claw = pymunk.Circle(body, @claw_radius)
+          @claw = new cp.Circle(body, @claw_radius)
           @claw.friction = 1
           @claw.elasticity = 0
           @claw.collision_type = Collision.Claw
-          @claw_joint = pymunk.SlideJoint(@claw.body, @man.body, new Vec2d(0, 0), new Vec2d(0, 0), 0, @size.get_length())
+          @claw_joint = new cp.SlideJoint(@claw.body, @man.body, new Vec2d(0, 0), new Vec2d(0, 0), 0, @size.get_length())
           @claw_joint.max_bias = max_bias
           @space.add(body, @claw, @claw_joint)
 
@@ -727,8 +727,8 @@ do ->
       claw_delta = claw_anchor.normalized() * -(@claw_radius + 8)
       @claw.body.position += claw_delta
       @claw_pins_to_add = [
-        pymunk.PinJoint(claw.body, shape.body, claw_anchor, shape_anchor),
-        pymunk.PinJoint(claw.body, shape.body, new Vec2d(0, 0), new Vec2d(0, 0)),
+        new cp.PinJoint(claw.body, shape.body, claw_anchor, shape_anchor),
+        new cp.PinJoint(claw.body, shape.body, new Vec2d(0, 0), new Vec2d(0, 0)),
       ]
       for claw_pin in @claw_pins_to_add
         claw_pin.max_bias = max_bias
@@ -933,15 +933,15 @@ do ->
       if @claw_in_motion
         in_body = data['claw']['body']
         # create claw
-        body = pymunk.Body(mass=5, moment=1000000)
+        body = new cp.Body(mass=5, moment=1000000)
         body.position = new Vec2d(in_body['position'])
         body.angle = in_body['angle']
         body.velocity = new Vec2d(in_body['velocity'])
-        @claw = pymunk.Circle(body, @claw_radius)
+        @claw = new cp.Circle(body, @claw_radius)
         @claw.friction = 1
         @claw.elasticity = 0
         @claw.collision_type = Collision.Claw
-        @claw_joint = pymunk.SlideJoint(@claw.body, @man.body, new Vec2d(0, 0), new Vec2d(0, 0), 0, data['claw_joint']['max'])
+        @claw_joint = new cp.SlideJoint(@claw.body, @man.body, new Vec2d(0, 0), new Vec2d(0, 0), 0, data['claw_joint']['max'])
         @claw_joint.max_bias = max_bias
         @space.add(body, @claw, @claw_joint)
       if not in_claw_pins?
@@ -949,7 +949,7 @@ do ->
       else
         @claw_pins = []
         for in_joint in in_claw_pins
-          joint = pymunk.PinJoint(@claw.body, @ceiling.body, new Vec2d(0, 0), new Vec2d(0, 0))
+          joint = new cp.PinJoint(@claw.body, @ceiling.body, new Vec2d(0, 0), new Vec2d(0, 0))
           joint.max_bias = max_bias
           @claw_pins.append(joint)
           @space.add(joint)
