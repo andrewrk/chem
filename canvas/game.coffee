@@ -42,19 +42,56 @@ do ->
       @length = 0
 
     add: (item) ->
-      @assertItemHasId item
+      Set.assertItemHasId item
       unless @items[item.id]?
         @length += 1
       @items[item.id] = item
 
     remove: (item) ->
-      @assertItemHasId item
+      Set.assertItemHasId item
       if @items[item.id]?
         @length -= 1
         delete @items[item.id]
 
     each: (cb) ->
-      cb item for id, item in @items
+      cb item for id, item of @items
+
+    clone: ->
+      set = new Set()
+      @each (item) -> set.add item
+      set
+
+  class Map
+    @assertItemHasId: (item) ->
+      throw "item missing id" unless item.id?
+    
+    constructor: ->
+      @pairs = {}
+      @length = 0
+
+    set: (key, value) ->
+      Map.assertItemHasId key
+      unless @pairs[key.id]?
+        @length += 1
+      @pairs[item.id] = [key, value]
+
+    remove: (key) ->
+      Map.assertItemHasId key
+      if @pairs[key.id]?
+        @length -= 1
+        delete @pairs[key.id]
+
+    each: (cb) ->
+      cb.call pair for id, pair of @pairs
+
+    clone: ->
+      map = new Map()
+      @each (key, value) -> map.set key, value
+      map
+
+    contains: (key) -> @pairs[key.id]?
+
+    keys: -> (key for id, [key, value] of @pairs)
 
   class Indexable
     @id_count = 0
@@ -80,16 +117,16 @@ do ->
 
       Atom.atom_for_shape[@shape] = this
       # atom => joint
-      @bonds = {}
+      @bonds = new Map()
       @marked_for_deletion = false
       @rogue = false
 
     bondTo: (other) ->
       # already bonded
-      if @bonds[other]?
+      if @bonds.contains(other)
         return false
       # too many bonds already
-      if len(@bonds) >= Atom.max_bonds or len(other.bonds) >= Atom.max_bonds
+      if @bonds.length >= Atom.max_bonds or other.bonds.length >= Atom.max_bonds
         return false
       # wrong color
       if @flavor_index isnt other.flavor_index
@@ -98,15 +135,15 @@ do ->
       joint = new cp.PinJoint(@shape.body, other.shape.body)
       joint.distance = atom_radius * 2.5
       joint.max_bias = max_bias
-      @bonds[other] = joint
-      other.bonds[this] = joint
+      @bonds.set other, joint
+      other.bonds.set this, joint
       @space.add(joint)
 
       return true
 
     bondLoop: ->
       # returns null or a list of atoms in the bond loop which includes itself
-      if len(@bonds) isnt 2
+      if @bonds.length isnt 2
         return null
       seen = {this: true}
       [atom, dest] = @bonds.keys()
@@ -115,7 +152,7 @@ do ->
         if atom is dest
           return seen.keys()
         found = false
-        for next_atom, joint of atom.bonds
+        atom.bonds.each (next_atom, joint) ->
           if not seen[next_atom]?
             atom = next_atom
             found = true
@@ -124,10 +161,10 @@ do ->
           return null
 
     unbond: ->
-      for atom, joint of @bonds
-        delete atom.bonds[this]
+      @bonds.each (atom, joint) ->
+        atom.bonds.remove this
         @space.remove(joint)
-      @bonds = {}
+      @bonds = new Map()
 
     cleanUp: ->
       @unbond()
@@ -723,7 +760,7 @@ do ->
           continue
         if atom1 is @ray_atom or atom2 is @ray_atom
           continue
-        if atom1.bonds is null or not atom2.bonds?
+        if not atom1.bonds? or not atom2.bonds?
           print("Warning: trying to bond with an atom that doesn't exist anymore")
           continue
         if atom1.bondTo(atom2)
@@ -1057,7 +1094,7 @@ do ->
         @atoms.each (atom) ->
           if atom.marked_for_deletion
             continue
-          for other, joint of atom.bonds
+          atom.bonds.each (other, joint) ->
             @drawLine(@pos + atom.shape.body.position, @pos + other.shape.body.position, [0, 0, 1, 1])
 
         if @game.debug

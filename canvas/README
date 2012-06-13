@@ -6,7 +6,6 @@ while developing:
 things left to fix:
 
     serialization
-    Atom.bonds
     Atom_for_shape
     pymunk/chipmunkjs
     Atom.bond_loop.seen
@@ -17,3 +16,4 @@ things left to fix:
     let_go_of
     on_key_press, mouse, etc
     vector math
+    len()
