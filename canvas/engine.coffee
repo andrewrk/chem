@@ -101,11 +101,13 @@ class Engine extends EventEmitter
       skip_count = 0
       while delta > target_spf and skip_count < max_frame_skips
         @emit 'update', target_spf, 1
+        @key_just_pressed = {}
         skip_count += 1
         delta -= target_spf
 
       multiplier = delta / target_spf
       @emit 'update', delta, multiplier
+      @key_just_pressed = {}
       @emit 'draw', @context
       fps_count += 1
 
@@ -128,8 +130,10 @@ class Engine extends EventEmitter
     @canvas.addEventListener 'keyup', (event) => @emit 'keyup', event.keyCode
 
     @key_states = {}
+    @key_just_pressed = {}
     window.addEventListener 'keydown', (event) =>
       @key_states[event.keyCode] = true
+      @key_just_pressed[event.keyCode] = true
 
     window.addEventListener 'keyup', (event) =>
       @key_states[event.keyCode] = false

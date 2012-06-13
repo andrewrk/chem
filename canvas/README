@@ -13,7 +13,6 @@ things left to fix:
     animations
     mouse_pos
     Tank.gun_animations
-    let_go_of
     on_key_press, mouse, etc
     vector math
     len()
