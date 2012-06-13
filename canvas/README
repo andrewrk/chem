@@ -8,11 +8,9 @@ things left to fix:
     serialization
     Atom_for_shape
     pymunk/chipmunkjs
-    Atom.bond_loop.seen
     sprite / batch / orderedgroup
     animations
     mouse_pos
     Tank.gun_animations
     on_key_press, mouse, etc
     vector math
-    len()

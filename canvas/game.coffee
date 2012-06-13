@@ -145,15 +145,16 @@ do ->
       # returns null or a list of atoms in the bond loop which includes itself
       if @bonds.length isnt 2
         return null
-      seen = {this: true}
+      seen = new Map()
+      seen.set this, true
       [atom, dest] = @bonds.keys()
       loop
-        seen[atom] = true
+        seen.set atom, true
         if atom is dest
           return seen.keys()
         found = false
         atom.bonds.each (next_atom, joint) ->
-          if not seen[next_atom]?
+          if not seen.contains(next_atom)
             atom = next_atom
             found = true
             break
@@ -575,7 +576,7 @@ do ->
       feet_end = new Vec2d(feet_start.x + @man_size.x - 2, feet_start.y - 2)
       bb = new cp.BB(feet_start.x, feet_end.y, feet_end.x, feet_start.y)
       ground_shapes = @space.bb_query(bb)
-      grounded = len(ground_shapes) > 0
+      grounded = ground_shapes.length > 0
 
       grounded_move_force = 1000
       not_moving_x = abs(@man.body.velocity.x) < 5.0
@@ -614,7 +615,7 @@ do ->
         @man.body.velocity.y = 100
         @man.body.apply_impulse(new Vec2d(0, 2000), new Vec2d(0, 0))
         # apply a reverse force upon the atom we jumped from
-        power = 1000 / len(ground_shapes)
+        power = 1000 / ground_shapes.length
         for shape in ground_shapes
           shape.body.apply_impulse(new Vec2d(0, -power), new Vec2d(0, 0))
         @playSfx('jump')
@@ -768,7 +769,7 @@ do ->
         if atom1.bondTo(atom2)
           bond_loop = atom1.bondLoop()
           if bond_loop?
-            len_bond_loop = len(bond_loop)
+            len_bond_loop = bond_loop.length
             # make all the atoms in this loop disappear
             if @enable_point_calculation
               @points += len_bond_loop
