@@ -3,12 +3,12 @@ class Vec2d
 
   mult: (other) -> new Vec2d(@x * other.x, @y * other.y)
 
-class EventEmitter
-  extend = (obj, args...) ->
-    for arg in args
-      obj[prop] = val for prop, val of arg
-    obj
+extend = (obj, args...) ->
+  for arg in args
+    obj[prop] = val for prop, val of arg
+  obj
 
+class EventEmitter
   constructor: ->
     @event_handlers = {}
 
@@ -52,6 +52,27 @@ Mouse =
   Middle: 1
   Right: 2
 
+class Batch
+  constructor: (@engine) ->
+    @sprites = []
+  draw: -> @engine.drawBatch this
+  add: (sprite) -> @sprites.push sprite
+
+class OrderedGroup
+
+class Sprite
+  constructor: (animation_name, params) ->
+    o =
+      pos: new Vec2d(0, 0)
+      batch: null
+      group: null
+    extend o, params
+
+    @pos = o.pos
+
+    o.batch?.add this
+    o.group?.add this
+
 class Engine extends EventEmitter
   target_fps = 60
   min_fps = 20
@@ -62,6 +83,7 @@ class Engine extends EventEmitter
 
   @Key = Key
   @Mouse = Mouse
+  @Sprite = Sprite
 
   constructor: (@canvas) ->
     super
@@ -100,14 +122,12 @@ class Engine extends EventEmitter
 
       skip_count = 0
       while delta > target_spf and skip_count < max_frame_skips
-        @emit 'update', target_spf, 1
-        @key_just_pressed = {}
+        @callUpdate target_spf, 1
         skip_count += 1
         delta -= target_spf
 
       multiplier = delta / target_spf
-      @emit 'update', delta, multiplier
-      @key_just_pressed = {}
+      @callUpdate delta, multiplier
       @emit 'draw', @context
       fps_count += 1
 
@@ -115,6 +135,10 @@ class Engine extends EventEmitter
         fps_time_passed = 0
         @fps = fps_count / fps_refresh_rate
         fps_count = 0
+
+  callUpdate: (dt, dx) ->
+    @emit 'update', dt, dx
+    @key_just_pressed = {}
 
   attachListeners: ->
     # mouse input
@@ -144,3 +168,7 @@ class Engine extends EventEmitter
 
   stopMainLoop: ->
     unschedule @interval
+
+  createBatch: -> new Batch(this)
+
+  createOrderedGroup: -> new OrderedGroup(this)

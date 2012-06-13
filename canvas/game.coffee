@@ -231,9 +231,9 @@ do ->
 
       @min_power = params.power or 3
 
-      @sprite_arm = new engine.Sprite('arm', batch=@game.batch, group=@game.group_fg)
-      @sprite_man = new engine.Sprite('still', batch=@game.batch, group=@game.group_main)
-      @sprite_claw = new engine.Sprite('claw', batch=@game.batch, group=@game.group_main)
+      @sprite_arm = new Engine.Sprite('arm', batch: @game.batch, group: @game.group_fg)
+      @sprite_man = new Engine.Sprite('still', batch: @game.batch, group: @game.group_main)
+      @sprite_claw = new Engine.Sprite('claw', batch: @game.batch, group: @game.group_main)
 
       @space = new cp.Space()
       @space.gravity = new Vec2d(0, -400)
@@ -279,7 +279,7 @@ do ->
       @lose_ratio = 95 / 300
 
       @tank_index ?= randInt(0, 1)
-      @sprite_tank = new engine.Sprite("tank#{tank_index}", batch=@game.batch, group=@game.group_main)
+      @sprite_tank = new Engine.Sprite("tank#{tank_index}", batch=@game.batch, group=@game.group_main)
 
       @game_over = false
       @winner = null
@@ -364,7 +364,7 @@ do ->
             shape.body.apply_impulse(direction * power * damp)
 
           # explosion animation
-          sprite = new engine.Sprite("bombsplode", batch=@game.batch, group=@game.group_fg)
+          sprite = new Engine.Sprite("bombsplode", batch=@game.batch, group=@game.group_fg)
           sprite.setPosition(@pos.plus(bomb.shape.body.position))
           do (sprite) ->
             removeBombSprite = -> sprite.delete()
@@ -480,8 +480,8 @@ do ->
 
     computeArmPos: ->
       @arm_pos = @man.body.position - @man_size / 2 + @arm_offset
-      @point_vector = (@mouse_pos - @arm_pos).normalized()
-      @point_start = @arm_pos + @point_vector * @arm_len
+      @point_vector = (@mouse_pos.minus(@arm_pos)).normalized()
+      @point_start = @arm_pos.plus(@point_vector.scale(@arm_len))
 
     get_drop_pos: (size) ->
       return new Vec2d(
@@ -493,7 +493,7 @@ do ->
     drop_bomb: ->
       # drop a bomb
       pos = @get_drop_pos(Bomb.size)
-      sprite = pyglet.sprite.Sprite(@game.animations.get("bomb"), batch=@game.batch, group=@game.group_main)
+      sprite = new Engine.Sprite('bomb', batch: @game.batch, group: @game.group_main)
       timeout = randInt(1, 5)
       bomb = new Bomb(pos, sprite, @space, timeout)
       @bombs.add(bomb)
@@ -501,7 +501,7 @@ do ->
     drop_rock: ->
       # drop a rock
       pos = @get_drop_pos(Rock.size)
-      sprite = pyglet.sprite.Sprite(@game.animations.get("rock"), batch=@game.batch, group=@game.group_main)
+      sprite = new Engine.Sprite('rock', batch: @game.batch, group: @game.group_main)
       rock = new Rock(pos, sprite, @space)
       @rocks.add(rock)
 
@@ -514,7 +514,7 @@ do ->
         # drop a random atom
         flavor_index = randInt(0, Atom.flavor_count-1)
         pos = @get_drop_pos(atom_size)
-        atom = new Atom(pos, flavor_index, pyglet.sprite.Sprite(@game.atom_imgs[flavor_index], batch=@game.batch, group=@game.group_main), @space)
+        atom = new Atom(pos, flavor_index, new Engine.Sprite(@game.atom_imgs[flavor_index], batch: @game.batch, group: @game.group_main), @space)
         @atoms.add(atom)
 
 
@@ -887,143 +887,12 @@ do ->
 
       if flavor <= 3
         # bombs
-        for i in range(power)
+        for i in [0...power]
           @drop_bomb()
       else
         # rocks
-        for i in range(power)
+        for i in [0...power]
           @drop_rock()
-
-
-    restore_state: (data) ->
-      if @game_over
-        return
-      # destroy everything
-      # man
-      @space.remove(@man, @man.body)
-      # atoms
-      @atoms.each (atom) ->
-        atom.cleanUp()
-      @atoms = new Set()
-      # bombs
-      @bombs.each (bomb) ->
-        bomb.cleanUp()
-      @bombs = new Set()
-      # rocks
-      @rocks.each (rock) ->
-        rock.cleanUp()
-      @rocks = new Set()
-      # claw gun
-      if @sprite_claw.visible
-        @space.remove(@claw.body, @claw, @claw_joint)
-      if @claw_pins?
-        @space.remove(@claw_pins)
-
-      @claw_pins_to_add = null
-      @want_to_remove_claw_pin = false
-      @want_to_retract_claw = false
-
-      # re-create everything
-      # man
-      body = data['man']['shape']['body']
-      @initMan(pos=new Vec2d(body['position']), vel=new Vec2d(body['velocity']))
-
-      @mouse_pos = new Vec2d(data['mouse_pos'])
-      atoms_by_id = {}
-      for obj in data['objects']
-        if not obj?
-          continue
-        # atoms
-        if obj['type'] is 'Atom'
-          body = obj['shape']['body']
-          pos = new Vec2d(body['position'])
-          vel = new Vec2d(body['velocity'])
-          flavor = obj['flavor']
-          atom = new Atom(pos, flavor, pyglet.sprite.Sprite(@game.atom_imgs[flavor], batch=@game.batch, group=@game.group_main), @space)
-          atom.shape.body.position = pos
-          atom.shape.body.velocity = vel
-          atom.shape.body.angle = body['angle']
-          atom.shape.body.torque = body['torque']
-          if obj['rogue']
-            atom.rogue = true
-            @space.remove(atom.shape.body)
-            @ray_atom = atom
-          atom.in_id = obj['id']
-          atom.in_bonds = obj['bonds']
-          atoms_by_id[atom.in_id] = atom
-          @atoms.add(atom)
-        else if obj['type'] is 'Bomb'
-          body = obj['shape']['body']
-          pos = new Vec2d(body['position'])
-          vel = new Vec2d(body['velocity'])
-          sprite = pyglet.sprite.Sprite(@game.animations.get("bomb"), batch=@game.batch, group=@game.group_main)
-          bomb = new Bomb(pos, sprite, @space, 99)
-          bomb.shape.body.position = pos
-          bomb.shape.body.velocity = vel
-          bomb.shape.body.angle = body['angle']
-          bomb.shape.body.torque = body['torque']
-          @bombs.add(bomb)
-        else if obj['type'] is 'Rock'
-          body = obj['shape']['body']
-          pos = new Vec2d(body['position'])
-          vel = new Vec2d(body['velocity'])
-          sprite = pyglet.sprite.Sprite(@game.animations.get("rock"), batch=@game.batch, group=@game.group_main)
-          rock = new Rock(pos, sprite, @space)
-          rock.shape.body.position = pos
-          rock.shape.body.velocity = vel
-          rock.shape.body.angle = body['angle']
-          rock.shape.body.torque = body['torque']
-          @rocks.add(rock)
-
-      @atoms.each (atom) ->
-        for bond_id in atom.in_bonds
-          atom.bondTo(atoms_by_id[bond_id])
-
-      # state vars
-      @points = data['points']
-
-      winner = data['winner']
-      if not @winner? and winner?
-        if winner
-          @lose()
-        else
-          @win()
-
-      @equipped_gun = data['equipped_gun']
-
-      # claw
-      @claw_in_motion = data['claw_in_motion']
-      @sprite_claw.visible = data['claw_visible']
-      in_claw_pins = data['claw_pins']
-      @claw_attached = data['claw_attached']
-      if @claw_in_motion
-        in_body = data['claw']['body']
-        # create claw
-        body = new cp.Body(mass=5, moment=1000000)
-        body.position = new Vec2d(in_body['position'])
-        body.angle = in_body['angle']
-        body.velocity = new Vec2d(in_body['velocity'])
-        @claw = new cp.Circle(body, @claw_radius)
-        @claw.friction = 1
-        @claw.elasticity = 0
-        @claw.collision_type = Collision.Claw
-        @claw_joint = new cp.SlideJoint(@claw.body, @man.body, new Vec2d(0, 0), new Vec2d(0, 0), 0, data['claw_joint']['max'])
-        @claw_joint.max_bias = max_bias
-        @space.add(body, @claw, @claw_joint)
-      if not in_claw_pins?
-        @claw_pins = null
-      else
-        @claw_pins = []
-        for in_joint in in_claw_pins
-          joint = new cp.PinJoint(@claw.body, @ceiling.body, new Vec2d(0, 0), new Vec2d(0, 0))
-          joint.max_bias = max_bias
-          @claw_pins.append(joint)
-          @space.add(joint)
-
-      # weapon drops
-      for asplosion in data['queued_asplosions']
-        @other_tank.respond_to_asplosion(asplosion)
-
 
     on_key_press: (symbol, modifiers) ->
       control = @controls[symbol]
@@ -1036,7 +905,7 @@ do ->
         @control_state[control] = false
 
     moveMouse: (x, y) ->
-      @mouse_pos = new Vec2d(x, y) - @pos
+      @mouse_pos = (new Vec2d(x, y)).minus(@pos)
 
       use_crosshair = @mouse_pos.x >= 0 and \
               @mouse_pos.y >= 0 and \
@@ -1121,17 +990,15 @@ do ->
       @animations = new Animations()
       @animations.load()
 
-      @batch = pyglet.graphics.Batch()
-      @group_bg = pyglet.graphics.OrderedGroup(0)
-      @group_main = pyglet.graphics.OrderedGroup(1)
-      @group_fg = pyglet.graphics.OrderedGroup(2)
+      @batch = engine.createBatch()
+      @group_bg = engine.createOrderedGroup(0)
+      @group_main = engine.createOrderedGroup(1)
+      @group_fg = engine.createOrderedGroup(2)
 
-      img_bg = pyglet.resource.image("data/bg.png")
-      img_bg_top = pyglet.resource.image("data/bg-top.png")
-      @sprite_bg = pyglet.sprite.Sprite(img_bg, batch=@batch, group=@group_bg)
-      @sprite_bg_top = pyglet.sprite.Sprite(img_bg_top, batch=@batch, group=@group_fg, y=img_bg.height-img_bg_top.height)
+      @sprite_bg = new Engine.Sprite("bg.png", batch: @batch, group: @group_bg)
+      @sprite_bg_top = new Engine.Sprite("bg-top.png", batch: @batch, group: @group_fg, pos: new Vec2d(0, img_bg.height-img_bg_top.height))
 
-      @atom_imgs = [@animations.get("atom%i" % i) for i in range(Atom.flavor_count)]
+      @atom_imgs = ("atom#{i}" for i in [0...Atom.flavor_count])
 
 
       unless params.nofx?
@@ -1179,7 +1046,7 @@ do ->
 
         tank_index = int(not @control_tank.tank_index)
         tank_name = "tank%i" % tank_index
-        @sprite_other_tank = pyglet.sprite.Sprite(@animations.get(tank_name), batch=@batch, group=@group_main, x=tank_pos[1].x + @control_tank.size.x / 2, y=tank_pos[1].y + @control_tank.size.y / 2)
+        @sprite_other_tank = new Engine.Sprite(tank_name, batch: @batch, group: @group_main, pos: new Vec2d(tank_pos[1].x + @control_tank.size.x / 2, tank_pos[1].y + @control_tank.size.y / 2))
       else
         @tanks = [new Tank(pos, tank_dims, self, tank_index=i) for pos, i in enumerate(tank_pos)]
 
