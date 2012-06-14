@@ -48,6 +48,19 @@ class Engine extends EventEmitter
     @canvas.height = @size.y
 
   start: ->
+    @attachListeners()
+    @startMainLoop()
+
+  stop: ->
+    @stopMainLoop()
+    @removeListeners()
+
+  keyState: (key_code) -> !!@key_states[key_code]
+
+  mousePos: -> @mouse_pos
+
+  # private
+  startMainLoop: ->
     previous_update = new Date()
     max_frame_skips = target_fps - min_fps
     fps_time_passed = 0
@@ -76,6 +89,29 @@ class Engine extends EventEmitter
         @fps = fps_count / fps_refresh_rate
         fps_count = 0
 
-  stop: ->
-    unschedule @interval
+  attachListeners: ->
+    # mouse input
+    @mouse_pos = new Vec2d(0, 0)
+    handleMouseEvent = (event_name) =>
+      @canvas.addEventListener event_name, (event) =>
+        @mouse_pos = new Vec2d(event.offsetX, event.offsetY)
+        @emit event_name, @mouse_pos
+    handleMouseEvent x for x in ['mousemove', 'mousedown', 'mouseup']
 
+    # keyboard input
+    @canvas.addEventListener 'keydown', (event) => @emit 'keydown', event.keyCode
+    @canvas.addEventListener 'keyup', (event) => @emit 'keyup', event.keyCode
+
+    @key_states = {}
+    window.addEventListener 'keydown', (event) =>
+      @key_states[event.keyCode] = true
+
+    window.addEventListener 'keyup', (event) =>
+      @key_states[event.keyCode] = false
+
+
+  removeListeners: ->
+    # TODO
+
+  stopMainLoop: ->
+    unschedule @interval
