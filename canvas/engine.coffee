@@ -1,8 +1,3 @@
-class Vec2d
-  constructor: (@x, @y) ->
-
-  mult: (other) -> new Vec2d(@x * other.x, @y * other.y)
-
 extend = (obj, args...) ->
   for arg in args
     obj[prop] = val for prop, val of arg
