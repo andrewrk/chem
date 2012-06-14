@@ -1,3 +1,10 @@
+set up dev environment:
+
+    sudo apt-get install libcairo2-dev
+    npm install .
+    
 while developing:
 
-    coffee -wcbj game.js engine.coffee game.coffee
+    cake watch
+    # when you change assets
+    cake spritesheet

@@ -1,6 +1,3 @@
-class Vec2d
-  constructor: (@x, @y) ->
-
 class EventEmitter
   extend = (obj, args...) ->
     for arg in args
