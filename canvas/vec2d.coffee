@@ -37,5 +37,7 @@ class Vec2d
   boundMax: (other) ->
     if @x > other.x then @x = other.x
     if @y > other.y then @y = other.y
+  floor: -> @apply(Math.floor)
+  floored: -> @applied(Math.floor)
 
 exports?.Vec2d = Vec2d

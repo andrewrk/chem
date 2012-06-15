@@ -131,6 +131,11 @@ class Engine extends EventEmitter
         @fps = fps_count / fps_refresh_rate
         fps_count = 0
 
+  drawBatch: (batch) ->
+    for sprite in batch.sprites
+      frame = sprite.currentFrame()
+      @context.drawImage spritesheet, frame.pos.x, frame.pos.y, frame.size.x, frame.size.y, sprite.pos.x, sprite.pos.y, frame.size.x, frame.size.y
+
   callUpdate: (dt, dx) ->
     @emit 'update', dt, dx
     @key_just_pressed = {}

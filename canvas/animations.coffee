@@ -4,6 +4,7 @@ exports._default =
   delay: 1
   loop: true
   offset: new Vec2d(0, 0)
+  # possible values: a Vec2d instance, or "center"
   anchor: new Vec2d(0, 0)
 
 exports.animations =
@@ -66,26 +67,101 @@ exports.animations =
       "tankleft0009.png"
       "tankleft0010.png"
     ]
+  tank1:
+    delay: 0.1
+    anchor: new Vec2d(192, 256)
+    frames: [
+      "tankright0001.png"
+      "tankright0002.png"
+      "tankright0003.png"
+      "tankright0004.png"
+      "tankright0005.png"
+      "tankright0006.png"
+      "tankright0007.png"
+      "tankright0008.png"
+      "tankright0009.png"
+      "tankright0010.png"
+    ]
+  lazergun:
+    anchor: new Vec2d(5, 11)
+    frames: ["lazergun.png"]
+  raygun:
+    anchor: new Vec2d(5, 11)
+    frames: ["raygun.png"]
+  atom0:
+    anchor: new Vec2d(16, 16)
+    frames: ["atom-0.png"]
+  atom1:
+    anchor: new Vec2d(16, 16)
+    frames: ["atom-1.png"]
+  atom2:
+    anchor: new Vec2d(16, 16)
+    frames: ["atom-2.png"]
+  atom3:
+    anchor: new Vec2d(16, 16)
+    frames: ["atom-3.png"]
+  atom4:
+    anchor: new Vec2d(16, 16)
+    frames: ["atom-4.png"]
+  atom5:
+    anchor: new Vec2d(16, 16)
+    frames: ["atom-5.png"]
+  rock:
+    anchor: new Vec2d(17, 17)
+    frames: ["rock.png"]
+  bomb:
+    delay: 0.1
+    anchor: new Vec2d(17, 17)
+    frames: [
+      "bomb-0.png"
+      "bomb-1.png"
+      "bomb-2.png"
+    ]
+  bombsplode:
+    delay: 0.1
+    loop: false
+    frames: [
+      "bigbadaboom0001.png"
+      "bigbadaboom0002.png"
+      "bigbadaboom0003.png"
+      "bigbadaboom0004.png"
+      "bigbadaboom0005.png"
+      "bigbadaboom0006.png"
+      "bigbadaboom0007.png"
+      "bigbadaboom0010.png"
+      "bigbadaboom0011.png"
+      "bigbadaboom0012.png"
+      "bigbadaboom0013.png"
+    ]
+  defeat:
+    delay: 0.1
+    anchor: new Vec2d(23, 32)
+    frames: [
+      "defeat-0.png"
+      "defeat-1.png"
+      "defeat-2.png"
+      "defeat-3.png"
+      "defeat-4.png"
+    ]
+  victory:
+    delay: 0.1
+    anchor: new Vec2d(23, 32)
+    frames: [
+      "victorydance0001.png"
+      "victorydance0002.png"
+      "victorydance0003.png"
+      "victorydance0004.png"
+      "victorydance0005.png"
+      "victorydance0006.png"
+    ]
+  bg:
+    frames: ["bg.png"]
+  bg_top:
+    frames: ["bg-top.png"]
+  credits:
+    frames: ["credits.png"]
+  howtoplay:
+    frames: ["howtoplay.png"]
+  title:
+    frames: ["title.png"]
 
-#  name     :delay:loop:off_x:off_y:size_x:size_y:anchor_x:anchor_y = file1, file2, etc
-#
-#lazergun   :1    :1   :0    :0    :55    :23    :5       :11       = lazergun.png
-#raygun     :1    :1   :0    :0    :55    :23    :5       :11       = raygun.png
-#
-#atom0      :1    :1   :0    :0    :32    :32    :16      :16       = atom-0.png
-#atom1      :1    :1   :0    :0    :32    :32    :16      :16       = atom-1.png
-#atom2      :1    :1   :0    :0    :32    :32    :16      :16       = atom-2.png
-#atom3      :1    :1   :0    :0    :32    :32    :16      :16       = atom-3.png
-#atom4      :1    :1   :0    :0    :32    :32    :16      :16       = atom-4.png
-#atom5      :1    :1   :0    :0    :32    :32    :16      :16       = atom-5.png
-#
-#rock       :1    :1   :0    :0    :34    :34    :17      :17       = rock.png
-#bomb       :0.1  :1   :0    :0    :34    :34    :17      :17       = bomb-0.png,bomb-1.png,bomb-2.png
-#
-#bombsplode :0.1  :0   :0    :0    :150   :150   :75      :75       = bigbadaboom0001.png,bigbadaboom0002.png,bigbadaboom0003.png,bigbadaboom0004.png,bigbadaboom0005.png,bigbadaboom0006.png,bigbadaboom0007.png,bigbadaboom0010.png,bigbadaboom0011.png,bigbadaboom0012.png,bigbadaboom0013.png
-#
-#tank1      :0.1  :1   :0    :0    :384   :512   :192     :256      = tankright0001.png,tankright0002.png,tankright0003.png,tankright0004.png,tankright0005.png,tankright0006.png,tankright0007.png,tankright0008.png,tankright0009.png,tankright0010.png
-#
-#
-#defeat     :0.1  :1   :0    :0    :32    :64    :23      :32       = defeat-0.png,defeat-1.png,defeat-2.png,defeat-3.png,defeat-4.png
-#victory    :0.1  :1   :0    :0    :32    :64    :23      :32       = victorydance0001.png,victorydance0002.png,victorydance0003.png,victorydance0004.png,victorydance0005.png,victorydance0006.png

@@ -60,6 +60,9 @@ task 'spritesheet', ->
       frame_list.push frame
       anim.frames.push frame
 
+    if anim.anchor is "center"
+      anim.anchor = anim.frames[0].size.scaled(0.5).floor()
+
   sheet = new Spritesheet(frame_list)
   sheet.calculatePositions()
 

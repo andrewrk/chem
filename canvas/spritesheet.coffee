@@ -19,6 +19,9 @@ exports.Spritesheet = class Spritesheet
     positions = []
 
     for image, image_i in @image_list
+      # keep positions sorted by x
+      positions.sort (a, b) -> a.x - b.x
+
       image.pos = do =>
         for pos, pos_i in positions
           intersects = do =>
@@ -40,7 +43,7 @@ exports.Spritesheet = class Spritesheet
 
       if (y = image.pos.y + image.size.y) < @size.y
         positions.push new Vec2d(image.pos.x, y)
-        # keep positions sorted by x
-        positions.sort (a, b) -> a.x - b.x
+      if (x = image.pos.x + image.size.x) < @size.x
+        positions.push new Vec2d(x, image.pos.y)
 
       @size.boundMin(image.pos.plus(image.size))
