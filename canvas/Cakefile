@@ -75,5 +75,11 @@ task 'spritesheet', ->
   stream = canvas.createPNGStream()
   stream.on 'data', (chunk) -> out.write chunk
 
+  # strip properties from animations that we do not wish to commit to disk
+  for name, anim of animations
+    for frame in anim.frames
+      delete frame.image
+      delete frame.filename
+
   # render json animation data
-  fs.writeFileSync animations_json_out, JSON.stringify(animations), 'utf8'
+  fs.writeFileSync animations_json_out, JSON.stringify(animations, null, 4), 'utf8'

@@ -47,26 +47,38 @@ Mouse =
   Middle: 1
   Right: 2
 
+class Indexable
+  @id_count = 0
+
+  constructor: ->
+    @id = Indexable.id_count++
+
 class Batch
-  constructor: (@engine) ->
+  constructor: ->
+    # indexed by zorder
     @sprites = []
-  draw: -> @engine.drawBatch this
-  add: (sprite) -> @sprites.push sprite
+  add: (sprite) ->
+    (@sprites[sprite.zorder] ?= {})[sprite.id] = sprite
+  remove: (sprite) ->
+    delete @sprites[sprite.zorder][sprite.id]
 
-class OrderedGroup
-
-class Sprite
+class Sprite extends Indexable
   constructor: (animation_name, params) ->
+    super
     o =
       pos: new Vec2d(0, 0)
       batch: null
-      group: null
+      zorder: 0
     extend o, params
 
     @pos = o.pos
+    @zorder = o.zorder
 
-    o.batch?.add this
-    o.group?.add this
+    @batch = o.batch
+    @batch.add this
+
+  delete: ->
+    @batch.remove(this)
 
 class Engine extends EventEmitter
   target_fps = 60
@@ -79,6 +91,7 @@ class Engine extends EventEmitter
   @Key = Key
   @Mouse = Mouse
   @Sprite = Sprite
+  @Batch = Batch
 
   constructor: (@canvas) ->
     super
@@ -90,6 +103,7 @@ class Engine extends EventEmitter
     @canvas.height = @size.y
 
   start: ->
+    @loadAssets()
     @attachListeners()
     @startMainLoop()
 
@@ -132,13 +146,19 @@ class Engine extends EventEmitter
         fps_count = 0
 
   drawBatch: (batch) ->
-    for sprite in batch.sprites
-      frame = sprite.currentFrame()
-      @context.drawImage spritesheet, frame.pos.x, frame.pos.y, frame.size.x, frame.size.y, sprite.pos.x, sprite.pos.y, frame.size.x, frame.size.y
+    for sprites in batch.sprites
+      for id, sprite of sprites
+        frame = sprite.frames[0]
+        @context.drawImage @spritesheet, frame.pos.x, frame.pos.y, frame.size.x, frame.size.y, sprite.pos.x, sprite.pos.y, frame.size.x, frame.size.y
 
   callUpdate: (dt, dx) ->
     @emit 'update', dt, dx
     @key_just_pressed = {}
+
+  loadAssets: ->
+    @spritesheet = new Image()
+    @spritesheet.src = "spritesheet.png"
+    # TODO: get the animations.json file somehow.
 
   attachListeners: ->
     # mouse input
@@ -170,5 +190,4 @@ class Engine extends EventEmitter
     unschedule @interval
 
   createBatch: -> new Batch(this)
-
   createOrderedGroup: -> new OrderedGroup(this)
