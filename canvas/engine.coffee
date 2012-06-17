@@ -58,24 +58,23 @@ class Batch
     # indexed by zorder
     @sprites = []
   add: (sprite) ->
+    if sprite.batch?
+      sprite.batch.remove sprite
+    sprite.batch = this
     (@sprites[sprite.zorder] ?= {})[sprite.id] = sprite
   remove: (sprite) ->
     delete @sprites[sprite.zorder][sprite.id]
 
 class Sprite extends Indexable
-  constructor: (animation_name, params) ->
+  constructor: (@name, params) ->
     super
     o =
       pos: new Vec2d(0, 0)
-      batch: null
       zorder: 0
     extend o, params
 
     @pos = o.pos
     @zorder = o.zorder
-
-    @batch = o.batch
-    @batch.add this
 
   delete: ->
     @batch.remove(this)
@@ -103,7 +102,7 @@ class Engine extends EventEmitter
     @canvas.height = @size.y
 
   start: ->
-    @loadAssets()
+    @loadAssetsOnce()
     @attachListeners()
     @startMainLoop()
 
@@ -137,28 +136,57 @@ class Engine extends EventEmitter
 
       multiplier = delta / target_spf
       @callUpdate delta, multiplier
-      @emit 'draw', @context
+      if @assetsLoaded
+        @emit 'draw', @context
       fps_count += 1
 
       if fps_time_passed >= fps_refresh_rate
         fps_time_passed = 0
         @fps = fps_count / fps_refresh_rate
         fps_count = 0
+      return
 
-  drawBatch: (batch) ->
+  draw: (batch) ->
     for sprites in batch.sprites
       for id, sprite of sprites
-        frame = sprite.frames[0]
+        frames = @animations[sprite.name].frames
+        frame = frames[0]
         @context.drawImage @spritesheet, frame.pos.x, frame.pos.y, frame.size.x, frame.size.y, sprite.pos.x, sprite.pos.y, frame.size.x, frame.size.y
+    return
 
   callUpdate: (dt, dx) ->
     @emit 'update', dt, dx
     @key_just_pressed = {}
 
-  loadAssets: ->
+  loadAssetsOnce: ->
+    # once
+    if @assetsRequested
+      return
+    @assetsRequested = true
+
+    # set @assetsLoaded after all assets are done loading
+    spritesheet_done = false
+    animations_json_done = false
+    checkDoneLoading = =>
+      if spritesheet_done and animations_json_done
+        @assetsLoaded = true
+
+    # get the spritesheet
     @spritesheet = new Image()
     @spritesheet.src = "spritesheet.png"
-    # TODO: get the animations.json file somehow.
+    @spritesheet.onload = ->
+      spritesheet_done = true
+      checkDoneLoading()
+
+    # get the animations.json file
+    request = new XMLHttpRequest()
+    request.onreadystatechange = =>
+      return unless request.readyState is 4 and request.status is 200
+      @animations = JSON.parse(request.responseText)
+      animations_json_done = true
+      checkDoneLoading()
+    request.open("GET", "animations.json", true)
+    request.send()
 
   attachListeners: ->
     # mouse input

@@ -8,6 +8,8 @@ while developing:
     cake watch
     # when you change assets
     cake spritesheet
+    # run simple server to serve the assets
+    npm test
 
 things left to fix:
 

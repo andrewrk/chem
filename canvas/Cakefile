@@ -27,16 +27,12 @@ extend = (obj, args...) ->
 
 sign = (n) -> if n > 0 then 1 else if n < 0 then -1 else 0
 
-task 'watch', ->
-  exec coffee, ['-wcbj', client_out].concat(client_src)
-
-
 Canvas = require('canvas')
 Image = Canvas.Image
 fs = require('fs')
 {Vec2d} = require('./vec2d')
 {Spritesheet} = require('./spritesheet')
-task 'spritesheet', ->
+createSpritesheet = ->
   # gather data about all image files
   # and place into array
   {_default, animations} = require("./animations")
@@ -83,3 +79,14 @@ task 'spritesheet', ->
 
   # render json animation data
   fs.writeFileSync animations_json_out, JSON.stringify(animations, null, 4), 'utf8'
+
+task 'spritesheet', createSpritesheet
+
+compile = (watch_flag="") ->
+  exec coffee, ["-#{watch_flag}cbj", client_out].concat(client_src)
+
+task 'watch', -> compile('w')
+
+task 'build', ->
+  compile()
+  createSpritesheet()
