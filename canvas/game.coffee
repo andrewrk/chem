@@ -1,32 +1,32 @@
 do ->
-  canvas = document.getElementById("game")
-  engine = new Engine(canvas)
-  batch = new Engine.Batch()
-  sprite = new Engine.Sprite('walk', batch: batch, pos: new Vec2d(200, 200))
-  engine.on 'update', ->
-    if engine.buttonJustPressed Engine.Button.Key_1
-      console.log "press 1"
-      sprite.scale.x = -1
-    else if engine.buttonJustPressed Engine.Button.Key_2
-      console.log "press 2"
-      sprite.scale.x = 1
-    else if engine.buttonJustPressed Engine.Button.Key_3
-      sprite.scale.x = -2
-    else if engine.buttonJustPressed Engine.Button.Key_4
-      sprite.scale.x = 2
+  #canvas = document.getElementById("game")
+  #engine = new Engine(canvas)
+  #batch = new Engine.Batch()
+  #sprite = new Engine.Sprite('walk', batch: batch, pos: new Vec2d(200, 200))
+  #engine.on 'update', ->
+  #  if engine.buttonJustPressed Engine.Button.Key_1
+  #    console.log "press 1"
+  #    sprite.scale.x = -1
+  #  else if engine.buttonJustPressed Engine.Button.Key_2
+  #    console.log "press 2"
+  #    sprite.scale.x = 1
+  #  else if engine.buttonJustPressed Engine.Button.Key_3
+  #    sprite.scale.x = -2
+  #  else if engine.buttonJustPressed Engine.Button.Key_4
+  #    sprite.scale.x = 2
 
-    if engine.buttonState(Engine.Button.Mouse_Left)
-      sprite.pos = engine.mousePos()
-    if engine.buttonState(Engine.Button.Mouse_Right)
-      sprite.rotation += 3.14 / 20
+  #  if engine.buttonState(Engine.Button.Mouse_Left)
+  #    sprite.pos = engine.mousePos()
+  #  if engine.buttonState(Engine.Button.Mouse_Right)
+  #    sprite.rotation += 3.14 / 20
 
-  engine.on 'draw', (context) ->
-    engine.clear()
-    engine.draw(batch)
-    engine.drawFps()
-  engine.start()
+  #engine.on 'draw', (context) ->
+  #  engine.clear()
+  #  engine.draw(batch)
+  #  engine.drawFps()
+  #engine.start()
 
-  return
+  #return
 
   atom_size = new Vec2d(32, 32)
   atom_radius = atom_size.x / 2
@@ -651,7 +651,7 @@ do ->
           if @man.body.velocity.x < move_boost and @man.body.velocity.x > 0
             @man.body.velocity.x = move_boost
 
-      negate = if @mouse_pos.x < @man.body.position.x then "-" else ""
+      negate = @mouse_pos.x < @man.body.position.x
       # jumping
       if grounded
         if move_left or move_right
@@ -663,7 +663,8 @@ do ->
 
       if @control_state[Control.MoveUp] and grounded
         animation_name = "jump"
-        @sprite_man.setAnimation(negate + animation_name)
+        @sprite_man.setAnimation(animation_name)
+        if negate then @sprite_man.scale.x = -1
         @man.body.velocity.y = 100
         @man.body.applyImpulse(new Vec2d(0, 2000), new Vec2d(0, 0))
         # apply a reverse force upon the atom we jumped from
@@ -673,9 +674,9 @@ do ->
         @playSfx('jump')
 
       # point the man+arm in direction of mouse
-      animation_name2 = negate + animation_name
-      if @sprite_man.animation isnt animation_name2
-        @sprite_man.setAnimation animation_name2
+      if @sprite_man.animation isnt animation_name
+        @sprite_man.setAnimation animation_name
+      if negate then @sprite_man.scale.x = -1
 
       # selecting a different gun
       if @control_state[Control.SwitchToGrapple] and @equipped_gun isnt Control.SwitchToGrapple
@@ -693,12 +694,13 @@ do ->
           ani_name = "arm-flung"
         else
           ani_name = "arm"
-        arm_animation = negate + ani_name
+        arm_animation = ani_name
       else
-        arm_animation = negate + @gun_animations[@equipped_gun]
+        arm_animation = @gun_animations[@equipped_gun]
 
       if @sprite_arm.animation isnt arm_animation
         @sprite_arm.setAnimation arm_animation
+      if negate then @sprite_arm.scale.x = -1
 
       if @equipped_gun is Control.SwitchToGrapple
         claw_reel_in_speed = 400
