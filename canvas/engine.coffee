@@ -71,10 +71,13 @@ class Sprite extends Indexable
     o =
       pos: new Vec2d(0, 0)
       zorder: 0
+      batch: null
     extend o, params
 
     @pos = o.pos
     @zorder = o.zorder
+
+    if o.batch? then o.batch.add this
 
   delete: ->
     @batch.remove(this)
