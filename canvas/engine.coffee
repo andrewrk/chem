@@ -37,11 +37,13 @@ Key =
   Shift: 16
   Ctrl: 17
   Alt: 18
+  Space: 32
   MetaLeft: 91
   MetaRight: 92
   1: 49
   2: 50
   3: 51
+  4: 52
   A: 65
   D: 68
   E: 69
@@ -78,6 +80,7 @@ class Sprite extends Indexable
     super
     o =
       pos: new Vec2d(0, 0)
+      scale: new Vec2d(1, 1)
       zorder: 0
       batch: null
       rotation: 0
@@ -88,6 +91,7 @@ class Sprite extends Indexable
     @zorder = o.zorder
     @rotation = o.rotation
     @batch = o.batch
+    @scale = o.scale
 
     @setAnimation animation
     @setVisible o.visible
@@ -150,6 +154,32 @@ class Engine extends EventEmitter
   clear: ->
     @context.clearRect 0, 0, @size.x, @size.y
 
+  draw: (batch) ->
+    now = new Date()
+    total_time = (now - @main_loop_start_date) / 1000
+
+    for sprites in batch.sprites
+      for id, sprite of sprites
+        animation = @animations[sprite.animation]
+        anim_duration = animation.delay * animation.frames.length
+        frame_index = Math.floor((total_time % anim_duration) / animation.delay)
+        frame = animation.frames[frame_index]
+        @context.save()
+        @context.translate sprite.pos.x, sprite.pos.y
+        @context.scale sprite.scale.x, sprite.scale.y
+        @context.rotate sprite.rotation
+        @context.drawImage @spritesheet, frame.pos.x, frame.pos.y, \
+          frame.size.x, frame.size.y, \
+          -animation.anchor.x, -animation.anchor.y, \
+          frame.size.x, frame.size.y
+        @context.restore()
+    return
+
+  drawFps: ->
+    return unless @fps?
+    @context.fillText "#{@fps} fps", 0, @size.y
+
+
   # private
   startMainLoop: ->
     @main_loop_start_date = previous_update = new Date()
@@ -181,26 +211,6 @@ class Engine extends EventEmitter
         @fps = fps_count / fps_refresh_rate
         fps_count = 0
       return
-
-  draw: (batch) ->
-    now = new Date()
-    total_time = (now - @main_loop_start_date) / 1000
-
-    for sprites in batch.sprites
-      for id, sprite of sprites
-        animation = @animations[sprite.animation]
-        anim_duration = animation.delay * animation.frames.length
-        frame_index = Math.floor((total_time % anim_duration) / animation.delay)
-        frame = animation.frames[frame_index]
-        @context.save()
-        @context.translate sprite.pos.x, sprite.pos.y
-        @context.rotate sprite.rotation
-        @context.drawImage @spritesheet, frame.pos.x, frame.pos.y, \
-          frame.size.x, frame.size.y, \
-          -animation.anchor.x, -animation.anchor.y, \
-          frame.size.x, frame.size.y
-        @context.restore()
-    return
 
   callUpdate: (dt, dx) ->
     @emit 'update', dt, dx
@@ -266,12 +276,12 @@ class Engine extends EventEmitter
       forwardMouseEvent 'mouseup', event
 
     # keyboard input
-    @canvas.addEventListener 'keydown', (event) =>
+    window.addEventListener 'keydown', (event) =>
       @button_states[key_offset + event.which] = true
       @btn_just_pressed[key_offset + event.which] = true
 
       @emit 'keydown', key_offset + event.which
-    @canvas.addEventListener 'keyup', (event) =>
+    window.addEventListener 'keyup', (event) =>
       @button_states[key_offset + event.which] = false
 
       @emit 'keyup', key_offset + event.which

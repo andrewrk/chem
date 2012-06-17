@@ -1,4 +1,33 @@
 do ->
+  canvas = document.getElementById("game")
+  engine = new Engine(canvas)
+  batch = new Engine.Batch()
+  sprite = new Engine.Sprite('walk', batch: batch, pos: new Vec2d(200, 200))
+  engine.on 'update', ->
+    if engine.buttonJustPressed Engine.Button.Key_1
+      console.log "press 1"
+      sprite.scale.x = -1
+    else if engine.buttonJustPressed Engine.Button.Key_2
+      console.log "press 2"
+      sprite.scale.x = 1
+    else if engine.buttonJustPressed Engine.Button.Key_3
+      sprite.scale.x = -2
+    else if engine.buttonJustPressed Engine.Button.Key_4
+      sprite.scale.x = 2
+
+    if engine.buttonState(Engine.Button.Mouse_Left)
+      sprite.pos = engine.mousePos()
+    if engine.buttonState(Engine.Button.Mouse_Right)
+      sprite.rotation += 3.14 / 20
+
+  engine.on 'draw', (context) ->
+    engine.clear()
+    engine.draw(batch)
+    engine.drawFps()
+  engine.start()
+
+  return
+
   atom_size = new Vec2d(32, 32)
   atom_radius = atom_size.x / 2
 
@@ -1112,7 +1141,7 @@ do ->
         tank.drawPrimitives(context)
       
       if @fps_display
-        context.fillText "#{@engine.fps} fps", 0, engine.size.y
+        engine.drawFps()
 
   class GameWindow
     constructor: (@engine, @server) ->

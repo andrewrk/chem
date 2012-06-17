@@ -1,9 +1,9 @@
-* support flipping sprites
 * respect loop property of animations
 * each animation should have its own time
 * sprite on_animation_end
 * sfx
 
+* asset loading progress indication
 * requestAnimationFrame?
 * make animations.coffee declarations less redundant (the `frames` property)
 * implement removeListeners
