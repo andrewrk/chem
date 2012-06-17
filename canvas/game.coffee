@@ -1198,24 +1198,22 @@ do ->
 
 
   class Credits
-    constructor: (@gw, @window) ->
-      @img = pyglet.resource.image("data/credits.png")
-      @window.set_handler('on_draw', @on_draw)
-      @window.set_handler('on_mouse_press', @on_mouse_press)
-      pyglet.clock.schedule_interval(@update, 1/game_fps)
+    constructor: (@gw, @engine) ->
+      @batch = new Engine.Batch()
+      @img = new Engine.Sprite("credits", batch: @batch)
+      @engine.on('draw', @draw)
+      @engine.on('mousedown', @onMouseDown)
 
-    update: (dt) ->
-
-    on_draw: ->
-      @window.clear()
-      @img.blit(0, 0)
+    draw: =>
+      @engine.clear()
+      @engine.draw @batch
 
     end: ->
-      @window.remove_handler('on_draw', @on_draw)
-      @window.remove_handler('on_mouse_press', @on_mouse_press)
-      pyglet.clock.unschedule(@update)
+      @engine.removeListener('draw', @draw)
+      @engine.removeListener('mousedown', @onMouseDown)
+      @engine.removeListener('update', @update)
 
-    on_mouse_press: (x, y, button, modifiers) ->
+    onMouseDown: (pos) =>
       @gw.title()
 
 
@@ -1228,12 +1226,12 @@ do ->
       @batch = new Engine.Batch()
       @img = new Engine.Sprite("title", batch: @batch)
 
-      @start_pos = new Vec2d(409, 305)
-      @credits_pos = new Vec2d(360, 229)
-      @controls_pos = new Vec2d(525, 242)
+      @start_pos = new Vec2d(409, 600-305)
+      @credits_pos = new Vec2d(360, 600-229)
+      @controls_pos = new Vec2d(525, 600-242)
       @click_radius = 50
 
-      @lobby_pos = new Vec2d(746, 203)
+      @lobby_pos = new Vec2d(746, 600-203)
       @lobby_size = new Vec2d(993.0 - @lobby_pos.x, 522.0 - @lobby_pos.y)
 
       if @server?
@@ -1255,7 +1253,7 @@ do ->
       @nick_label = {}
       @nick_user = {}
       h = 18
-      next_pos = @lobby_pos + new Vec2d(0, @lobby_size.y - h)
+      next_pos = @lobby_pos.offset(0, @lobby_size.y - h)
       for user in @users
         nick = user['nick']
         if nick is @nick
@@ -1298,15 +1296,14 @@ do ->
       @engine.removeListener 'mousedown', @onMouseDown
       @engine.removeListener 'update', @update
 
-    onMouseDown: (x, y, button, modifiers) =>
-      click_pos = new Vec2d(x, y)
-      if click_pos.get_distance(@start_pos) < @click_radius
+    onMouseDown: (click_pos) =>
+      if click_pos.distanceTo(@start_pos) < @click_radius
         @gw.play(server_on=false)
         return
-      else if click_pos.get_distance(@credits_pos) < @click_radius
+      else if click_pos.distanceTo(@credits_pos) < @click_radius
         @gw.credits()
         return
-      else if click_pos.get_distance(@controls_pos) < @click_radius
+      else if click_pos.distanceTo(@controls_pos) < @click_radius
         @gw.controls()
         return
 
