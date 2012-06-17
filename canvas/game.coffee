@@ -1176,24 +1176,21 @@ do ->
       @current = new ControlsScene(this, @engine)
 
   class ControlsScene
-    constructor: (@gw, @window) ->
-      @img = pyglet.resource.image("data/howtoplay.png")
-      @window.set_handler('on_draw', @on_draw)
-      @window.set_handler('on_mouse_press', @on_mouse_press)
-      pyglet.clock.schedule_interval(@update, 1/game_fps)
+    constructor: (@gw, @engine) ->
+      @batch = new Engine.Batch()
+      @img = new Engine.Sprite("howtoplay", batch: @batch)
+      @engine.on('draw', @draw)
+      @engine.on('mousedown', @onMouseDown)
 
-    update: (dt) ->
-
-    on_draw: ->
-      @window.clear()
-      @img.blit(0, 0)
+    draw: =>
+      @engine.clear()
+      @engine.draw @batch
 
     end: ->
-      @window.remove_handler('on_draw', @on_draw)
-      @window.remove_handler('on_mouse_press', @on_mouse_press)
-      pyglet.clock.unschedule(@update)
+      @engine.removeListener('draw', @draw)
+      @engine.removeListener('mousedown', @onMouseDown)
 
-    on_mouse_press: (x, y, button, modifiers) ->
+    onMouseDown: =>
       @gw.title()
 
 
