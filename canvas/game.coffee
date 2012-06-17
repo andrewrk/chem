@@ -241,9 +241,9 @@ do ->
 
       @min_power = params.power or 3
 
-      @sprite_arm = new Engine.Sprite('arm', batch: @game.batch, group: @game.group_fg)
-      @sprite_man = new Engine.Sprite('still', batch: @game.batch, group: @game.group_main)
-      @sprite_claw = new Engine.Sprite('claw', batch: @game.batch, group: @game.group_main)
+      @sprite_arm = new Engine.Sprite('arm', batch: @game.batch, zorder: @game.group_fg)
+      @sprite_man = new Engine.Sprite('still', batch: @game.batch, zorder: @game.group_main)
+      @sprite_claw = new Engine.Sprite('claw', batch: @game.batch, zorder: @game.group_main)
 
       @space = new cp.Space()
       @space.gravity = new Vec2d(0, -400)
@@ -289,7 +289,7 @@ do ->
       @lose_ratio = 95 / 300
 
       @tank_index ?= randInt(0, 1)
-      @sprite_tank = new Engine.Sprite("tank#{tank_index}", batch=@game.batch, group=@game.group_main)
+      @sprite_tank = new Engine.Sprite("tank#{tank_index}", batch:@game.batch, zorder:@game.group_main)
 
       @game_over = false
       @winner = null
@@ -374,8 +374,8 @@ do ->
             shape.body.apply_impulse(direction * power * damp)
 
           # explosion animation
-          sprite = new Engine.Sprite("bombsplode", batch=@game.batch, group=@game.group_fg)
-          sprite.setPosition(@pos.plus(bomb.shape.body.position))
+          sprite = new Engine.Sprite("bombsplode", batch:@game.batch, zorder:@game.group_fg)
+          sprite.pos = @pos.plus(bomb.shape.body.position)
           do (sprite) =>
             removeBombSprite = => sprite.delete()
           sprite.on("animation_end", removeBombSprite)
@@ -505,7 +505,7 @@ do ->
     drop_bomb: =>
       # drop a bomb
       pos = @get_drop_pos(Bomb.size)
-      sprite = new Engine.Sprite('bomb', batch: @game.batch, group: @game.group_main)
+      sprite = new Engine.Sprite('bomb', batch: @game.batch, zorder: @game.group_main)
       timeout = randInt(1, 5)
       bomb = new Bomb(pos, sprite, @space, timeout)
       @bombs.add(bomb)
@@ -513,7 +513,7 @@ do ->
     drop_rock: =>
       # drop a rock
       pos = @get_drop_pos(Rock.size)
-      sprite = new Engine.Sprite('rock', batch: @game.batch, group: @game.group_main)
+      sprite = new Engine.Sprite('rock', batch: @game.batch, zorder: @game.group_main)
       rock = new Rock(pos, sprite, @space)
       @rocks.add(rock)
 
@@ -526,7 +526,7 @@ do ->
         # drop a random atom
         flavor_index = randInt(0, Atom.flavor_count-1)
         pos = @get_drop_pos(atom_size)
-        atom = new Atom(pos, flavor_index, new Engine.Sprite(@game.atom_imgs[flavor_index], batch: @game.batch, group: @game.group_main), @space)
+        atom = new Atom(pos, flavor_index, new Engine.Sprite(@game.atom_imgs[flavor_index], batch: @game.batch, zorder: @game.group_main), @space)
         @atoms.add(atom)
 
 
@@ -911,25 +911,25 @@ do ->
     moveSprites: =>
       # drawable things
       drawDrawable = =>
-        drawable.sprite.setPosition(drawable.shape.body.position.plus(@pos))
+        drawable.sprite.pos = drawable.shape.body.position.plus(@pos)
         drawable.sprite.rotation = -drawable.shape.body.rotation_vector.get_angle_degrees()
         true
       @atoms.each drawDrawable
       @bombs.each drawDrawable
       @rocks.each drawDrawable
 
-      @sprite_man.setPosition(@man.body.position.plus(@pos))
+      @sprite_man.pos = @man.body.position.plus(@pos)
       @sprite_man.rotation = -@man.body.rotation_vector.get_angle_degrees()
 
-      @sprite_arm.setPosition(@arm_pos.plus(@pos))
+      @sprite_arm.pos = @arm_pos.plus(@pos)
       @sprite_arm.rotation = -(@mouse_pos - @man.body.position).get_angle_degrees()
       if @mouse_pos.x < @man.body.position.x
         @sprite_arm.rotation += 180
 
-      @sprite_tank.setPosition(@pos.plus(@ceiling.body.position))
+      @sprite_tank.pos = @pos.plus(@ceiling.body.position)
 
       if @sprite_claw.visible
-        @sprite_claw.setPosition(@claw.body.position.plus(@pos))
+        @sprite_claw.pos = @claw.body.position.plus(@pos)
         @sprite_claw.rotation = -@claw.body.rotation_vector.get_angle_degrees()
 
     drawPrimitives: =>
@@ -997,11 +997,7 @@ do ->
       else
         @sfx = null
 
-      pyglet.clock.schedule_interval(@update, 1/game_fps)
-      if params.fps?
-        @fps_display = pyglet.clock.ClockDisplay()
-      else
-        @fps_display = null
+      @fps_display = params.fps?
 
       tank_dims = new Vec2d(12, 16)
       tank_pos = [
@@ -1020,9 +1016,9 @@ do ->
 
         tank_index = int(not @control_tank.tank_index)
         tank_name = "tank%i" % tank_index
-        @sprite_other_tank = new Engine.Sprite(tank_name, batch: @batch, group: @group_main, pos: new Vec2d(tank_pos[1].x + @control_tank.size.x / 2, tank_pos[1].y + @control_tank.size.y / 2))
+        @sprite_other_tank = new Engine.Sprite(tank_name, batch: @batch, zorder: @group_main, pos: new Vec2d(tank_pos[1].x + @control_tank.size.x / 2, tank_pos[1].y + @control_tank.size.y / 2))
       else
-        @tanks = [new Tank(pos, tank_dims, self, tank_index=i) for pos, i in enumerate(tank_pos)]
+        @tanks = (new Tank(pos, tank_dims, self, i) for pos, i in tank_pos)
 
         @control_tank = @tanks[0]
         @enemy_tank = @tanks[1]
@@ -1036,17 +1032,11 @@ do ->
 
 
 
-      @engine.set_handler('on_draw', @on_draw)
-      @engine.set_handler('on_mouse_motion', @control_tank.on_mouse_motion)
-      @engine.set_handler('on_mouse_drag', @control_tank.on_mouse_drag)
-      @engine.set_handler('on_mouse_press', @control_tank.on_mouse_press)
-      @engine.set_handler('on_mouse_release', @control_tank.on_mouse_release)
-      @engine.set_handler('on_key_press', @control_tank.on_key_press)
-      @engine.set_handler('on_key_release', @control_tank.on_key_release)
+      @engine.on 'draw', @draw
+      @engine.on 'update', @update
 
 
-      pyglet.gl.glEnable(pyglet.gl.GL_BLEND)
-      pyglet.gl.glBlendFunc(pyglet.gl.GL_SRC_ALPHA, pyglet.gl.GL_ONE_MINUS_SRC_ALPHA)
+      # TODO: turn on alpha blending
 
 
       @state_render_timeout = 0.3
@@ -1091,7 +1081,7 @@ do ->
               @control_tank.win()
 
 
-    on_draw: =>
+    draw: (context) =>
       @engine.clear()
 
       for tank in @tanks
@@ -1103,8 +1093,8 @@ do ->
         tank.drawPrimitives()
       
 
-      if @fps_display?
-        @fps_display.draw()
+      if @fps_display
+        context.fillText "#{@engine.fps} fps", 0, engine.size.y
 
   class GameWindow
     constructor: (@engine, @server) ->

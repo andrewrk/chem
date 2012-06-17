@@ -13,6 +13,8 @@ while developing:
 
 things left to fix:
 
+    flip y axis
+    turn on alpha blending (search for TODO)
     pymunk/chipmunkjs
         Atom_for_shape
     sprite / batch / orderedgroup
