@@ -152,14 +152,18 @@ class Engine extends EventEmitter
   draw: (batch) ->
     for sprites in batch.sprites
       for id, sprite of sprites
-        frames = @animations[sprite.name].frames
-        frame = frames[0]
-        @context.drawImage @spritesheet, frame.pos.x, frame.pos.y, frame.size.x, frame.size.y, sprite.pos.x, sprite.pos.y, frame.size.x, frame.size.y
+        animation = @animations[sprite.name]
+        frame = animation.frames[0]
+        @context.drawImage @spritesheet, frame.pos.x, frame.pos.y, \
+          frame.size.x, frame.size.y, \
+          sprite.pos.x - animation.anchor.x, sprite.pos.y - animation.anchor.y, \
+          frame.size.x, frame.size.y
     return
 
   callUpdate: (dt, dx) ->
     @emit 'update', dt, dx
     @key_just_pressed = {}
+    return
 
   loadAssetsOnce: ->
     # once
@@ -190,6 +194,8 @@ class Engine extends EventEmitter
       checkDoneLoading()
     request.open("GET", "animations.json", true)
     request.send()
+
+    return
 
   attachListeners: ->
     # mouse input

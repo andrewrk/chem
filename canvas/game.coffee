@@ -8,5 +8,5 @@ engine.on 'draw', (context) ->
   engine.draw batch
   context.fillText "#{engine.fps} fps", 0, engine.size.y
 engine.on 'mousedown', (pos) ->
-  console.log pos.x, pos.y
+  sprite.pos = pos
 engine.start()
