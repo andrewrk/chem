@@ -1,3 +1,4 @@
+* support flipping sprites
 * respect loop property of animations
 * each animation should have its own time
 * sprite on_animation_end

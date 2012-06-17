@@ -74,7 +74,7 @@ class Batch
     delete (@sprites[sprite.zorder] ?= {})[sprite.id]
 
 class Sprite extends Indexable
-  constructor: (@animation, params) ->
+  constructor: (animation, params) ->
     super
     o =
       pos: new Vec2d(0, 0)
@@ -89,10 +89,11 @@ class Sprite extends Indexable
     @rotation = o.rotation
     @batch = o.batch
 
-    @setAnimation name
+    @setAnimation animation
     @setVisible o.visible
 
-  setAnimation: (@name) ->
+  setAnimation: (@animation) ->
+    throw "bad sprite name" unless @animation
 
   setVisible: (@visible) ->
     return unless @batch?

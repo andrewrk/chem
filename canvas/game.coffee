@@ -291,7 +291,7 @@ do ->
       @lose_ratio = 95 / 300
 
       @tank_index ?= randInt(0, 1)
-      @sprite_tank = new Engine.Sprite("tank#{tank_index}", batch:@game.batch, zorder:@game.group_main)
+      @sprite_tank = new Engine.Sprite("tank#{@tank_index}", batch:@game.batch, zorder:@game.group_main)
 
       @game_over = false
       @winner = null
@@ -1034,7 +1034,7 @@ do ->
         @weapon_drop_interval = params.bomb or 10
 
         tank_index = 1 - @control_tank.tank_index
-        tank_name = "tank%i" % tank_index
+        tank_name = "tank#{tank_index}"
         @sprite_other_tank = new Engine.Sprite(tank_name, batch: @batch, zorder: @group_main, pos: new Vec2d(tank_pos[1].x + @control_tank.size.x / 2, tank_pos[1].y + @control_tank.size.y / 2))
       else
         @tanks = (new Tank(pos, tank_dims, this, i) for pos, i in tank_pos)
@@ -1204,7 +1204,7 @@ do ->
         @nick_user = {}
 
         # guess a good nick
-        @nick = "Guest %i" % randInt(1, 99999)
+        @nick = "Guest #{randInt(1, 99999)}"
         @server.send_msg("UpdateNick", @nick)
         @my_nick_label = pyglet.text.Label(@nick, font_size=16, x=748, y=137)
 
@@ -1222,7 +1222,7 @@ do ->
           continue
         text = nick
         if user['playing']?
-          text += " (playing vs %s)" % user['playing']
+          text += " (playing vs #{user['playing']})"
         else if @nick in user['want_to_play']
           text += " (click to accept challenge)"
         else if nick in @challenged
