@@ -21,6 +21,5 @@ things left to fix:
     on_key_press, mouse, etc
     vector math
     sfx
-    -> when it should be =>
 
     serialization

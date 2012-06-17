@@ -129,7 +129,7 @@ do ->
       @marked_for_deletion = false
       @rogue = false
 
-    bondTo: (other) ->
+    bondTo: (other) =>
       # already bonded
       if @bonds.contains(other)
         return false
@@ -149,7 +149,7 @@ do ->
 
       return true
 
-    bondLoop: ->
+    bondLoop: =>
       # returns null or a list of atoms in the bond loop which includes itself
       if @bonds.length isnt 2
         return null
@@ -161,7 +161,7 @@ do ->
         if atom is dest
           return seen.keys()
         found = false
-        atom.bonds.each (next_atom, joint) ->
+        atom.bonds.each (next_atom, joint) =>
           if not seen.contains(next_atom)
             atom = next_atom
             found = true
@@ -170,14 +170,14 @@ do ->
         if not found
           return null
 
-    unbond: ->
-      @bonds.each (atom, joint) ->
+    unbond: =>
+      @bonds.each (atom, joint) =>
         atom.bonds.remove this
         @space.remove(joint)
         true
       @bonds = new Map()
 
-    cleanUp: ->
+    cleanUp: =>
       @unbond()
       @space.remove(@shape)
       if not @rogue
@@ -200,10 +200,10 @@ do ->
       @shape.collision_type = Collision.Default
       @space.add(body, @shape)
 
-    tick: (dt) ->
+    tick: (dt) =>
       @timeout -= dt
 
-    cleanUp: ->
+    cleanUp: =>
       @space.remove(@shape, @shape.body)
       @sprite.delete()
       @sprite = null
@@ -222,9 +222,9 @@ do ->
       @shape.collision_type = Collision.Default
       @space.add(body, @shape)
 
-    tick: (dt) ->
+    tick: (dt) =>
 
-    cleanUp: ->
+    cleanUp: =>
       @space.remove(@shape, @shape.body)
       @sprite.delete()
       @sprite = null
@@ -298,7 +298,7 @@ do ->
       @enable_point_calculation = true
       @sfx_enabled = true
 
-    initGuns: ->
+    initGuns: =>
       @claw_in_motion = false
       @sprite_claw.visible = false
       @claw_radius = 8
@@ -319,7 +319,7 @@ do ->
       @ray_atom = null
       @ray_shoot_speed = 900
 
-    initControls: ->
+    initControls: =>
       @controls = {}
       @controls[Engine.Key.A] = Control.MoveLeft
       @controls[Engine.Key.D] = Control.MoveRight
@@ -349,7 +349,7 @@ do ->
       @let_go_of_fire_alt = true
 
 
-    update: (dt) ->
+    update: (dt) =>
       @adjustCeiling(dt)
       if @atom_drop_enabled
         @computeDrops(dt)
@@ -360,7 +360,7 @@ do ->
         @lose()
 
       # process bombs
-      @bombs.clone().each (bomb) ->
+      @bombs.clone().each (bomb) =>
         bomb.tick(dt)
         if bomb.timeout <= 0
           # physics explosion
@@ -376,8 +376,8 @@ do ->
           # explosion animation
           sprite = new Engine.Sprite("bombsplode", batch=@game.batch, group=@game.group_fg)
           sprite.setPosition(@pos.plus(bomb.shape.body.position))
-          do (sprite) ->
-            removeBombSprite = -> sprite.delete()
+          do (sprite) =>
+            removeBombSprite = => sprite.delete()
           sprite.on("animation_end", removeBombSprite)
           @removeBomb(bomb)
 
@@ -413,15 +413,15 @@ do ->
       @man.body.angle = @man_angle
 
 
-    removeAtom: (atom) ->
+    removeAtom: (atom) =>
       atom.cleanUp()
       @atoms.remove(atom)
 
-    removeBomb: (bomb) ->
+    removeBomb: (bomb) =>
       bomb.cleanUp()
       @bombs.remove(bomb)
 
-    initWalls: ->
+    initWalls: =>
       # add the walls of the tank to space
       r = 50
       borders = [
@@ -439,7 +439,7 @@ do ->
         shape.collision_type = Collision.Default
         @space.add(shape)
 
-    initCeiling: ->
+    initCeiling: =>
       # physics for ceiling
       body = new cp.Body(10000, 100000)
       body.position = new Vec2d(@size.x / 2, @size.y * 1.5)
@@ -449,7 +449,7 @@ do ->
       # per second
       @max_ceiling_delta = 200
 
-    adjustCeiling: (dt) ->
+    adjustCeiling: (dt) =>
       # adjust the descending ceiling as necessary
       if @game.server?
         other_points = @other_tank.points
@@ -472,7 +472,7 @@ do ->
       else
         @ceiling.body.position.y = new_y
 
-    initMan: (pos, vel) ->
+    initMan: (pos, vel) =>
       if not pos?
         pos = new Vec2d(@size.x / 2, @man_size.y / 2)
       if not vel?
@@ -490,19 +490,19 @@ do ->
       @man = shape
 
 
-    computeArmPos: ->
+    computeArmPos: =>
       @arm_pos = @man.body.position - @man_size / 2 + @arm_offset
       @point_vector = (@mouse_pos.minus(@arm_pos)).normalized()
       @point_start = @arm_pos.plus(@point_vector.scale(@arm_len))
 
-    get_drop_pos: (size) ->
+    get_drop_pos: (size) =>
       return new Vec2d(
         random.random() * (@size.x - size.x) + size.x / 2,
         @ceiling.body.position.y - @size.y / 2 - size.y / 2,
       )
 
 
-    drop_bomb: ->
+    drop_bomb: =>
       # drop a bomb
       pos = @get_drop_pos(Bomb.size)
       sprite = new Engine.Sprite('bomb', batch: @game.batch, group: @game.group_main)
@@ -510,14 +510,14 @@ do ->
       bomb = new Bomb(pos, sprite, @space, timeout)
       @bombs.add(bomb)
 
-    drop_rock: ->
+    drop_rock: =>
       # drop a rock
       pos = @get_drop_pos(Rock.size)
       sprite = new Engine.Sprite('rock', batch: @game.batch, group: @game.group_main)
       rock = new Rock(pos, sprite, @space)
       @rocks.add(rock)
 
-    computeDrops: (dt) ->
+    computeDrops: (dt) =>
       if @game_over
         return
       @time_until_next_drop -= dt
@@ -530,7 +530,7 @@ do ->
         @atoms.add(atom)
 
 
-    lose: ->
+    lose: =>
       if @game_over
         return
       @game_over = true
@@ -546,7 +546,7 @@ do ->
         @other_tank.win()
       @playSfx("defeat")
 
-    win: ->
+    win: =>
       if @game_over
         return
 
@@ -564,7 +564,7 @@ do ->
 
       @playSfx("victory")
 
-    explodeAtom: (atom, animation_name="asplosion") ->
+    explodeAtom: (atom, animation_name="asplosion") =>
       if atom is @ray_atom
         @ray_atom = null
       if @claw_pins? and @claw_pins[0].b is atom.shape.body
@@ -576,11 +576,11 @@ do ->
       atom.sprite.set_handler("on_animation_end", clear_sprite)
 
 
-    explodeAtoms: (atoms, animation_name="asplosion") ->
+    explodeAtoms: (atoms, animation_name="asplosion") =>
       for atom in atoms
         @explodeAtom(atom, animation_name)
 
-    processInput: (dt) ->
+    processInput: (dt) =>
       if @game_over
         return
 
@@ -764,7 +764,7 @@ do ->
       if not @control_state[Control.FireAlt] and not @let_go_of_fire_alt
         @let_go_of_fire_alt = true
 
-    processQueuedActions: ->
+    processQueuedActions: =>
       if @claw_pins_to_add?
         @claw_pins = @claw_pins_to_add
         @claw_pins_to_add = null
@@ -794,7 +794,7 @@ do ->
 
       @bond_queue = []
 
-    clawHitSomething: (space, arbiter) ->
+    clawHitSomething: (space, arbiter) =>
       if @claw_attached
         return
       # bolt these bodies together
@@ -814,17 +814,17 @@ do ->
 
       @playSfx("claw_hit")
 
-    atomHitAtom: (space, arbiter) ->
+    atomHitAtom: (space, arbiter) =>
       [atom1, atom2] = [Atom.atom_for_shape[shape] for shape in arbiter.shapes]
       # bond the atoms together
       if atom1.flavor_index is atom2.flavor_index
         @bond_queue.append([atom1, atom2])
 
-    playSfx: (name) ->
+    playSfx: (name) =>
       if @sfx_enabled and @game.sfx?
         @game.sfx[name].play()
 
-    retract_claw: ->
+    retract_claw: =>
       if not @sprite_claw.visible
         return
       @claw_in_motion = false
@@ -836,19 +836,19 @@ do ->
       @unattachClaw()
       @playSfx("retract")
 
-    unattachClaw: ->
+    unattachClaw: =>
       if @claw_pins?
         #@claw.body.reset_forces()
         @want_to_remove_claw_pin = true
 
-    computeAtomPointedAt: ->
+    computeAtomPointedAt: =>
       if @equipped_gun is Control.SwitchToGrapple
         @closest_atom = null
       else
         # iterate over each atom. check if intersects with line.
         @closest_atom = null
         closest_dist = null
-        @atoms.each (atom) ->
+        @atoms.each (atom) =>
           if atom.marked_for_deletion
             return
           # http://stackoverflow.com/questions/1073336/circle-line-collision-detection
@@ -892,7 +892,7 @@ do ->
           @point_end.y = 0
           @point_end.x = (@point_end.y - y_intercept) / slope
 
-    respond_to_asplosion: (asplosion) ->
+    respond_to_asplosion: (asplosion) =>
       [flavor, quantity] = asplosion
 
       power = quantity - @min_power
@@ -908,9 +908,9 @@ do ->
         for i in [0...power]
           @drop_rock()
 
-    moveSprites: ->
+    moveSprites: =>
       # drawable things
-      drawDrawable = ->
+      drawDrawable = =>
         drawable.sprite.setPosition(drawable.shape.body.position.plus(@pos))
         drawable.sprite.rotation = -drawable.shape.body.rotation_vector.get_angle_degrees()
         true
@@ -932,7 +932,7 @@ do ->
         @sprite_claw.setPosition(@claw.body.position.plus(@pos))
         @sprite_claw.rotation = -@claw.body.rotation_vector.get_angle_degrees()
 
-    drawPrimitives: ->
+    drawPrimitives: =>
       # draw a line from gun hand to @point_end
       if not @game_over
         @drawLine(@point_start + @pos, @point_end + @pos, [0, 0, 0, 0.23])
@@ -942,10 +942,10 @@ do ->
           @drawLine(@point_start + @pos, @sprite_claw.position, [1, 1, 0, 1])
 
         # draw lines for bonded atoms
-        @atoms.each (atom) ->
+        @atoms.each (atom) =>
           if atom.marked_for_deletion
             return
-          atom.bonds.each (other, joint) ->
+          atom.bonds.each (other, joint) =>
             @drawLine(@pos + atom.shape.body.position, @pos + other.shape.body.position, [0, 0, 1, 1])
             true
           true
@@ -960,7 +960,7 @@ do ->
           [start, end] = @lazer_line
           @drawLine(start + @pos, end + @pos, [1, 0, 0, 1])
 
-    drawLine: (p1, p2, color) ->
+    drawLine: (p1, p2, color) =>
       pyglet.gl.glColor4f(color[0], color[1], color[2], color[3])
       pyglet.graphics.draw(2, pyglet.gl.GL_LINES, ['v2f', [p1[0], p1[1], p2[0], p2[1]]])
 
@@ -978,7 +978,7 @@ do ->
 
       @atom_imgs = ("atom#{i}" for i in [0...Atom.flavor_count])
 
-      unless params.nofx?
+      if false # not params.nofx?
         @sfx = {
           'jump': pyglet.resource.media('data/sfx/jump__dave-des__fast-simple-chop-5.ogg', streaming=false),
           'atom_hit_atom': pyglet.resource.media('data/sfx/atomscolide__batchku__colide-18-005.ogg', streaming=false),
@@ -1054,7 +1054,7 @@ do ->
 
 
 
-    update: (dt) ->
+    update: (dt) =>
       for tank in @tanks
         tank.update(dt)
 
@@ -1091,7 +1091,7 @@ do ->
               @control_tank.win()
 
 
-    on_draw: ->
+    on_draw: =>
       @engine.clear()
 
       for tank in @tanks
@@ -1110,25 +1110,25 @@ do ->
     constructor: (@engine, @server) ->
       @current = null
 
-    endCurrent: ->
+    endCurrent: =>
       if @current?
         @current.end()
       @current = null
 
-    title: ->
+    title: =>
       @endCurrent()
       @current = new Title(this, @engine, @server)
 
-    play: (server_on=true) ->
+    play: (server_on=true) =>
       server = if server_on then @server else null
       @endCurrent()
       @current = new Game(this, @engine, server)
 
-    credits: ->
+    credits: =>
       @endCurrent()
       @current = new Credits(this, @engine)
 
-    controls: ->
+    controls: =>
       @endCurrent()
       @current = new ControlsScene(this, @engine)
 
@@ -1143,7 +1143,7 @@ do ->
       @engine.clear()
       @engine.draw @batch
 
-    end: ->
+    end: =>
       @engine.removeListener('draw', @draw)
       @engine.removeListener('mousedown', @onMouseDown)
 
@@ -1162,7 +1162,7 @@ do ->
       @engine.clear()
       @engine.draw @batch
 
-    end: ->
+    end: =>
       @engine.removeListener('draw', @draw)
       @engine.removeListener('mousedown', @onMouseDown)
       @engine.removeListener('update', @update)
@@ -1202,7 +1202,7 @@ do ->
 
         @challenged = {}
 
-    createLabels: ->
+    createLabels: =>
       @labels = []
       @nick_label = {}
       @nick_user = {}
@@ -1245,7 +1245,7 @@ do ->
           label.draw()
         @my_nick_label.draw()
 
-    end: ->
+    end: =>
       @engine.removeListener 'draw', @onDraw
       @engine.removeListener 'mousedown', @onMouseDown
       @engine.removeListener 'update', @update
