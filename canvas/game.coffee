@@ -1150,7 +1150,7 @@ do ->
         @fps_display.draw()
 
   class GameWindow
-    constructor: (@window, @server) ->
+    constructor: (@engine, @server) ->
       @current = null
 
     endCurrent: ->
@@ -1160,20 +1160,20 @@ do ->
 
     title: ->
       @endCurrent()
-      @current = new Title(@window, @server)
+      @current = new Title(this, @engine, @server)
 
     play: (server_on=true) ->
       server = if server_on then @server else null
       @endCurrent()
-      @current = new Game(@window, server)
+      @current = new Game(this, @engine, server)
 
     credits: ->
       @endCurrent()
-      @current = new Credits(@window)
+      @current = new Credits(this, @engine)
 
     controls: ->
       @endCurrent()
-      @current = new ControlsScene(@window)
+      @current = new ControlsScene(this, @engine)
 
   class ControlsScene
     constructor: (@gw, @window) ->
@@ -1220,12 +1220,13 @@ do ->
 
 
   class Title
-    constructor: (@gw, @window, @server) ->
-      @window.set_handler('on_mouse_press', @on_mouse_press)
-      @window.set_handler('on_draw', @on_draw)
-      pyglet.clock.schedule_interval(@update, 1/game_fps)
+    constructor: (@gw, @engine, @server) ->
+      @engine.on 'mousedown', @onMouseDown
+      @engine.on 'draw', @draw
+      @engine.on 'update', @update
 
-      @img = pyglet.resource.image("data/title.png")
+      @batch = new Engine.Batch()
+      @img = new Engine.Sprite("title", batch: @batch)
 
       @start_pos = new Vec2d(409, 305)
       @credits_pos = new Vec2d(360, 229)
@@ -1249,7 +1250,7 @@ do ->
 
         @challenged = {}
 
-    create_labels: ->
+    createLabels: ->
       @labels = []
       @nick_label = {}
       @nick_user = {}
@@ -1274,30 +1275,30 @@ do ->
         next_pos.y -= h
         @labels.append(label)
 
-    update: (dt) ->
+    update: (dt) =>
       if @server?
         for [name, payload] in server.get_messages()
           if name is 'LobbyList'
             @users = payload
-            @create_labels()
+            @createLabels()
           else if name is 'StartGame'
             @gw.play()
             return
 
-    on_draw: ->
-      @window.clear()
-      @img.blit(0, 0)
+    draw: =>
+      @engine.clear()
+      @engine.draw @batch
       if @server?
         for label in @labels
           label.draw()
         @my_nick_label.draw()
 
     end: ->
-      @window.remove_handler('on_draw', @on_draw)
-      @window.remove_handler('on_mouse_press', @on_mouse_press)
-      pyglet.clock.unschedule(@update)
+      @engine.removeListener 'draw', @onDraw
+      @engine.removeListener 'mousedown', @onMouseDown
+      @engine.removeListener 'update', @update
 
-    on_mouse_press: (x, y, button, modifiers) ->
+    onMouseDown: (x, y, button, modifiers) =>
       click_pos = new Vec2d(x, y)
       if click_pos.get_distance(@start_pos) < @click_radius
         @gw.play(server_on=false)
@@ -1325,7 +1326,7 @@ do ->
               else
                 @server.send_msg("PlayRequest", nick)
                 @challenged[nick] = true
-                @create_labels()
+                @createLabels()
             return
 
   params = do ->

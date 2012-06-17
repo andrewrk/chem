@@ -131,6 +131,9 @@ class Engine extends EventEmitter
   buttonJustPressed: (button) -> !!@btn_just_pressed[button]
   mousePos: -> @mouse_pos
 
+  clear: ->
+    @context.clearRect 0, 0, @size.x, @size.y
+
   # private
   startMainLoop: ->
     @main_loop_start_date = previous_update = new Date()
@@ -265,5 +268,3 @@ class Engine extends EventEmitter
   stopMainLoop: ->
     unschedule @interval
 
-  createBatch: -> new Batch(this)
-  createOrderedGroup: -> new OrderedGroup(this)
