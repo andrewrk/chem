@@ -9,35 +9,35 @@ exports._default =
 
 exports.animations =
   arm:
-    anchor: new Vec2d(5, 11)
+    anchor: new Vec2d(5, 23-11)
     frames: ["arm.png"]
   arm_flung:
-    anchor: new Vec2d(5, 11)
+    anchor: new Vec2d(5, 23-11)
     frames: ["arm-flung.png"]
   claw:
-    anchor: new Vec2d(16, 16)
+    anchor: new Vec2d(16, 34-16)
     frames: ["claw.png"]
   still:
-    anchor: new Vec2d(16, 32)
+    anchor: new Vec2d(16, 69-32)
     frames: ["man.png"]
   jump:
-    anchor: new Vec2d(23, 32)
+    anchor: new Vec2d(23, 64-32)
     delay: 0.1
     loop: false
     frames: ["jump-0.png", "jump-1.png", "jump-2.png", "jump-3.png"]
   walk:
-    anchor: new Vec2d(23, 32)
+    anchor: new Vec2d(23, 67)
     delay: 0.05
     frames: ("walk-#{i}.png" for i in [0..5])
   asplosion:
     delay: 0.1
     loop: false
-    anchor: new Vec2d(16, 16)
+    anchor: new Vec2d(16, 32-16)
     frames: ("asplosion-#{i}.png" for i in [0..5])
   atomfail:
     delay: 0.2
     loop: false
-    anchor: new Vec2d(16, 16)
+    anchor: new Vec2d(16, 32-16)
     frames: [
       "atomfail-00.png"
       "atomfail-01.png"
@@ -83,10 +83,10 @@ exports.animations =
       "tankright0010.png"
     ]
   lazergun:
-    anchor: new Vec2d(5, 11)
+    anchor: new Vec2d(5, 23-11)
     frames: ["lazergun.png"]
   raygun:
-    anchor: new Vec2d(5, 11)
+    anchor: new Vec2d(5, 23-11)
     frames: ["raygun.png"]
   atom0:
     anchor: new Vec2d(16, 16)

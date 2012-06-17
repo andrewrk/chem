@@ -14,6 +14,8 @@ do ->
   #    sprite.scale.x = -2
   #  else if engine.buttonJustPressed Engine.Button.Key_4
   #    sprite.scale.x = 2
+  #  else if engine.buttonJustPressed Engine.Button.Key_Space
+  #    sprite.setVisible(not sprite.visible)
 
   #  if engine.buttonState(Engine.Button.Mouse_Left)
   #    sprite.pos = engine.mousePos()
@@ -75,17 +77,20 @@ do ->
       unless @items[item.id]?
         @length += 1
       @items[item.id] = item
+      return
 
     remove: (item) ->
       Set.assertItemHasId item
       if @items[item.id]?
         @length -= 1
         delete @items[item.id]
+      return
 
     each: (cb) ->
       for id, item of @items
         if not cb(item)
-          break
+          return
+      return
 
     clone: ->
       set = new Set()
@@ -107,17 +112,20 @@ do ->
       unless @pairs[key.id]?
         @length += 1
       @pairs[item.id] = [key, value]
+      return
 
     remove: (key) ->
       Map.assertItemHasId key
       if @pairs[key.id]?
         @length -= 1
         delete @pairs[key.id]
+      return
 
     each: (cb) ->
       for id, pair of @pairs
         if not cb.call(pair)
-          break
+          return
+      return
 
     clone: ->
       map = new Map()
@@ -146,8 +154,8 @@ do ->
       body = new cp.Body(10, 100000)
       body.position = pos
       @shape = new cp.CircleShape(body, atom_radius, new Vec2d())
-      @shape.friction = 0.5
-      @shape.elasticity = 0.05
+      @shape.u = 0.5
+      @shape.e = 0.05
       @shape.collision_type = Collision.Atom
       @space.addBody(body)
       @space.addShape(@shape)
@@ -224,8 +232,8 @@ do ->
       body = new cp.Body(50, 10)
       body.position = pos
       @shape = new cp.CircleShape(body, Bomb.radius, new Vec2d())
-      @shape.friction = 0.7
-      @shape.elasticity = 0.02
+      @shape.u = 0.7
+      @shape.e = 0.02
       @shape.collision_type = Collision.Default
       @space.addBody(body)
       @space.addShape(@shape)
@@ -248,8 +256,8 @@ do ->
       body = new cp.Body(70, 100000)
       body.position = pos
       @shape = new cp.CircleShape(body, Rock.radius, new Vec2d())
-      @shape.friction = 0.9
-      @shape.elasticity = 0.01
+      @shape.u = 0.9
+      @shape.e = 0.01
       @shape.collision_type = Collision.Default
       @space.addBody(body)
       @space.addShape(@shape)
@@ -333,7 +341,7 @@ do ->
 
     initGuns: =>
       @claw_in_motion = false
-      @sprite_claw.visible = false
+      @sprite_claw.setVisible false
       @claw_radius = 8
       @claw_shoot_speed = 1200
       @min_claw_dist = 60
@@ -443,7 +451,7 @@ do ->
 
       # apply our constraints
       # man can't rotate
-      @man.body.angle = @man_angle
+      @man.body.setAngle @man_angle
 
 
     removeAtom: (atom) =>
@@ -469,8 +477,8 @@ do ->
         body = new cp.Body(Infinity, Infinity)
         body.nodeIdleTime = Infinity
         shape = new cp.SegmentShape(body, p1, p2, r)
-        shape.friction = 0.99
-        shape.elasticity = 0.0
+        shape.u = 0.99
+        shape.e = 0.0
         shape.collision_type = Collision.Default
         @space.addStaticShape(shape)
       return
@@ -517,10 +525,10 @@ do ->
       shape = new cp.BoxShape(new cp.Body(20, 10000000), @man_size.x, @man_size.y)
       shape.body.position = pos
       shape.body.velocity = vel
-      shape.body.angular_velocity_limit = 0
-      @man_angle = shape.body.angle
-      shape.elasticity = 0
-      shape.friction = 3.0
+      shape.body.w_limit = 0
+      @man_angle = shape.body.a
+      shape.e = 0
+      shape.u = 3.0
       shape.collision_type = Collision.Default
       @space.addBody(shape.body)
       @space.addShape(shape)
@@ -575,7 +583,7 @@ do ->
       @explode_atoms(@atoms.clone(), "atomfail")
 
       @sprite_man.setAnimation "defeat"
-      @sprite_arm.visible = false
+      @sprite_arm.setVisible false
 
       @retract_claw()
 
@@ -592,7 +600,7 @@ do ->
       @explode_atoms(@atoms.clone())
 
       @sprite_man.setAnimation "victory"
-      @sprite_arm.visible = false
+      @sprite_arm.setVisible false
 
       @retract_claw()
 
@@ -711,14 +719,14 @@ do ->
         if not @want_to_remove_claw_pin and not @want_to_retract_claw and @let_go_of_fire_main and @control_state[Control.FireMain] and not @claw_in_motion
           @let_go_of_fire_main = false
           @claw_in_motion = true
-          @sprite_claw.visible = true
+          @sprite_claw.setVisible true
           body = new cp.Body(5, 1000000)
           body.position = new Vec2d(@point_start)
-          body.angle = @point_vector.angle()
+          body.setAngle @point_vector.angle()
           body.velocity = @man.body.velocity + @point_vector * @claw_shoot_speed
           @claw = new cp.CircleShape(body, @claw_radius, new Vec2d())
-          @claw.friction = 1
-          @claw.elasticity = 0
+          @claw.u = 1
+          @claw.e = 0
           @claw.collision_type = Collision.Claw
           @claw_joint = new cp.SlideJoint(@claw.body, @man.body, new Vec2d(0, 0), new Vec2d(0, 0), 0, @size.length())
           @claw_joint.max_bias = max_bias
@@ -877,7 +885,7 @@ do ->
       if not @sprite_claw.visible
         return
       @claw_in_motion = false
-      @sprite_claw.visible = false
+      @sprite_claw.setVisible false
       @sprite_arm.setAnimation "arm"
       @claw_attached = false
       @space.removeBody(@claw.body)
@@ -1106,7 +1114,9 @@ do ->
 
 
     update: (dt) =>
+      mouse_pos = @engine.mousePos()
       for tank in @tanks
+        tank.mouse_pos = mouse_pos.minus(tank.pos)
         tank.update(dt)
 
       if not @server?
