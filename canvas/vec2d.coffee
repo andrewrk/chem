@@ -77,5 +77,7 @@ class Vec2d
     @x = @x * other.x - @y * other.y
     @y = @x * other.y + @y * other.x
     this
+  distanceSqrd: (other) -> Math.pow(@x - other.x, 2) + Math.pow(@y - other.y, 2)
+  distance: (other) -> Math.sqrt(@distanceSqrd(other))
 
 exports?.Vec2d = Vec2d

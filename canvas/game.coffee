@@ -202,15 +202,15 @@ do ->
     unbond: =>
       @bonds.each (atom, joint) =>
         atom.bonds.remove this
-        @space.remove(joint)
+        @space.removeConstraint(joint)
         true
       @bonds = new Map()
 
     cleanUp: =>
       @unbond()
-      @space.remove(@shape)
+      @space.removeShape(@shape)
       if not @rogue
-        @space.remove(@shape.body)
+        @space.removeBody(@shape.body)
       delete @shape.atom
       @sprite.delete()
       @sprite = null
@@ -234,7 +234,8 @@ do ->
       @timeout -= dt
 
     cleanUp: =>
-      @space.remove(@shape, @shape.body)
+      @space.removeShape(@shape)
+      @space.removeBody(@shape.body)
       @sprite.delete()
       @sprite = null
 
@@ -256,7 +257,8 @@ do ->
     tick: (dt) =>
 
     cleanUp: =>
-      @space.remove(@shape, @shape.body)
+      @space.removeShape(@shape)
+      @space.removeBody(@shape.body)
       @sprite.delete()
       @sprite = null
 
@@ -396,7 +398,7 @@ do ->
           # physics explosion
           # loop over every object in the space and apply an impulse
           for shape in @space.shapes
-            vector = shape.body.position - bomb.shape.body.position
+            vector = shape.body.position.minus(bomb.shape.body.position)
             dist = vector.length()
             direction = vector.normalized()
             power = 6000
@@ -432,7 +434,8 @@ do ->
         @space.step(delta)
 
       if @want_to_remove_claw_pin
-        @space.remove(@claw_pins)
+        for pin in @claw_pins
+          @space.removeConstraint(pin)
         @claw_pins = null
         @want_to_remove_claw_pin = false
 
@@ -691,7 +694,7 @@ do ->
 
       if @equipped_gun is Control.SwitchToGrapple
         if @claw_in_motion
-          ani_name = "arm-flung"
+          ani_name = "arm_flung"
         else
           ani_name = "arm"
         arm_animation = ani_name
@@ -768,8 +771,8 @@ do ->
 
       if @ray_atom?
         # move the atom closer to the ray gun
-        vector = @point_start - @ray_atom.shape.body.position
-        delta = vector.normalized() * 1000 * dt
+        vector = @point_start.minus(@ray_atom.shape.body.position)
+        delta = vector.normalized().scale(1000 * dt)
         if delta.length() > vector.length()
           # just move the atom to final location
           @ray_atom.shape.body.position = @point_start
@@ -782,7 +785,7 @@ do ->
           @ray_atom = @closest_atom
           @ray_atom.rogue = true
           @closest_atom = null
-          @space.remove(@ray_atom.shape.body)
+          @space.removeBody(@ray_atom.shape.body)
           @let_go_of_fire_main = false
           @ray_atom.unbond()
 
@@ -877,7 +880,9 @@ do ->
       @sprite_claw.visible = false
       @sprite_arm.setAnimation "arm"
       @claw_attached = false
-      @space.remove(@claw.body, @claw, @claw_joint)
+      @space.removeBody(@claw.body)
+      @space.removeShape(@claw)
+      @space.removeConstraint(@claw_joint)
       @claw = null
       @unattachClaw()
       @playSfx("retract")
@@ -898,7 +903,7 @@ do ->
           if atom.marked_for_deletion
             return
           # http://stackoverflow.com/questions/1073336/circle-line-collision-detection
-          f = atom.shape.body.position - @point_start
+          f = atom.shape.body.position.minus(@point_start)
           if sign(f.x) isnt sign(@point_vector.x) or sign(f.y) isnt sign(@point_vector.y)
             return
           a = @point_vector.dot(@point_vector)
@@ -908,7 +913,7 @@ do ->
           if discriminant < 0
             return
 
-          dist = atom.shape.body.position.get_dist_sqrd(@point_start)
+          dist = atom.shape.body.position.distanceSqrd(@point_start)
           if not @closest_atom? or dist < closest_dist
             @closest_atom = atom
             closest_dist = dist
@@ -924,7 +929,7 @@ do ->
         # find the coords at the wall
         slope = @point_vector.y / (@point_vector.x+0.00000001)
         y_intercept = @point_start.y - slope * @point_start.x
-        @point_end = @point_start + @size.length() * @point_vector
+        @point_end = @point_start.plus(@point_vector.scaled(@size.length()))
         if @point_end.x > @size.x
           @point_end.x = @size.x
           @point_end.y = slope * @point_end.x + y_intercept
@@ -985,7 +990,7 @@ do ->
 
         # draw a line from gun to claw if it's out
         if @sprite_claw.visible
-          @drawLine(context, @point_start.plus(@pos), @sprite_claw.position, [1, 1, 0, 1])
+          @drawLine(context, @point_start.plus(@pos), @sprite_claw.pos, [1, 1, 0, 1])
 
         # draw lines for bonded atoms
         @atoms.each (atom) =>
