@@ -7,6 +7,10 @@ engine.on 'draw', (context) ->
   context.clearRect 0, 0, engine.size.x, engine.size.y
   engine.draw batch
   context.fillText "#{engine.fps} fps", 0, engine.size.y
-engine.on 'mousedown', (pos) ->
-  sprite.pos = pos
+engine.on 'mousedown', (event) ->
+  console.log event.button
+  if event.button is 1
+    sprite.pos = event.pos
+  else if event.button is 3
+    sprite.rotation += 3.14 / 4
 engine.start()

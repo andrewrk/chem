@@ -72,10 +72,12 @@ class Sprite extends Indexable
       pos: new Vec2d(0, 0)
       zorder: 0
       batch: null
+      rotation: 0
     extend o, params
 
     @pos = o.pos
     @zorder = o.zorder
+    @rotation = o.rotation
 
     if o.batch? then o.batch.add this
 
@@ -154,10 +156,14 @@ class Engine extends EventEmitter
       for id, sprite of sprites
         animation = @animations[sprite.name]
         frame = animation.frames[0]
+        @context.save()
+        @context.translate sprite.pos.x, sprite.pos.y
+        @context.rotate sprite.rotation
         @context.drawImage @spritesheet, frame.pos.x, frame.pos.y, \
           frame.size.x, frame.size.y, \
-          sprite.pos.x - animation.anchor.x, sprite.pos.y - animation.anchor.y, \
+          -animation.anchor.x, -animation.anchor.y, \
           frame.size.x, frame.size.y
+        @context.restore()
     return
 
   callUpdate: (dt, dx) ->
@@ -203,8 +209,17 @@ class Engine extends EventEmitter
     handleMouseEvent = (event_name) =>
       @canvas.addEventListener event_name, (event) =>
         @mouse_pos = new Vec2d(event.offsetX, event.offsetY)
-        @emit event_name, @mouse_pos
+        @emit event_name,
+          pos: @mouse_pos
+          button: event.which
+          alt: event.altKey
+          ctrl: event.ctrlKey
+          shift: event.shiftKey
+          meta: event.metaKey
     handleMouseEvent x for x in ['mousemove', 'mousedown', 'mouseup']
+    # disable right click context menu
+    @canvas.addEventListener 'contextmenu', (event) ->
+      event.preventDefault()
 
     # keyboard input
     @canvas.addEventListener 'keydown', (event) => @emit 'keydown', event.keyCode
