@@ -1331,7 +1331,9 @@ do ->
 
   params = do ->
     obj = {}
-    obj[key] = val for [key, val] in location.search.substring(1).split("&")
+    for pair in location.search.substring(1).split("&")
+      [key, value] = pair.split("=")
+      obj[unescape(key)] = unescape(value)
     obj
 
 
