@@ -1077,6 +1077,7 @@ do ->
         tank_index = 1 - @control_tank.tank_index
         tank_name = "tank#{tank_index}"
         @sprite_other_tank = new Engine.Sprite(tank_name, batch: @batch, zorder: @group_main, pos: new Vec2d(tank_pos[1].x + @control_tank.size.x / 2, tank_pos[1].y + @control_tank.size.y / 2))
+        @sprite_other_tank.pos.y = 600 - @sprite_other_tank.pos.y
       else
         @tanks = (new Tank(pos, tank_dims, this, i) for pos, i in tank_pos)
 
