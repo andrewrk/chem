@@ -63,31 +63,42 @@ class Batch
     # indexed by zorder
     @sprites = []
   add: (sprite) ->
-    if sprite.batch?
-      sprite.batch.remove sprite
+    sprite.batch?.remove sprite
     sprite.batch = this
     (@sprites[sprite.zorder] ?= {})[sprite.id] = sprite
   remove: (sprite) ->
-    delete @sprites[sprite.zorder][sprite.id]
+    delete (@sprites[sprite.zorder] ?= {})[sprite.id]
 
 class Sprite extends Indexable
-  constructor: (@name, params) ->
+  constructor: (@animation, params) ->
     super
     o =
       pos: new Vec2d(0, 0)
       zorder: 0
       batch: null
       rotation: 0
+      visible: true
     extend o, params
 
     @pos = o.pos
     @zorder = o.zorder
     @rotation = o.rotation
+    @batch = o.batch
 
-    if o.batch? then o.batch.add this
+    @setAnimation name
+    @setVisible o.visible
+
+  setAnimation: (@name) ->
+
+  setVisible: (@visible) ->
+    return unless @batch?
+    if @visible
+      @batch.add this
+    else
+      @batch.remove this
 
   delete: ->
-    @batch.remove(this)
+    @batch.remove this
 
 class Engine extends EventEmitter
   target_fps = 60
@@ -172,7 +183,7 @@ class Engine extends EventEmitter
 
     for sprites in batch.sprites
       for id, sprite of sprites
-        animation = @animations[sprite.name]
+        animation = @animations[sprite.animation]
         anim_duration = animation.delay * animation.frames.length
         frame_index = Math.floor((total_time % anim_duration) / animation.delay)
         frame = animation.frames[frame_index]

@@ -537,7 +537,7 @@ do ->
       @winner = false
       @explode_atoms(@atoms.clone(), "atomfail")
 
-      @sprite_man.image = @game.animations.get("defeat")
+      @sprite_man.setAnimation "defeat"
       @sprite_arm.visible = false
 
       @retract_claw()
@@ -554,7 +554,7 @@ do ->
       @winner = true
       @explode_atoms(@atoms.clone())
 
-      @sprite_man.image = @game.animations.get("victory")
+      @sprite_man.setAnimation "victory"
       @sprite_arm.visible = false
 
       @retract_claw()
@@ -570,9 +570,9 @@ do ->
       if @claw_pins? and @claw_pins[0].b is atom.shape.body
         @unattachClaw()
       atom.marked_for_deletion = true
-      clearSprite = ->
+      clearSprite = =>
         @removeAtom(atom)
-      atom.sprite.image = @game.animations.get(animation_name)
+      atom.sprite.setAnimation animation_name
       atom.sprite.set_handler("on_animation_end", clear_sprite)
 
 
@@ -623,7 +623,7 @@ do ->
 
       if @control_state[Control.MoveUp] and grounded
         animation_name = "jump"
-        @sprite_man.image = @game.animations.get(negate + animation_name)
+        @sprite_man.setAnimation(negate + animation_name)
         @man.body.velocity.y = 100
         @man.body.apply_impulse(new Vec2d(0, 2000), new Vec2d(0, 0))
         # apply a reverse force upon the atom we jumped from
@@ -633,9 +633,9 @@ do ->
         @playSfx('jump')
 
       # point the man+arm in direction of mouse
-      animation = @game.animations.get(negate + animation_name)
-      if @sprite_man.image isnt animation
-        @sprite_man.image = animation
+      animation_name2 = negate + animation_name
+      if @sprite_man.animation isnt animation_name2
+        @sprite_man.setAnimation animation_name2
 
       # selecting a different gun
       if @control_state[Control.SwitchToGrapple] and @equipped_gun isnt Control.SwitchToGrapple
@@ -653,12 +653,12 @@ do ->
           ani_name = "arm-flung"
         else
           ani_name = "arm"
-        arm_animation = @game.animations.get(negate + ani_name)
+        arm_animation = negate + ani_name
       else
-        arm_animation = @game.animations.get(negate + @gun_animations[@equipped_gun])
+        arm_animation = negate + @gun_animations[@equipped_gun]
 
-      if @sprite_arm.image isnt arm_animation
-        @sprite_arm.image = arm_animation
+      if @sprite_arm.animation isnt arm_animation
+        @sprite_arm.setAnimation arm_animation
 
       if @equipped_gun is Control.SwitchToGrapple
         claw_reel_in_speed = 400
@@ -829,7 +829,7 @@ do ->
         return
       @claw_in_motion = false
       @sprite_claw.visible = false
-      @sprite_arm.image = @game.animations.get("arm")
+      @sprite_arm.setAnimation "arm"
       @claw_attached = false
       @space.remove(@claw.body, @claw, @claw_joint)
       @claw = null
@@ -908,42 +908,6 @@ do ->
         for i in [0...power]
           @drop_rock()
 
-    on_key_press: (symbol, modifiers) ->
-      control = @controls[symbol]
-      if control?
-        @control_state[control] = true
-
-    on_key_release: (symbol, modifiers) ->
-      control = @controls[symbol]
-      if control?
-        @control_state[control] = false
-
-    moveMouse: (x, y) ->
-      @mouse_pos = (new Vec2d(x, y)).minus(@pos)
-
-      use_crosshair = @mouse_pos.x >= 0 and \
-              @mouse_pos.y >= 0 and \
-              @mouse_pos.x <= @size.x and \
-              @mouse_pos.y <= @size.y
-      cursor = if use_crosshair then @game.crosshair else @game.default_cursor
-      @game.window.set_mouse_cursor(cursor)
-
-    on_mouse_motion: (x, y, dx, dy) ->
-      @moveMouse(x, y)
-
-    on_mouse_drag: (x, y, dx, dy, buttons, modifiers) ->
-      @moveMouse(x, y)
-
-    on_mouse_press: (x, y, button, modifiers) ->
-      control = @controls[Control.MOUSE_OFFSET+button]
-      if control?
-        @control_state[control] = true
-
-    on_mouse_release: (x, y, button, modifiers) ->
-      control = @controls[Control.MOUSE_OFFSET+button]
-      if control?
-        @control_state[control] = false
-
     moveSprites: ->
       # drawable things
       drawDrawable = ->
@@ -1001,22 +965,18 @@ do ->
       pyglet.graphics.draw(2, pyglet.gl.GL_LINES, ['v2f', [p1[0], p1[1], p2[0], p2[1]]])
 
   class Game
-    constructor: (@gw, @window, @server) ->
+    constructor: (@gw, @engine, @server) ->
       @debug = params.debug?
 
-      @animations = new Animations()
-      @animations.load()
+      @batch = new Engine.Batch()
+      @group_bg = 0
+      @group_main = 1
+      @group_fg = 2
 
-      @batch = engine.createBatch()
-      @group_bg = engine.createOrderedGroup(0)
-      @group_main = engine.createOrderedGroup(1)
-      @group_fg = engine.createOrderedGroup(2)
-
-      @sprite_bg = new Engine.Sprite("bg.png", batch: @batch, group: @group_bg)
-      @sprite_bg_top = new Engine.Sprite("bg-top.png", batch: @batch, group: @group_fg, pos: new Vec2d(0, img_bg.height-img_bg_top.height))
+      @sprite_bg = new Engine.Sprite("bg", batch: @batch, zorder: @group_bg)
+      @sprite_bg_top = new Engine.Sprite("bg_top", batch: @batch, zorder: @group_fg)
 
       @atom_imgs = ("atom#{i}" for i in [0...Atom.flavor_count])
-
 
       unless params.nofx?
         @sfx = {
@@ -1042,9 +1002,6 @@ do ->
         @fps_display = pyglet.clock.ClockDisplay()
       else
         @fps_display = null
-
-      @crosshair = @window.get_system_mouse_cursor(@window.CURSOR_CROSSHAIR)
-      @default_cursor = @window.get_system_mouse_cursor(@window.CURSOR_DEFAULT)
 
       tank_dims = new Vec2d(12, 16)
       tank_pos = [
@@ -1079,13 +1036,13 @@ do ->
 
 
 
-      @window.set_handler('on_draw', @on_draw)
-      @window.set_handler('on_mouse_motion', @control_tank.on_mouse_motion)
-      @window.set_handler('on_mouse_drag', @control_tank.on_mouse_drag)
-      @window.set_handler('on_mouse_press', @control_tank.on_mouse_press)
-      @window.set_handler('on_mouse_release', @control_tank.on_mouse_release)
-      @window.set_handler('on_key_press', @control_tank.on_key_press)
-      @window.set_handler('on_key_release', @control_tank.on_key_release)
+      @engine.set_handler('on_draw', @on_draw)
+      @engine.set_handler('on_mouse_motion', @control_tank.on_mouse_motion)
+      @engine.set_handler('on_mouse_drag', @control_tank.on_mouse_drag)
+      @engine.set_handler('on_mouse_press', @control_tank.on_mouse_press)
+      @engine.set_handler('on_mouse_release', @control_tank.on_mouse_release)
+      @engine.set_handler('on_key_press', @control_tank.on_key_press)
+      @engine.set_handler('on_key_release', @control_tank.on_key_release)
 
 
       pyglet.gl.glEnable(pyglet.gl.GL_BLEND)
@@ -1135,7 +1092,7 @@ do ->
 
 
     on_draw: ->
-      @window.clear()
+      @engine.clear()
 
       for tank in @tanks
         tank.moveSprites()
