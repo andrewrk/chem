@@ -30,9 +30,14 @@ class EventEmitter
   handlers: (event_name) -> @event_handlers[event_name] ?= []
 
 Key =
-  _1: 49
-  _2: 50
-  _3: 51
+  Shift: 16
+  Ctrl: 17
+  Alt: 18
+  MetaLeft: 91
+  MetaRight: 92
+  1: 49
+  2: 50
+  3: 51
   A: 65
   D: 68
   E: 69
@@ -43,9 +48,9 @@ Key =
   Comma: 188
 
 Mouse =
-  Left: 0
-  Middle: 1
-  Right: 2
+  Left: 1
+  Middle: 2
+  Right: 3
 
 class Indexable
   @id_count = 0
@@ -92,8 +97,15 @@ class Engine extends EventEmitter
   schedule = (sec, cb) -> setInterval(cb, sec * 1000)
   unschedule = clearInterval
 
-  @Key = Key
-  @Mouse = Mouse
+  # map both Key and Mouse into Button
+  @Button = {}
+  key_offset = 0
+  for name, val of Key
+    @Button["Key_#{name}"] = key_offset + val
+  mouse_offset = 256
+  for name, val of Mouse
+    @Button["Mouse_#{name}"] = mouse_offset + val
+
   @Sprite = Sprite
   @Batch = Batch
 
@@ -115,8 +127,8 @@ class Engine extends EventEmitter
     @stopMainLoop()
     @removeListeners()
 
-  keyState: (key_code) -> !!@key_states[key_code]
-
+  buttonState: (button) -> !!@button_states[button]
+  buttonJustPressed: (button) -> !!@btn_just_pressed[button]
   mousePos: -> @mouse_pos
 
   # private
@@ -173,7 +185,7 @@ class Engine extends EventEmitter
 
   callUpdate: (dt, dx) ->
     @emit 'update', dt, dx
-    @key_just_pressed = {}
+    @btn_just_pressed = {}
     return
 
   loadAssetsOnce: ->
@@ -209,35 +221,42 @@ class Engine extends EventEmitter
     return
 
   attachListeners: ->
-    # mouse input
-    @mouse_pos = new Vec2d(0, 0)
-    handleMouseEvent = (event_name) =>
-      @canvas.addEventListener event_name, (event) =>
-        @mouse_pos = new Vec2d(event.offsetX, event.offsetY)
-        @emit event_name,
-          pos: @mouse_pos
-          button: event.which
-          alt: event.altKey
-          ctrl: event.ctrlKey
-          shift: event.shiftKey
-          meta: event.metaKey
-    handleMouseEvent x for x in ['mousemove', 'mousedown', 'mouseup']
+    @button_states = {}
+    @btn_just_pressed = {}
+
     # disable right click context menu
     @canvas.addEventListener 'contextmenu', (event) ->
       event.preventDefault()
 
+    # mouse input
+    @mouse_pos = new Vec2d(0, 0)
+    forwardMouseEvent = (name, event) =>
+      @mouse_pos = new Vec2d(event.offsetX, event.offsetY)
+      @emit name, @mouse_pos, mouse_offset + event.which
+      return
+    @canvas.addEventListener 'mousemove', (event) ->
+      forwardMouseEvent 'mousemove', event
+    @canvas.addEventListener 'mousedown', (event) =>
+      @button_states[mouse_offset + event.which] = true
+      @btn_just_pressed[mouse_offset + event.which] = true
+
+      forwardMouseEvent 'mousedown', event
+    @canvas.addEventListener 'mouseup', (event) =>
+      @button_states[mouse_offset + event.which] = false
+
+      forwardMouseEvent 'mouseup', event
+
     # keyboard input
-    @canvas.addEventListener 'keydown', (event) => @emit 'keydown', event.keyCode
-    @canvas.addEventListener 'keyup', (event) => @emit 'keyup', event.keyCode
+    @canvas.addEventListener 'keydown', (event) =>
+      @button_states[key_offset + event.which] = true
+      @btn_just_pressed[key_offset + event.which] = true
 
-    @key_states = {}
-    @key_just_pressed = {}
-    window.addEventListener 'keydown', (event) =>
-      @key_states[event.keyCode] = true
-      @key_just_pressed[event.keyCode] = true
+      @emit 'keydown', key_offset + event.which
+    @canvas.addEventListener 'keyup', (event) =>
+      @button_states[key_offset + event.which] = false
 
-    window.addEventListener 'keyup', (event) =>
-      @key_states[event.keyCode] = false
+      @emit 'keyup', key_offset + event.which
+
 
 
   removeListeners: ->
