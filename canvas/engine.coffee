@@ -121,7 +121,7 @@ class Engine extends EventEmitter
 
   # private
   startMainLoop: ->
-    previous_update = new Date()
+    @main_loop_start_date = previous_update = new Date()
     max_frame_skips = target_fps - min_fps
     fps_time_passed = 0
     fps_refresh_rate = 1
@@ -152,10 +152,15 @@ class Engine extends EventEmitter
       return
 
   draw: (batch) ->
+    now = new Date()
+    total_time = (now - @main_loop_start_date) / 1000
+
     for sprites in batch.sprites
       for id, sprite of sprites
         animation = @animations[sprite.name]
-        frame = animation.frames[0]
+        anim_duration = animation.delay * animation.frames.length
+        frame_index = Math.floor((total_time % anim_duration) / animation.delay)
+        frame = animation.frames[frame_index]
         @context.save()
         @context.translate sprite.pos.x, sprite.pos.y
         @context.rotate sprite.rotation
