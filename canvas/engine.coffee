@@ -9,9 +9,11 @@ class EventEmitter
 
   on: (event_name, handler) ->
     @handlers(event_name).push handler
+    return
 
   removeEventListeners: (event_name) =>
     @handlers(event_name).length = 0
+    return
     
   removeListener: (event_name, handler) =>
     handlers = @handlers(event_name)
@@ -19,12 +21,14 @@ class EventEmitter
       if h is handler
         handlers.splice i, 1
         return
+    return
 
   # protected
   emit: (event_name, args...) =>
     # create copy so handlers can remove themselves
     handlers_list = extend [], @handlers(event_name)
     handler(args...) for handler in handlers_list
+    return
 
   # private
   handlers: (event_name) -> @event_handlers[event_name] ?= []

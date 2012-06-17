@@ -117,11 +117,12 @@ do ->
       super
       body = new cp.Body(10, 100000)
       body.position = pos
-      @shape = new cp.Circle(body, atom_radius)
+      @shape = new cp.CircleShape(body, atom_radius, new Vec2d())
       @shape.friction = 0.5
       @shape.elasticity = 0.05
       @shape.collision_type = Collision.Atom
-      @space.add(body, @shape)
+      @space.addBody(body)
+      @space.addShape(@shape)
 
       Atom.atom_for_shape[@shape] = this
       # atom => joint
@@ -145,7 +146,7 @@ do ->
       joint.max_bias = max_bias
       @bonds.set other, joint
       other.bonds.set this, joint
-      @space.add(joint)
+      @space.addConstraint(joint)
 
       return true
 
@@ -194,11 +195,12 @@ do ->
       super
       body = new cp.Body(50, 10)
       body.position = pos
-      @shape = new cp.Circle(body, Bomb.radius)
+      @shape = new cp.CircleShape(body, Bomb.radius, new Vec2d())
       @shape.friction = 0.7
       @shape.elasticity = 0.02
       @shape.collision_type = Collision.Default
-      @space.add(body, @shape)
+      @space.addBody(body)
+      @space.addShape(@shape)
 
     tick: (dt) =>
       @timeout -= dt
@@ -216,11 +218,12 @@ do ->
       super
       body = new cp.Body(70, 100000)
       body.position = pos
-      @shape = new cp.Circle(body, Rock.radius)
+      @shape = new cp.CircleShape(body, Rock.radius, new Vec2d())
       @shape.friction = 0.9
       @shape.elasticity = 0.01
       @shape.collision_type = Collision.Default
-      @space.add(body, @shape)
+      @space.addBody(body)
+      @space.addShape(@shape)
 
     tick: (dt) =>
 
@@ -231,7 +234,7 @@ do ->
 
   class Tank
     constructor: (@pos, @dims, @game, @tank_index) ->
-      @size = @dims.mult(atom_size)
+      @size = @dims.times(atom_size)
       @other_tank = null
       @atoms = new Set()
       @bombs = new Set()
@@ -255,7 +258,7 @@ do ->
       @initControls()
       @mouse_pos = new Vec2d(0, 0)
       @man_dims = new Vec2d(1, 2)
-      @man_size = new Vec2d(@man_dims.mult(atom_size))
+      @man_size = @man_dims.times(atom_size)
 
       @time_between_drops = params.fastatoms or 1
       @time_until_next_drop = 0
@@ -445,9 +448,9 @@ do ->
       # physics for ceiling
       body = new cp.Body(10000, 100000)
       body.position = new Vec2d(@size.x / 2, @size.y * 1.5)
-      @ceiling = new cp.Poly.create_box(body, @size)
+      @ceiling = new cp.BoxShape(body, @size.x, @size.y)
       @ceiling.collision_type = Collision.Default
-      @space.add(@ceiling)
+      @space.addShape(@ceiling)
       # per second
       @max_ceiling_delta = 200
 
@@ -480,7 +483,7 @@ do ->
       if not vel?
         vel = new Vec2d(0, 0)
       # physics for man
-      shape = new cp.Poly.create_box(new cp.Body(20, 10000000), @man_size)
+      shape = new cp.BoxShape(new cp.Body(20, 10000000), @man_size.x, @man_size.y)
       shape.body.position = pos
       shape.body.velocity = vel
       shape.body.angular_velocity_limit = 0
@@ -488,33 +491,34 @@ do ->
       shape.elasticity = 0
       shape.friction = 3.0
       shape.collision_type = Collision.Default
-      @space.add(shape.body, shape)
+      @space.addBody(shape.body)
+      @space.addShape(shape)
       @man = shape
 
 
     computeArmPos: =>
-      @arm_pos = @man.body.position - @man_size / 2 + @arm_offset
+      @arm_pos = @man.body.position.minus(@man_size.scale(0.5)).plus(@arm_offset)
       @point_vector = (@mouse_pos.minus(@arm_pos)).normalized()
       @point_start = @arm_pos.plus(@point_vector.scale(@arm_len))
 
-    get_drop_pos: (size) =>
+    getDropPos: (size) =>
       return new Vec2d(
-        random.random() * (@size.x - size.x) + size.x / 2,
+        Math.random() * (@size.x - size.x) + size.x / 2,
         @ceiling.body.position.y - @size.y / 2 - size.y / 2,
       )
 
 
-    drop_bomb: =>
+    dropBomb: =>
       # drop a bomb
-      pos = @get_drop_pos(Bomb.size)
+      pos = @getDropPos(Bomb.size)
       sprite = new Engine.Sprite('bomb', batch: @game.batch, zorder: @game.group_main)
       timeout = randInt(1, 5)
       bomb = new Bomb(pos, sprite, @space, timeout)
       @bombs.add(bomb)
 
-    drop_rock: =>
+    dropRock: =>
       # drop a rock
-      pos = @get_drop_pos(Rock.size)
+      pos = @getDropPos(Rock.size)
       sprite = new Engine.Sprite('rock', batch: @game.batch, zorder: @game.group_main)
       rock = new Rock(pos, sprite, @space)
       @rocks.add(rock)
@@ -527,7 +531,7 @@ do ->
         @time_until_next_drop += @time_between_drops
         # drop a random atom
         flavor_index = randInt(0, Atom.flavor_count-1)
-        pos = @get_drop_pos(atom_size)
+        pos = @getDropPos(atom_size)
         atom = new Atom(pos, flavor_index, new Engine.Sprite(@game.atom_imgs[flavor_index], batch: @game.batch, zorder: @game.group_main), @space)
         @atoms.add(atom)
 
@@ -677,13 +681,15 @@ do ->
           body.position = new Vec2d(@point_start)
           body.angle = @point_vector.get_angle()
           body.velocity = @man.body.velocity + @point_vector * @claw_shoot_speed
-          @claw = new cp.Circle(body, @claw_radius)
+          @claw = new cp.CircleShape(body, @claw_radius, new Vec2d())
           @claw.friction = 1
           @claw.elasticity = 0
           @claw.collision_type = Collision.Claw
           @claw_joint = new cp.SlideJoint(@claw.body, @man.body, new Vec2d(0, 0), new Vec2d(0, 0), 0, @size.get_length())
           @claw_joint.max_bias = max_bias
-          @space.add(body, @claw, @claw_joint)
+          @space.addBody(body)
+          @space.addShape(@claw)
+          @space.addConstraint(@claw_joint)
 
           @playSfx('shoot_claw')
 
@@ -750,7 +756,7 @@ do ->
 
           @playSfx('ray')
         else if ((@control_state[Control.FireMain] and @let_go_of_fire_main) or @control_state[Control.FireAlt]) and @ray_atom?
-          @space.add(@ray_atom.shape.body)
+          @space.addBody(@ray_atom.shape.body)
           @ray_atom.rogue = false
           if @control_state[Control.FireMain]
             # shoot it!!
@@ -774,7 +780,7 @@ do ->
       if @claw_pins_to_add?
         @claw_pins = @claw_pins_to_add
         @claw_pins_to_add = null
-        @space.add(@claw_pins)
+        @space.addConstraint(pin) for pin in @claw_pins
 
       for [atom1, atom2] in @bond_queue
         if atom1.marked_for_deletion or atom2.marked_for_deletion
@@ -908,11 +914,11 @@ do ->
       if flavor <= 3
         # bombs
         for i in [0...power]
-          @drop_bomb()
+          @dropBomb()
       else
         # rocks
         for i in [0...power]
-          @drop_rock()
+          @dropRock()
 
     moveSprites: =>
       # drawable things
@@ -1012,7 +1018,7 @@ do ->
       ]
 
       if not @server?
-        @tanks = [new Tank(tank_pos[0], tank_dims, self)]
+        @tanks = [new Tank(tank_pos[0], tank_dims, this)]
         @control_tank = @tanks[0]
 
         @survival_points = 0
@@ -1020,11 +1026,11 @@ do ->
         @next_survival_point = @survival_point_timeout
         @weapon_drop_interval = params.bomb or 10
 
-        tank_index = int(not @control_tank.tank_index)
+        tank_index = 1 - @control_tank.tank_index
         tank_name = "tank%i" % tank_index
         @sprite_other_tank = new Engine.Sprite(tank_name, batch: @batch, zorder: @group_main, pos: new Vec2d(tank_pos[1].x + @control_tank.size.x / 2, tank_pos[1].y + @control_tank.size.y / 2))
       else
-        @tanks = (new Tank(pos, tank_dims, self, i) for pos, i in tank_pos)
+        @tanks = (new Tank(pos, tank_dims, this, i) for pos, i in tank_pos)
 
         @control_tank = @tanks[0]
         @enemy_tank = @tanks[1]
@@ -1066,9 +1072,9 @@ do ->
           if new_number > old_number
             n = randInt(1, 2)
             if n is 1
-              @control_tank.drop_bomb()
+              @control_tank.dropBomb()
             else
-              @control_tank.drop_rock()
+              @control_tank.dropRock()
 
       # send state to network
       if @server?
@@ -1281,6 +1287,9 @@ do ->
     obj[key] = val for [key, val] in location.search.substring(1).split("&")
     obj
 
+
+  # monkey patch chipmunk's vector, giving it the same API as ours.
+  cp.Vect = Vec2d
 
   canvas = document.getElementById("game")
   engine = new Engine(canvas)

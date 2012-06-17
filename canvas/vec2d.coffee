@@ -1,9 +1,39 @@
 class Vec2d
-  constructor: (@x=0, @y=0) ->
+  constructor: (x_or_pair, y) ->
+    if y?
+      @x = x_or_pair
+      @y = y
+    else if x_or_pair?
+      if x_or_pair instanceof Array
+        @x = x_or_pair[0]
+        @y = x_or_pair[1]
+      else
+        @x = x_or_pair.x
+        @y = x_or_pair.y
+    else
+      @x = 0
+      @y = 0
+
   offset: (dx, dy) -> new Vec2d(@x + dx, @y + dy)
-  plus: (other) -> @offset(other.x, other.y)
-  minus: (other) -> @offset(-other.x, -other.y)
-  mult: (other) -> new Vec2d(@x * other.x, @y * other.y)
+  add: (other) ->
+    @x += other.x
+    @y += other.y
+    this
+  sub: (other) ->
+    @x -= other.x
+    @y -= other.y
+    this
+  plus: (other) -> @clone().add(other)
+  minus: (other) -> @clone().sub(other)
+  neg: ->
+    @x = -@x
+    @y = -@y
+    this
+  mult: (other) ->
+    @x *= other.x
+    @y *= other.y
+    this
+  times: (other) -> @clone().mult(other)
   scale: (scalar) ->
     @x *= scalar
     @y *= scalar
@@ -39,5 +69,13 @@ class Vec2d
     if @y > other.y then @y = other.y
   floor: -> @apply(Math.floor)
   floored: -> @applied(Math.floor)
+  project: (other) ->
+    @scale(@dot(other) / other.lengthSqrd())
+    this
+  dot: (other) -> @x * other.x + @y * other.y
+  rotate: (other) ->
+    @x = @x * other.x - @y * other.y
+    @y = @x * other.y + @y * other.x
+    this
 
 exports?.Vec2d = Vec2d
