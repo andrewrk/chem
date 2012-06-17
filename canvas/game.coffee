@@ -963,6 +963,7 @@ do ->
       # drawable things
       drawDrawable = (drawable) =>
         drawable.sprite.pos = drawable.shape.body.position.plus(@pos)
+        drawable.sprite.pos.y = 600 - drawable.sprite.pos.y
         drawable.sprite.rotation = -drawable.shape.body.rot.angle()
         true
       @atoms.each drawDrawable
@@ -970,17 +971,21 @@ do ->
       @rocks.each drawDrawable
 
       @sprite_man.pos = @man.body.position.plus(@pos)
+      @sprite_man.pos.y = 600 - @sprite_man.pos.y
       @sprite_man.rotation = -@man.body.rot.angle()
 
       @sprite_arm.pos = @arm_pos.plus(@pos)
+      @sprite_arm.pos.y = 600 - @sprite_arm.pos.y
       @sprite_arm.rotation = -@mouse_pos.minus(@man.body.position).angle()
       if @mouse_pos.x < @man.body.position.x
-        @sprite_arm.rotation += 180
+        @sprite_arm.rotation += Math.PI
 
       @sprite_tank.pos = @pos.plus(@ceiling.body.position)
+      @sprite_tank.pos.y = 600 - @sprite_tank.pos.y
 
       if @sprite_claw.visible
         @sprite_claw.pos = @claw.body.position.plus(@pos)
+        @sprite_claw.pos.y = 600 - @sprite_claw.pos.y
         @sprite_claw.rotation = -@claw.body.rot.angle()
 
     drawPrimitives: (context) =>
@@ -1014,8 +1019,8 @@ do ->
     drawLine: (context, p1, p2, color) =>
       context.strokeStyle = "rgb(#{color[0]}, #{color[1]}, #{color[2]}, #{color[3]})"
       context.beginPath()
-      context.moveTo(p1.x, p1.y)
-      context.lineTo(p2.x, p2.y)
+      context.moveTo(p1.x, 600 - p1.y)
+      context.lineTo(p2.x, 600 - p2.y)
       context.closePath()
       context.stroke()
 
