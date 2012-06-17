@@ -17,11 +17,7 @@ things left to fix:
     turn on alpha blending (search for TODO)
     pymunk/chipmunkjs
         Atom_for_shape
-    sprite / batch / orderedgroup
-    animations
-    Tank.gun_animations
-    on_key_press, mouse, etc
     vector math
-    sfx
 
+    sfx
     serialization

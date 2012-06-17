@@ -231,7 +231,7 @@ do ->
 
   class Tank
     constructor: (@pos, @dims, @game, @tank_index) ->
-      @size = @dims * atom_size
+      @size = @dims.mult(atom_size)
       @other_tank = null
       @atoms = new Set()
       @bombs = new Set()
@@ -248,9 +248,9 @@ do ->
       @space = new cp.Space()
       @space.gravity = new Vec2d(0, -400)
       @space.damping = 0.99
-      @space.add_collision_handler(Collision.Claw, Collision.Default, post_solve=@clawHitSomething)
-      @space.add_collision_handler(Collision.Claw, Collision.Atom, post_solve=@clawHitSomething)
-      @space.add_collision_handler(Collision.Atom, Collision.Atom, post_solve=@atomHitAtom)
+      @space.addCollisionHandler(Collision.Claw, Collision.Default, null, null, @clawHitSomething)
+      @space.addCollisionHandler(Collision.Claw, Collision.Atom, null, null, @clawHitSomething)
+      @space.addCollisionHandler(Collision.Atom, Collision.Atom, null, null, @atomHitAtom)
 
       @initControls()
       @mouse_pos = new Vec2d(0, 0)
@@ -321,30 +321,29 @@ do ->
 
     initControls: =>
       @controls = {}
-      @controls[Engine.Key.A] = Control.MoveLeft
-      @controls[Engine.Key.D] = Control.MoveRight
-      @controls[Engine.Key.W] = Control.MoveUp
-      @controls[Engine.Key.S] = Control.MoveDown
+      @controls[Engine.Button.Key_A] = Control.MoveLeft
+      @controls[Engine.Button.Key_D] = Control.MoveRight
+      @controls[Engine.Button.Key_W] = Control.MoveUp
+      @controls[Engine.Button.Key_S] = Control.MoveDown
 
-      @controls[Engine.Key._1] = Control.SwitchToGrapple
-      @controls[Engine.Key._2] = Control.SwitchToRay
-      @controls[Engine.Key._3] = Control.SwitchToLazer
+      @controls[Engine.Button.Key_1] = Control.SwitchToGrapple
+      @controls[Engine.Button.Key_2] = Control.SwitchToRay
+      @controls[Engine.Button.Key_3] = Control.SwitchToLazer
 
-      @controls[Control.MOUSE_OFFSET+Engine.Mouse.Left] = Control.FireMain
-      @controls[Control.MOUSE_OFFSET+Engine.Mouse.Right] = Control.FireAlt
+      @controls[Engine.Button.Mouse_Left] = Control.FireMain
+      @controls[Engine.Button.Mouse_Right] = Control.FireAlt
 
       if params.keyboard is 'dvorak'
-        @controls[Engine.Key.A] = Control.MoveLeft
-        @controls[Engine.Key.E] = Control.MoveRight
-        @controls[Engine.Key.Comma] = Control.MoveUp
-        @controls[Engine.Key.S] = Control.MoveDown
+        @controls[Engine.Button.Key_A] = Control.MoveLeft
+        @controls[Engine.Button.Key_E] = Control.MoveRight
+        @controls[Engine.Button.Key_Comma] = Control.MoveUp
+        @controls[Engine.Button.Key_S] = Control.MoveDown
       else if params.keyboard is 'colemak'
-        @controls[Engine.Key.A] = Control.MoveLeft
-        @controls[Engine.Key.S] = Control.MoveRight
-        @controls[Engine.Key.W] = Control.MoveUp
-        @controls[Engine.Key.R] = Control.MoveDown
+        @controls[Engine.Button.Key_A] = Control.MoveLeft
+        @controls[Engine.Button.Key_S] = Control.MoveRight
+        @controls[Engine.Button.Key_W] = Control.MoveUp
+        @controls[Engine.Button.Key_R] = Control.MoveDown
 
-      @control_state = (false for x in [0...Control.COUNT])
       @let_go_of_fire_main = true
       @let_go_of_fire_alt = true
 
@@ -433,11 +432,14 @@ do ->
         [new Vec2d(-r, 0), new Vec2d(-r, @size.y)],
       ]
       for [p1, p2] in borders
-        shape = new cp.Segment(new cp.Body(), p1, p2, r)
+        body = new cp.Body(Infinity, Infinity)
+        body.nodeIdleTime = Infinity
+        shape = new cp.SegmentShape(body, p1, p2, r)
         shape.friction = 0.99
         shape.elasticity = 0.0
         shape.collision_type = Collision.Default
-        @space.add(shape)
+        @space.addStaticShape(shape)
+      return
 
     initCeiling: =>
       # physics for ceiling
@@ -583,6 +585,10 @@ do ->
     processInput: (dt) =>
       if @game_over
         return
+
+      @control_state = []
+      for btn, ctrl of @controls
+        @control_state[ctrl] = @engine.buttonState(btn)
 
       feet_start = @man.body.position - @man_size / 2 + new Vec2d(1, -1)
       feet_end = new Vec2d(feet_start.x + @man_size.x - 2, feet_start.y - 2)
