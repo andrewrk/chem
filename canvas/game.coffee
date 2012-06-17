@@ -152,10 +152,10 @@ do ->
     constructor: (pos, @flavor_index, @sprite, @space) ->
       super
       body = new cp.Body(10, 100000)
-      body.position = pos
+      body.setPos pos
       @shape = new cp.CircleShape(body, atom_radius, new Vec2d())
-      @shape.u = 0.5
-      @shape.e = 0.05
+      @shape.setFriction 0.5
+      @shape.setElasticity 0.05
       @shape.collision_type = Collision.Atom
       @space.addBody(body)
       @space.addShape(@shape)
@@ -230,10 +230,10 @@ do ->
     constructor: (pos, @sprite, @space, @timeout) ->
       super
       body = new cp.Body(50, 10)
-      body.position = pos
+      body.setPos pos
       @shape = new cp.CircleShape(body, Bomb.radius, new Vec2d())
-      @shape.u = 0.7
-      @shape.e = 0.02
+      @shape.setFriction 0.7
+      @shape.setElasticity 0.02
       @shape.collision_type = Collision.Default
       @space.addBody(body)
       @space.addShape(@shape)
@@ -254,10 +254,10 @@ do ->
     constructor: (pos, @sprite, @space) ->
       super
       body = new cp.Body(70, 100000)
-      body.position = pos
+      body.setPos pos
       @shape = new cp.CircleShape(body, Rock.radius, new Vec2d())
-      @shape.u = 0.9
-      @shape.e = 0.01
+      @shape.setFriction 0.9
+      @shape.setElasticity 0.01
       @shape.collision_type = Collision.Default
       @space.addBody(body)
       @space.addShape(@shape)
@@ -395,8 +395,8 @@ do ->
         @computeDrops(dt)
 
       # check if we died
-      ratio = @atoms.length / (@ceiling.body.position.y - @size.y / 2)
-      if ratio > @lose_ratio or @ceiling.body.position.y < @man_size.y
+      ratio = @atoms.length / (@ceiling.body.p.y - @size.y / 2)
+      if ratio > @lose_ratio or @ceiling.body.p.y < @man_size.y
         @lose()
 
       # process bombs
@@ -405,20 +405,19 @@ do ->
         if bomb.timeout <= 0
           # physics explosion
           # loop over every object in the space and apply an impulse
-          for shape in @space.shapes
-            vector = shape.body.position.minus(bomb.shape.body.position)
+          for body in @space.bodies
+            vector = body.p.minus(bomb.shape.body.p)
             dist = vector.length()
             direction = vector.normalized()
             power = 6000
             damp = 1 - dist / 800
-            shape.body.applyImpulse(direction.scale(power).scale(damp))
+            body.applyImpulse(direction.scaled(power * damp), new Vec2d(0,0))
 
           # explosion animation
           sprite = new Engine.Sprite("bombsplode", batch:@game.batch, zorder:@game.group_fg)
-          sprite.pos = @pos.plus(bomb.shape.body.position)
-          do (sprite) =>
-            removeBombSprite = => sprite.delete()
-          sprite.on("animation_end", removeBombSprite)
+          sprite.pos = @pos.plus(bomb.shape.body.p)
+          removeBombSprite = null
+          sprite.on "animation_end", do (sprite) => => sprite.delete()
           @removeBomb(bomb)
 
           @playSfx("explode")
@@ -477,8 +476,8 @@ do ->
         body = new cp.Body(Infinity, Infinity)
         body.nodeIdleTime = Infinity
         shape = new cp.SegmentShape(body, p1, p2, r)
-        shape.u = 0.99
-        shape.e = 0.0
+        shape.setFriction 0.99
+        shape.setElasticity 0.0
         shape.collision_type = Collision.Default
         @space.addStaticShape(shape)
       return
@@ -486,7 +485,7 @@ do ->
     initCeiling: =>
       # physics for ceiling
       body = new cp.Body(10000, 100000)
-      body.position = new Vec2d(@size.x / 2, @size.y * 1.5)
+      body.setPos new Vec2d(@size.x / 2, @size.y * 1.5)
       @ceiling = new cp.BoxShape(body, @size.x, @size.y)
       @ceiling.collision_type = Collision.Default
       @space.addShape(@ceiling)
@@ -506,15 +505,15 @@ do ->
         adjust = 0
       target_y = @size.y * 1.5 + adjust
 
-      direction = sign(target_y - @ceiling.body.position.y)
+      direction = sign(target_y - @ceiling.body.p.y)
       amount = @max_ceiling_delta * dt
-      new_y = @ceiling.body.position.y + amount * direction
+      new_y = @ceiling.body.p.y + amount * direction
       new_sign = sign(target_y - new_y)
       if direction is -new_sign
         # close enough to just set
-        @ceiling.body.position.y = target_y
+        @ceiling.body.setPos new Vec2d(@ceiling.body.p.x, target_y)
       else
-        @ceiling.body.position.y = new_y
+        @ceiling.body.setPos new Vec2d(@ceiling.body.p.x, new_y)
 
     initMan: (pos, vel) =>
       if not pos?
@@ -523,12 +522,12 @@ do ->
         vel = new Vec2d(0, 0)
       # physics for man
       shape = new cp.BoxShape(new cp.Body(20, 10000000), @man_size.x, @man_size.y)
-      shape.body.position = pos
+      shape.body.setPos pos
       shape.body.velocity = vel
       shape.body.w_limit = 0
       @man_angle = shape.body.a
-      shape.e = 0
-      shape.u = 3.0
+      shape.setElasticity 0
+      shape.setFriction 3.0
       shape.collision_type = Collision.Default
       @space.addBody(shape.body)
       @space.addShape(shape)
@@ -536,14 +535,14 @@ do ->
 
 
     computeArmPos: =>
-      @arm_pos = @man.body.position.minus(@man_size.scale(0.5)).plus(@arm_offset)
+      @arm_pos = @man.body.p.minus(@man_size.scaled(0.5)).plus(@arm_offset)
       @point_vector = (@mouse_pos.minus(@arm_pos)).normalized()
-      @point_start = @arm_pos.plus(@point_vector.scale(@arm_len))
+      @point_start = @arm_pos.plus(@point_vector.scaled(@arm_len))
 
     getDropPos: (size) =>
       return new Vec2d(
         Math.random() * (@size.x - size.x) + size.x / 2,
-        @ceiling.body.position.y - @size.y / 2 - size.y / 2,
+        @ceiling.body.p.y - @size.y / 2 - size.y / 2,
       )
 
 
@@ -633,7 +632,7 @@ do ->
       for btn, ctrl of @controls
         @control_state[ctrl] = @game.engine.buttonState(btn)
 
-      feet_start = @man.body.position.minus(@man_size.scale(0.5)).offset(1, -1)
+      feet_start = @man.body.p.minus(@man_size.scaled(0.5)).offset(1, -1)
       feet_end = feet_start.offset(@man_size.x - 2, -2)
       bb = new cp.BB(feet_start.x, feet_end.y, feet_end.x, feet_start.y)
       ground_shapes = []
@@ -652,17 +651,17 @@ do ->
       move_left = @control_state[Control.MoveLeft] and not @control_state[Control.MoveRight]
       move_right = @control_state[Control.MoveRight] and not @control_state[Control.MoveLeft]
       if move_left
-        if @man.body.velocity.x >= -max_speed and @man.body.position.x - @man_size.x / 2 - 5 > 0
+        if @man.body.velocity.x >= -max_speed and @man.body.p.x - @man_size.x / 2 - 5 > 0
           @man.body.applyImpulse(new Vec2d(-move_force, 0), new Vec2d(0, 0))
           if @man.body.velocity.x > -move_boost and @man.body.velocity.x < 0
             @man.body.velocity.x = -move_boost
       else if move_right
-        if @man.body.velocity.x <= max_speed and @man.body.position.x + @man_size.x / 2 + 3 < @size.x
+        if @man.body.velocity.x <= max_speed and @man.body.p.x + @man_size.x / 2 + 3 < @size.x
           @man.body.applyImpulse(new Vec2d(move_force, 0), new Vec2d(0, 0))
           if @man.body.velocity.x < move_boost and @man.body.velocity.x > 0
             @man.body.velocity.x = move_boost
 
-      negate = @mouse_pos.x < @man.body.position.x
+      negate = @mouse_pos.x < @man.body.p.x
       # jumping
       if grounded
         if move_left or move_right
@@ -721,12 +720,12 @@ do ->
           @claw_in_motion = true
           @sprite_claw.setVisible true
           body = new cp.Body(5, 1000000)
-          body.position = new Vec2d(@point_start)
+          body.setPos new Vec2d(@point_start)
           body.setAngle @point_vector.angle()
           body.velocity = @man.body.velocity + @point_vector * @claw_shoot_speed
           @claw = new cp.CircleShape(body, @claw_radius, new Vec2d())
-          @claw.u = 1
-          @claw.e = 0
+          @claw.setFriction 1
+          @claw.setElasticity 0
           @claw.collision_type = Collision.Claw
           @claw_joint = new cp.SlideJoint(@claw.body, @man.body, new Vec2d(0, 0), new Vec2d(0, 0), 0, @size.length())
           @claw_joint.max_bias = max_bias
@@ -737,7 +736,7 @@ do ->
           @playSfx('shoot_claw')
 
         if @sprite_claw.visible
-          claw_dist = @claw.body.position.minus(@man.body.position).length()
+          claw_dist = @claw.body.p.minus(@man.body.p).length()
 
         if @control_state[Control.FireMain] and @claw_in_motion
           if claw_dist < @min_claw_dist + 8
@@ -779,13 +778,13 @@ do ->
 
       if @ray_atom?
         # move the atom closer to the ray gun
-        vector = @point_start.minus(@ray_atom.shape.body.position)
-        delta = vector.normalized().scale(1000 * dt)
+        vector = @point_start.minus(@ray_atom.shape.body.p)
+        delta = vector.normalized().scaled(1000 * dt)
         if delta.length() > vector.length()
           # just move the atom to final location
-          @ray_atom.shape.body.position = @point_start
+          @ray_atom.shape.body.setPos @point_start
         else
-          @ray_atom.shape.body.position += delta
+          @ray_atom.shape.body.setPos @ray_atom.shape.body.p.plus(delta)
 
       if @equipped_gun is Control.SwitchToRay
         if (@control_state[Control.FireMain] and @let_go_of_fire_main) and @closest_atom? and not @ray_atom? and not @closest_atom.marked_for_deletion
@@ -856,10 +855,10 @@ do ->
       claw = arbiter.a
       shape = arbiter.b
       pos = new Vec2d(arbiter.contacts[0].p)
-      shape_anchor = pos.minus(shape.body.position)
-      claw_anchor = pos.minus(claw.body.position)
-      claw_delta = claw_anchor.normalized().scale(-(@claw_radius + 8))
-      @claw.body.position.add(claw_delta)
+      shape_anchor = pos.minus(shape.body.p)
+      claw_anchor = pos.minus(claw.body.p)
+      claw_delta = claw_anchor.normalized().scaled(-(@claw_radius + 8))
+      @claw.body.setPos @claw.body.p.plus(claw_delta)
       @claw_pins_to_add = [
         new cp.PinJoint(claw.body, shape.body, claw_anchor, shape_anchor),
         new cp.PinJoint(claw.body, shape.body, new Vec2d(0, 0), new Vec2d(0, 0)),
@@ -911,7 +910,7 @@ do ->
           if atom.marked_for_deletion
             return
           # http://stackoverflow.com/questions/1073336/circle-line-collision-detection
-          f = atom.shape.body.position.minus(@point_start)
+          f = atom.shape.body.p.minus(@point_start)
           if sign(f.x) isnt sign(@point_vector.x) or sign(f.y) isnt sign(@point_vector.y)
             return
           a = @point_vector.dot(@point_vector)
@@ -921,7 +920,7 @@ do ->
           if discriminant < 0
             return
 
-          dist = atom.shape.body.position.distanceSqrd(@point_start)
+          dist = atom.shape.body.p.distanceSqrd(@point_start)
           if not @closest_atom? or dist < closest_dist
             @closest_atom = atom
             closest_dist = dist
@@ -931,7 +930,7 @@ do ->
       if @closest_atom?
         # intersection
         # use the coords of the closest atom
-        @point_end = @closest_atom.shape.body.position
+        @point_end = @closest_atom.shape.body.p.clone()
       else
         # no intersection
         # find the coords at the wall
@@ -944,8 +943,8 @@ do ->
         if @point_end.x < 0
           @point_end.x = 0
           @point_end.y = slope * @point_end.x + y_intercept
-        if @point_end.y > @ceiling.body.position.y - @size.y / 2
-          @point_end.y = @ceiling.body.position.y - @size.y / 2
+        if @point_end.y > @ceiling.body.p.y - @size.y / 2
+          @point_end.y = @ceiling.body.p.y - @size.y / 2
           @point_end.x = (@point_end.y - y_intercept) / slope
         if @point_end.y < 0
           @point_end.y = 0
@@ -970,7 +969,7 @@ do ->
     moveSprites: =>
       # drawable things
       drawDrawable = (drawable) =>
-        drawable.sprite.pos = drawable.shape.body.position.plus(@pos)
+        drawable.sprite.pos = drawable.shape.body.p.plus(@pos)
         drawable.sprite.pos.y = 600 - drawable.sprite.pos.y
         drawable.sprite.rotation = -drawable.shape.body.rot.angle()
         true
@@ -978,21 +977,21 @@ do ->
       @bombs.each drawDrawable
       @rocks.each drawDrawable
 
-      @sprite_man.pos = @man.body.position.plus(@pos)
+      @sprite_man.pos = @man.body.p.plus(@pos)
       @sprite_man.pos.y = 600 - @sprite_man.pos.y
       @sprite_man.rotation = -@man.body.rot.angle()
 
       @sprite_arm.pos = @arm_pos.plus(@pos)
       @sprite_arm.pos.y = 600 - @sprite_arm.pos.y
-      @sprite_arm.rotation = -@mouse_pos.minus(@man.body.position).angle()
-      if @mouse_pos.x < @man.body.position.x
+      @sprite_arm.rotation = -@mouse_pos.minus(@man.body.p).angle()
+      if @mouse_pos.x < @man.body.p.x
         @sprite_arm.rotation += Math.PI
 
-      @sprite_tank.pos = @pos.plus(@ceiling.body.position)
+      @sprite_tank.pos = @pos.plus(@ceiling.body.p)
       @sprite_tank.pos.y = 600 - @sprite_tank.pos.y
 
       if @sprite_claw.visible
-        @sprite_claw.pos = @claw.body.position.plus(@pos)
+        @sprite_claw.pos = @claw.body.p.plus(@pos)
         @sprite_claw.pos.y = 600 - @sprite_claw.pos.y
         @sprite_claw.rotation = -@claw.body.rot.angle()
 
@@ -1010,14 +1009,14 @@ do ->
           if atom.marked_for_deletion
             return
           atom.bonds.each (other, joint) =>
-            @drawLine(context, @pos.plus(atom.shape.body.position), @pos.plus(other.shape.body.position), [0, 0, 1, 1])
+            @drawLine(context, @pos.plus(atom.shape.body.p), @pos.plus(other.shape.body.p), [0, 0, 1, 1])
             true
           true
 
         if @game.debug
           if @claw_pins
             for claw_pin in @claw_pins
-              @drawLine(context, @pos.plus(claw_pin.a.position).plus(claw_pin.anchr1), @pos.plus(claw_pin.b.position).plus(claw_pin.anchr2), [1, 0, 1, 1])
+              @drawLine(context, @pos.plus(claw_pin.a.p).plus(claw_pin.anchr1), @pos.plus(claw_pin.b.p).plus(claw_pin.anchr2), [1, 0, 1, 1])
 
         # lazer
         if @lazer_line?
@@ -1115,6 +1114,7 @@ do ->
 
     update: (dt) =>
       mouse_pos = @engine.mousePos()
+      mouse_pos.y = 600 - mouse_pos.y
       for tank in @tanks
         tank.mouse_pos = mouse_pos.minus(tank.pos)
         tank.update(dt)
