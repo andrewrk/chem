@@ -110,7 +110,6 @@ do ->
   class Atom extends Indexable
     @flavor_count = 6
 
-    @atom_for_shape = {}
     @max_bonds = 2
 
     constructor: (pos, @flavor_index, @sprite, @space) ->
@@ -124,7 +123,7 @@ do ->
       @space.addBody(body)
       @space.addShape(@shape)
 
-      Atom.atom_for_shape[@shape] = this
+      @shape.atom = this
       # atom => joint
       @bonds = new Map()
       @marked_for_deletion = false
@@ -183,7 +182,7 @@ do ->
       @space.remove(@shape)
       if not @rogue
         @space.remove(@shape.body)
-      delete Atom.atom_for_shape[@shape]
+      delete @shape.atom
       @sprite.delete()
       @sprite = null
 
@@ -369,11 +368,11 @@ do ->
           # loop over every object in the space and apply an impulse
           for shape in @space.shapes
             vector = shape.body.position - bomb.shape.body.position
-            dist = vector.get_length()
+            dist = vector.length()
             direction = vector.normalized()
             power = 6000
             damp = 1 - dist / 800
-            shape.body.apply_impulse(direction * power * damp)
+            shape.body.applyImpulse(direction.scale(power).scale(damp))
 
           # explosion animation
           sprite = new Engine.Sprite("bombsplode", batch:@game.batch, zorder:@game.group_fg)
@@ -396,7 +395,7 @@ do ->
       @computeAtomPointedAt()
 
       # update physics
-      step_count = Math.floor(dt / (1 / game_fps))
+      step_count = Math.floor(dt / (1 / 60))
       if step_count < 1
         step_count = 1
       delta = dt / step_count
@@ -592,16 +591,18 @@ do ->
 
       @control_state = []
       for btn, ctrl of @controls
-        @control_state[ctrl] = @engine.buttonState(btn)
+        @control_state[ctrl] = @game.engine.buttonState(btn)
 
-      feet_start = @man.body.position - @man_size / 2 + new Vec2d(1, -1)
-      feet_end = new Vec2d(feet_start.x + @man_size.x - 2, feet_start.y - 2)
+      feet_start = @man.body.position.minus(@man_size.scale(0.5)).offset(1, -1)
+      feet_end = feet_start.offset(@man_size.x - 2, -2)
       bb = new cp.BB(feet_start.x, feet_end.y, feet_end.x, feet_start.y)
-      ground_shapes = @space.bb_query(bb)
+      ground_shapes = []
+      @space.bbQuery bb, -1, null, (shape) ->
+        ground_shapes.push shape
       grounded = ground_shapes.length > 0
 
       grounded_move_force = 1000
-      not_moving_x = abs(@man.body.velocity.x) < 5.0
+      not_moving_x = Math.abs(@man.body.velocity.x) < 5.0
       air_move_force = 200
       grounded_move_boost = 30
       air_move_boost = 0
@@ -612,12 +613,12 @@ do ->
       move_right = @control_state[Control.MoveRight] and not @control_state[Control.MoveLeft]
       if move_left
         if @man.body.velocity.x >= -max_speed and @man.body.position.x - @man_size.x / 2 - 5 > 0
-          @man.body.apply_impulse(new Vec2d(-move_force, 0), new Vec2d(0, 0))
+          @man.body.applyImpulse(new Vec2d(-move_force, 0), new Vec2d(0, 0))
           if @man.body.velocity.x > -move_boost and @man.body.velocity.x < 0
             @man.body.velocity.x = -move_boost
       else if move_right
         if @man.body.velocity.x <= max_speed and @man.body.position.x + @man_size.x / 2 + 3 < @size.x
-          @man.body.apply_impulse(new Vec2d(move_force, 0), new Vec2d(0, 0))
+          @man.body.applyImpulse(new Vec2d(move_force, 0), new Vec2d(0, 0))
           if @man.body.velocity.x < move_boost and @man.body.velocity.x > 0
             @man.body.velocity.x = move_boost
 
@@ -635,11 +636,11 @@ do ->
         animation_name = "jump"
         @sprite_man.setAnimation(negate + animation_name)
         @man.body.velocity.y = 100
-        @man.body.apply_impulse(new Vec2d(0, 2000), new Vec2d(0, 0))
+        @man.body.applyImpulse(new Vec2d(0, 2000), new Vec2d(0, 0))
         # apply a reverse force upon the atom we jumped from
         power = 1000 / ground_shapes.length
         for shape in ground_shapes
-          shape.body.apply_impulse(new Vec2d(0, -power), new Vec2d(0, 0))
+          shape.body.applyImpulse(new Vec2d(0, -power), new Vec2d(0, 0))
         @playSfx('jump')
 
       # point the man+arm in direction of mouse
@@ -677,15 +678,15 @@ do ->
           @let_go_of_fire_main = false
           @claw_in_motion = true
           @sprite_claw.visible = true
-          body = new cp.Body(mass=5, moment=1000000)
+          body = new cp.Body(5, 1000000)
           body.position = new Vec2d(@point_start)
-          body.angle = @point_vector.get_angle()
+          body.angle = @point_vector.angle()
           body.velocity = @man.body.velocity + @point_vector * @claw_shoot_speed
           @claw = new cp.CircleShape(body, @claw_radius, new Vec2d())
           @claw.friction = 1
           @claw.elasticity = 0
           @claw.collision_type = Collision.Claw
-          @claw_joint = new cp.SlideJoint(@claw.body, @man.body, new Vec2d(0, 0), new Vec2d(0, 0), 0, @size.get_length())
+          @claw_joint = new cp.SlideJoint(@claw.body, @man.body, new Vec2d(0, 0), new Vec2d(0, 0), 0, @size.length())
           @claw_joint.max_bias = max_bias
           @space.addBody(body)
           @space.addShape(@claw)
@@ -694,7 +695,7 @@ do ->
           @playSfx('shoot_claw')
 
         if @sprite_claw.visible
-          claw_dist = (@claw.body.position - @man.body.position).get_length()
+          claw_dist = @claw.body.position.minus(@man.body.position).length()
 
         if @control_state[Control.FireMain] and @claw_in_motion
           if claw_dist < @min_claw_dist + 8
@@ -738,7 +739,7 @@ do ->
         # move the atom closer to the ray gun
         vector = @point_start - @ray_atom.shape.body.position
         delta = vector.normalized() * 1000 * dt
-        if delta.get_length() > vector.get_length()
+        if delta.length() > vector.length()
           # just move the atom to final location
           @ray_atom.shape.body.position = @point_start
         else
@@ -806,16 +807,17 @@ do ->
 
       @bond_queue = []
 
-    clawHitSomething: (space, arbiter) =>
+    clawHitSomething: (arbiter, space) =>
       if @claw_attached
         return
       # bolt these bodies together
-      [claw, shape] = arbiter.shapes
-      pos = arbiter.contacts[0].position
-      shape_anchor = pos - shape.body.position
-      claw_anchor = pos - claw.body.position
-      claw_delta = claw_anchor.normalized() * -(@claw_radius + 8)
-      @claw.body.position += claw_delta
+      claw = arbiter.a
+      shape = arbiter.b
+      pos = new Vec2d(arbiter.contacts[0].p)
+      shape_anchor = pos.minus(shape.body.position)
+      claw_anchor = pos.minus(claw.body.position)
+      claw_delta = claw_anchor.normalized().scale(-(@claw_radius + 8))
+      @claw.body.position.add(claw_delta)
       @claw_pins_to_add = [
         new cp.PinJoint(claw.body, shape.body, claw_anchor, shape_anchor),
         new cp.PinJoint(claw.body, shape.body, new Vec2d(0, 0), new Vec2d(0, 0)),
@@ -826,8 +828,9 @@ do ->
 
       @playSfx("claw_hit")
 
-    atomHitAtom: (space, arbiter) =>
-      [atom1, atom2] = [Atom.atom_for_shape[shape] for shape in arbiter.shapes]
+    atomHitAtom: (arbiter, space) =>
+      atom1 = arbiter.a.atom
+      atom2 = arbiter.b.atom
       # bond the atoms together
       if atom1.flavor_index is atom2.flavor_index
         @bond_queue.append([atom1, atom2])
@@ -890,7 +893,7 @@ do ->
         # find the coords at the wall
         slope = @point_vector.y / (@point_vector.x+0.00000001)
         y_intercept = @point_start.y - slope * @point_start.x
-        @point_end = @point_start + @size.get_length() * @point_vector
+        @point_end = @point_start + @size.length() * @point_vector
         if @point_end.x > @size.x
           @point_end.x = @size.x
           @point_end.y = slope * @point_end.x + y_intercept
@@ -922,19 +925,19 @@ do ->
 
     moveSprites: =>
       # drawable things
-      drawDrawable = =>
+      drawDrawable = (drawable) =>
         drawable.sprite.pos = drawable.shape.body.position.plus(@pos)
-        drawable.sprite.rotation = -drawable.shape.body.rotation_vector.get_angle_degrees()
+        drawable.sprite.rotation = -drawable.shape.body.rot.angle()
         true
       @atoms.each drawDrawable
       @bombs.each drawDrawable
       @rocks.each drawDrawable
 
       @sprite_man.pos = @man.body.position.plus(@pos)
-      @sprite_man.rotation = -@man.body.rotation_vector.get_angle_degrees()
+      @sprite_man.rotation = -@man.body.rot.angle()
 
       @sprite_arm.pos = @arm_pos.plus(@pos)
-      @sprite_arm.rotation = -(@mouse_pos - @man.body.position).get_angle_degrees()
+      @sprite_arm.rotation = -@mouse_pos.minus(@man.body.position).angle()
       if @mouse_pos.x < @man.body.position.x
         @sprite_arm.rotation += 180
 
@@ -942,39 +945,43 @@ do ->
 
       if @sprite_claw.visible
         @sprite_claw.pos = @claw.body.position.plus(@pos)
-        @sprite_claw.rotation = -@claw.body.rotation_vector.get_angle_degrees()
+        @sprite_claw.rotation = -@claw.body.rot.angle()
 
-    drawPrimitives: =>
+    drawPrimitives: (context) =>
       # draw a line from gun hand to @point_end
       if not @game_over
-        @drawLine(@point_start + @pos, @point_end + @pos, [0, 0, 0, 0.23])
+        @drawLine(context, @point_start.plus(@pos), @point_end.plus(@pos), [0, 0, 0, 0.23])
 
         # draw a line from gun to claw if it's out
         if @sprite_claw.visible
-          @drawLine(@point_start + @pos, @sprite_claw.position, [1, 1, 0, 1])
+          @drawLine(context, @point_start.plus(@pos), @sprite_claw.position, [1, 1, 0, 1])
 
         # draw lines for bonded atoms
         @atoms.each (atom) =>
           if atom.marked_for_deletion
             return
           atom.bonds.each (other, joint) =>
-            @drawLine(@pos + atom.shape.body.position, @pos + other.shape.body.position, [0, 0, 1, 1])
+            @drawLine(context, @pos.plus(atom.shape.body.position), @pos.plus(other.shape.body.position), [0, 0, 1, 1])
             true
           true
 
         if @game.debug
           if @claw_pins
             for claw_pin in @claw_pins
-              @drawLine(@pos + claw_pin.a.position + claw_pin.anchr1, @pos + claw_pin.b.position + claw_pin.anchr2, [1, 0, 1, 1])
+              @drawLine(context, @pos.plus(claw_pin.a.position).plus(claw_pin.anchr1), @pos.plus(claw_pin.b.position).plus(claw_pin.anchr2), [1, 0, 1, 1])
 
         # lazer
         if @lazer_line?
           [start, end] = @lazer_line
-          @drawLine(start + @pos, end + @pos, [1, 0, 0, 1])
+          @drawLine(context, start.plus(@pos), end.plus(@pos), [1, 0, 0, 1])
 
-    drawLine: (p1, p2, color) =>
-      pyglet.gl.glColor4f(color[0], color[1], color[2], color[3])
-      pyglet.graphics.draw(2, pyglet.gl.GL_LINES, ['v2f', [p1[0], p1[1], p2[0], p2[1]]])
+    drawLine: (context, p1, p2, color) =>
+      context.strokeStyle = "rgb(#{color[0]}, #{color[1]}, #{color[2]}, #{color[3]})"
+      context.beginPath()
+      context.moveTo(p1.x, p1.y)
+      context.lineTo(p2.x, p2.y)
+      context.closePath()
+      context.stroke()
 
   class Game
     constructor: (@gw, @engine, @server) ->
@@ -1099,12 +1106,11 @@ do ->
       for tank in @tanks
         tank.moveSprites()
 
-      @batch.draw()
+      @engine.draw @batch
 
       for tank in @tanks
-        tank.drawPrimitives()
+        tank.drawPrimitives(context)
       
-
       if @fps_display
         context.fillText "#{@engine.fps} fps", 0, engine.size.y
 
@@ -1254,7 +1260,7 @@ do ->
 
     onMouseDown: (click_pos) =>
       if click_pos.distanceTo(@start_pos) < @click_radius
-        @gw.play(server_on=false)
+        @gw.play(false)
         return
       else if click_pos.distanceTo(@credits_pos) < @click_radius
         @gw.credits()
@@ -1289,7 +1295,8 @@ do ->
 
 
   # monkey patch chipmunk's vector, giving it the same API as ours.
-  cp.Vect = Vec2d
+  for prop, val of Vec2d.prototype
+    cp.Vect.prototype[prop] = val
 
   canvas = document.getElementById("game")
   engine = new Engine(canvas)
