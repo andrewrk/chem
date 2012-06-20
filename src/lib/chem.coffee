@@ -10,6 +10,17 @@ exec = (cmd, args=[], cb=->) ->
     process.stderr.write data
   bin.on 'exit', cb
 
+compile = (cb) -> cb()
+
+serveStaticFiles = (port) ->
+  node_static = require('node-static')
+  http = require('http')
+  file_server = new node_static.Server("./public")
+  app = http.createServer (request, response) ->
+    compile ->
+      file_server.serve request, response
+  app.listen port
+  console.info("Serving at http://localhost:#{port}")
 
 tasks =
   help: ->
@@ -22,7 +33,7 @@ tasks =
 
       # run a development server which will automatically recompile your code,
       # generate your spritesheets, and serve your assets
-      chem test
+      chem dev
 
     """
   init: (args) ->
@@ -39,16 +50,16 @@ tasks =
 
     # copy files from template to project_name
     exec 'cp', ['-r', src, project_name]
-
-
+  dev: (args, options) ->
+    serveStaticFiles(options.port or 10308)
 
 exports.run = ->
   cmd = process.argv[2]
   task = tasks[cmd]
   if task?
-    task(process.argv.slice(3))
+    task(process.argv.slice(3), {})
   else
-    tasks.help([])
+    tasks.help([], {})
 
 ###
 client_src = [

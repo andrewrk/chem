@@ -24,11 +24,6 @@
         "chem": "./bin/chem"
     },
     "scripts": {
-        "install": "cake build",
-        "test": "npm install . && ./node_modules/node-dev/node-dev server.js"
-    },
-    "config": {
-        "port": 10308,
-        "development_mode": false
+        "install": "cake build"
     }
 }

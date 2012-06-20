@@ -9,7 +9,7 @@ usage:
 
     # run a development server which will automatically recompile your code,
     # generate your spritesheets, and serve your assets
-    chem test
+    chem dev
 
     # remove all generated files
     chem clean
