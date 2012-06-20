@@ -11,6 +11,9 @@ usage:
     # generate your spritesheets, and serve your assets
     chem test
 
+    # remove all generated files
+    chem clean
+
 set up dev environment:
 
     sudo apt-get install libcairo2-dev

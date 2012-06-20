@@ -1,4 +1,4 @@
-```
+`
 var node_static = require('node-static');
 var http = require('http');
 
@@ -35,4 +35,4 @@ var app = http.createServer(function(request, response) {
 }).listen(process.env.npm_package_config_port);
 
 console.info("Serving at http://localhost:" + process.env.npm_package_config_port + "/");
-```
+`
