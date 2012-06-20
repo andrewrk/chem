@@ -132,6 +132,10 @@ tasks =
     serveStaticFiles(options.port or 10308)
     compileClientSource('w')
   spritesheet: createSpritesheet
+  clean: ->
+    exec 'rm', ['-f', 'public/game.js']
+    exec 'rm', ['-f', 'public/animations.json']
+    exec 'rm', ['-f', 'public/spritesheet.png']
 
 exports.run = ->
   cmd = process.argv[2]

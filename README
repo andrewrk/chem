@@ -14,26 +14,12 @@ usage:
     # remove all generated files
     chem clean
 
-set up dev environment:
+set up dev environment for chem itself:
 
     sudo apt-get install libcairo2-dev
-    npm install .
+    sudo npm link
     
 while developing:
 
     cake watch
-    # when you change assets
-    cake spritesheet
-    # run simple server to serve the assets
-    npm test
 
-things left to fix:
-
-    flip y axis
-    turn on alpha blending (search for TODO)
-    pymunk/chipmunkjs
-        Atom_for_shape
-    vector math
-
-    sfx
-    serialization
