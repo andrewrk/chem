@@ -31,6 +31,12 @@ img_path = userPath("./assets/img")
 spritesheet_out = userPath("./public/spritesheet.png")
 animations_json_out = userPath("./public/animations.json")
 
+all_out_files = [
+  client_out
+  spritesheet_out
+  animations_json_out
+]
+
 chem_client_src = [
   chemPath("./src/lib/vec2d.coffee")
   chemPath("./src/client/engine.coffee")
@@ -49,6 +55,36 @@ serveStaticFiles = (port) ->
   app.listen port
   console.info("Serving at http://localhost:#{port}")
 
+# when any one of these files change, call callback
+watchFiles = (files, cb) ->
+  for file in files
+    fs.watch file, (event, filename) ->
+      cb()
+
+watchSpritesheet = ->
+  # get list of files to watch
+  watch_files = [require.resolve(userPath("./chemfile"))]
+  # get list of all image files
+  {animations} = require(userPath('./chemfile'))
+  for name, anim of animations
+    for file in anim.frames
+      watch_files.push userPath("./assets/img/#{file}")
+  # redo the spritesheet when any files change
+  recompile = ->
+    createSpritesheet()
+    timestamp = (new Date()).toLocaleTimeString()
+    console.info "#{timestamp} - generated #{spritesheet_out}"
+    console.info "#{timestamp} - generated #{animations_json_out}"
+  watchFiles watch_files, recompile
+  recompile()
+
+
+
+forceRequire = (module_path) ->
+  resolved_path = require.resolve(module_path)
+  delete require.cache[resolved_path]
+  require(module_path)
+
 createSpritesheet = ->
   Canvas = require('canvas')
   Image = Canvas.Image
@@ -56,7 +92,7 @@ createSpritesheet = ->
   {Spritesheet} = require(chemPath('./lib/spritesheet'))
   # gather data about all image files
   # and place into array
-  {_default, animations} = require(userPath('./chemfile'))
+  {_default, animations} = forceRequire(userPath('./chemfile'))
   frame_list = []
   for name, anim of animations
     # apply the default animation properties
@@ -131,11 +167,9 @@ tasks =
   dev: (args, options) ->
     serveStaticFiles(options.port or 10308)
     compileClientSource('w')
-  spritesheet: createSpritesheet
+    watchSpritesheet()
   clean: ->
-    exec 'rm', ['-f', 'public/game.js']
-    exec 'rm', ['-f', 'public/animations.json']
-    exec 'rm', ['-f', 'public/spritesheet.png']
+    exec 'rm', ['-f'].concat(all_out_files)
 
 exports.run = ->
   cmd = process.argv[2]

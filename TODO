@@ -3,8 +3,6 @@
 * sprite on_animation_end
 * sfx
 
-* do the spritesheet generation automatically when changes are detected to
-  chemfile or any of the images referenced by the chemfile
 * parse named command line parameters
 * asset loading progress indication
 * requestAnimationFrame?
