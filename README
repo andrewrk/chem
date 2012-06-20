@@ -1,86 +1,36 @@
-Dr. Chemical's Lab
-==================
+usage:
 
-Entry in PyWeek #14  <http://www.pyweek.org/14/>
-URL: http://pyweek.org/e/tboxthonton
-Team: T Box Thon Ton
-Members: superjoe, Squish
-License: see LICENSE
+    # install chem
+    sudo apt-get install libcairo2-dev
+    sudo npm install -g chem
 
+    # create a new project
+    chem init <your_project_name>
 
+    # run a development server which will automatically recompile your code,
+    # generate your spritesheets, and serve your assets
+    chem test
 
-"In Dr. Chem's Lab... physics struggles with YOU"
+set up dev environment:
 
+    sudo apt-get install libcairo2-dev
+    npm install .
+    
+while developing:
 
-Running the Game
-----------------
+    cake watch
+    # when you change assets
+    cake spritesheet
+    # run simple server to serve the assets
+    npm test
 
-    Install Dependencies on Ubuntu:
+things left to fix:
 
-        sudo apt-get install libavbin0 python-pip
-        sudo pip install pymunk pyglet
+    flip y axis
+    turn on alpha blending (search for TODO)
+    pymunk/chipmunkjs
+        Atom_for_shape
+    vector math
 
-    Install Dependencies on OSX:
-
-      If you don't have a C compiler set up, install XCode or this:
-
-        https://github.com/kennethreitz/osx-gcc-installer
-
-      Install pymunk from source:
-
-        svn checkout http://pymunk.googlecode.com/svn/trunk/ pymunk-read-only
-        cd pymunk-read-only
-        python setup.py build
-        python setup.py build_chipmunk
-        sudo python setup.py install
-
-      Install avbin:
-
-        If 32-bit:
-          wget https://github.com/downloads/AVbin/AVbin/avbin-darwin-x86-32-v8.tar.bz2
-          tar xjvf avbin-darwin-x86-32-v8.tar.bz2
-          cd avbin-darwin-x86-32-v8
-          ./install.sh
-        Else If 64-bit:
-          wget https://github.com/downloads/AVbin/AVbin/avbin-darwin-x86-64-v8.tar.bz2
-          tar xjvf avbin-darwin-x86-64-v8.tar.bz2
-          cd avbin-darwin-x86-64-v8
-          ./install.sh
-
-      Install pyglet from source:
-
-        hg clone https://pyglet.googlecode.com/hg/ pyglet
-        cd pyglet
-        python setup.py build
-        sudo python setup.py install
-
-    Install Dependencies on Windows:
-
-        Untested:
-
-            Install http://pyglet.googlecode.com/files/pyglet-1.1.4.msi
-            Install http://code.google.com/p/pymunk/downloads/list
-
-
-    Run:
-
-        python run_game.py
-
-    Alternate keyboard layouts:
-
-        python run_game.py --dvorak
-        python run_game.py --colemak
-
-    Disable networking (prevents crashes in 1player mode):
-
-        python run_game.py --survival
-
-    Disable sound efects (removes dependecy on AVBin):
-
-        python run_game.py --nofx
-
-
-How to Play the Game
---------------------
-
-    Start the game and click Controls. It will tell you how to play.
+    sfx
+    serialization

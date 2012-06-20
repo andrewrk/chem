@@ -1,2 +1,4 @@
-*.pyc
-node_modules
+public/game.js
+public/animations.json
+public/spritesheet.png
+node_modules/

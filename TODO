@@ -1,102 +1,12 @@
-* fix the bug that makes the game crash
-* sound effects
-  - atom collision
-  - landing on a surface
-  - atoms asploding
-* theme music
-* preview the atoms before they drop
-* set up to follow rules/instructions
+* respect loop property of animations
+* each animation should have its own time
+* sprite on_animation_end
+* sfx
 
-
-* weapons:
-  - uncork
-  - scissors
-  - acid
-  - radiation
-  - mess with gravity
-  - mess with mass
-
-
-
-
-
-Brainstorming:
-
-Weapons. These need icons as well as weapon-specific art.
-
- * Bomb / Explosive.
-
-   Drop this in the other player's tank and it will explode,
-   destroying bonds and generally causing chaos by shuffling things around.
-
-   Will also need art for the actual bomb that will be dropped, bonus points
-   if the fuse is animated.
-
-   Also need an explosion animation, but we can always use this stock explosion
-   animation that I have.
-
- * Some sort of thing that temporarily opens up a gap in the other player's
-   tank, causing atoms to leak out. On my scratch pad I drew some scissors,
-   but there's probably a better way to represent this weapon using the
-   mad science theme.
-
-   Cuts the side off tank temporarily, things leak out.
-
-   Can be used vertically or horizontally (maybe these are different powerups.
-   in fact, I think they should be.)
-
-   Allows attacking player to choose the location of the rip.
-
-   Level 1, 2, and 3 - higher levels open up bigger gaps.
-
-   Will need to figure out how selecting the position to cut should look.
-   Might need to change the background image, or pull part of it out
-   so we can treat it separately.
-
- * Acid (on my paper I drew a bubbly potion)
-
-   Pours into other player's tank, eroding atoms and destroying bonds.
-
-   Need art for the acid substance that you see falling into the tank.
-   I'm thinking it can be a different looking atom, and then bubbles
-   pop up and fade away along with the atoms it is eroding.
-
- * A Rock
-
-   Drop a bunch of these into the enemy tank because they take up space,
-   get in the way, and don't help them win.
-
- * Teleportation
-
-   Activate to teleport into enemy tank for a limited amount of time so you
-   can fuck up their shit.
-
-   Would be cool to have a flash and a cloud of smoke for effect. Pretty low
-   priority.
-
- * Radiation
-
-   Changes atom colors around randomly.
-
-   Really annoying.
-
-   $$$
-
-
-Defenses (also need icons and art) - very low priority at this point:
-
- * Double Bond
-
-   Doesn't break.
-
- * Steel Reinforced Walls
-
-   Can't use scissors or whatever on it.
-
- * Speed Boost
-
-   Makes you move faster.
-
- * Double Gun
-
-   Can stack up to 2 atoms instead of 1.
+* asset loading progress indication
+* requestAnimationFrame?
+* make animations.coffee declarations less redundant (the `frames` property)
+* implement removeListeners
+* firefox support?
+* joystick support?
+* get full list of keyboard keys
