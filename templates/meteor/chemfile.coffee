@@ -15,10 +15,13 @@ exports._default =
 exports.animations =
   meteor2:
     frames: ["meteor2.png"]
+    anchor: new Vec2d(0, 48)
   meteor:
     frames: ["meteor.png"]
+    anchor: new Vec2d(0, 24)
   ship:
     frames: ["ship.png"]
+    anchor: new Vec2d(0, 24)
   star:
     frames: ["star.png"]
   star2:

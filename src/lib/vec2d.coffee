@@ -1,4 +1,4 @@
-_exports = exports ? window
+_exports = exports ? (window.Chem ||= {})
 _exports.Vec2d = class Vec2d
   constructor: (x_or_pair, y) ->
     if y?

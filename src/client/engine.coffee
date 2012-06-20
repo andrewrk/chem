@@ -1,9 +1,10 @@
+Vec2d = Chem.Vec2d
+_exports = window.Chem ||= {}
+
 extend = (obj, args...) ->
   for arg in args
     obj[prop] = val for prop, val of arg
   obj
-
-Vec2d = window.Vec2d
 
 class EventEmitter
   constructor: ->
@@ -40,8 +41,10 @@ Key =
   Ctrl: 17
   Alt: 18
   Space: 32
-  MetaLeft: 91
-  MetaRight: 92
+  Left: 37
+  Up: 38
+  Right: 39
+  Down: 40
   1: 49
   2: 50
   3: 51
@@ -53,6 +56,8 @@ Key =
   R: 82
   S: 83
   W: 87
+  MetaLeft: 91
+  MetaRight: 92
   Comma: 188
 
 Mouse =
@@ -60,13 +65,22 @@ Mouse =
   Middle: 2
   Right: 3
 
+# map both Key and Mouse into Button
+_exports.Button = Button = {}
+key_offset = 0
+for name, val of Key
+  Button["Key_#{name}"] = key_offset + val
+mouse_offset = 256
+for name, val of Mouse
+  Button["Mouse_#{name}"] = mouse_offset + val
+
 class Indexable
   @id_count = 0
 
   constructor: ->
     @id = Indexable.id_count++
 
-class Batch
+_exports.Batch = class Batch
   constructor: ->
     # indexed by zorder
     @sprites = []
@@ -77,7 +91,7 @@ class Batch
   remove: (sprite) ->
     delete (@sprites[sprite.zorder] ?= {})[sprite.id]
 
-class Sprite extends Indexable
+_exports.Sprite = class Sprite extends Indexable
   constructor: (animation, params) ->
     super
     o =
@@ -98,6 +112,9 @@ class Sprite extends Indexable
     @setAnimation animation
     @setVisible o.visible
 
+    # size of current frame, which does not take scale into account
+    @size = new Vec2d(animations[@animation].frames[0].size)
+
   setAnimation: (@animation) ->
     throw "bad sprite name" unless @animation
 
@@ -111,7 +128,7 @@ class Sprite extends Indexable
   delete: ->
     @batch.remove this
 
-class Chem extends EventEmitter
+_exports.Engine = class Engine extends EventEmitter
   target_fps = 60
   min_fps = 20
   target_spf = 1 / target_fps
@@ -119,20 +136,11 @@ class Chem extends EventEmitter
   schedule = (sec, cb) -> setInterval(cb, sec * 1000)
   unschedule = clearInterval
 
-  # map both Key and Mouse into Button
-  @Button = {}
-  key_offset = 0
-  for name, val of Key
-    @Button["Key_#{name}"] = key_offset + val
-  mouse_offset = 256
-  for name, val of Mouse
-    @Button["Mouse_#{name}"] = mouse_offset + val
-
-  @Sprite = Sprite
-  @Batch = Batch
-
   constructor: (@canvas) ->
     super
+    # add tabindex property to canvas so that it can receive keyboard input
+    @canvas.tabIndex = 0
+    
     @context = @canvas.getContext("2d")
     @size = new Vec2d(@canvas.width, @canvas.height)
 
@@ -141,7 +149,6 @@ class Chem extends EventEmitter
     @canvas.height = @size.y
 
   start: ->
-    @loadAssetsOnce()
     @attachListeners()
     @startMainLoop()
 
@@ -162,7 +169,7 @@ class Chem extends EventEmitter
 
     for sprites in batch.sprites
       for id, sprite of sprites
-        animation = @animations[sprite.animation]
+        animation = animations[sprite.animation]
         anim_duration = animation.delay * animation.frames.length
         frame_index = Math.floor((total_time % anim_duration) / animation.delay)
         frame = animation.frames[frame_index]
@@ -170,7 +177,7 @@ class Chem extends EventEmitter
         @context.translate sprite.pos.x, sprite.pos.y
         @context.scale sprite.scale.x, sprite.scale.y
         @context.rotate sprite.rotation
-        @context.drawImage @spritesheet, frame.pos.x, frame.pos.y, \
+        @context.drawImage spritesheet, frame.pos.x, frame.pos.y, \
           frame.size.x, frame.size.y, \
           -animation.anchor.x, -animation.anchor.y, \
           frame.size.x, frame.size.y
@@ -204,8 +211,7 @@ class Chem extends EventEmitter
 
       multiplier = delta / target_spf
       @callUpdate delta, multiplier
-      if @assetsLoaded
-        @emit 'draw', @context
+      @emit 'draw', @context
       fps_count += 1
 
       if fps_time_passed >= fps_refresh_rate
@@ -219,40 +225,9 @@ class Chem extends EventEmitter
     @btn_just_pressed = {}
     return
 
-  loadAssetsOnce: ->
-    # once
-    if @assetsRequested
-      return
-    @assetsRequested = true
-
-    # set @assetsLoaded after all assets are done loading
-    spritesheet_done = false
-    animations_json_done = false
-    checkDoneLoading = =>
-      if spritesheet_done and animations_json_done
-        @assetsLoaded = true
-
-    # get the spritesheet
-    @spritesheet = new Image()
-    @spritesheet.src = "spritesheet.png"
-    @spritesheet.onload = ->
-      spritesheet_done = true
-      checkDoneLoading()
-
-    # get the animations.json file
-    request = new XMLHttpRequest()
-    request.onreadystatechange = =>
-      return unless request.readyState is 4 and request.status is 200
-      @animations = JSON.parse(request.responseText)
-      animations_json_done = true
-      checkDoneLoading()
-    request.open("GET", "animations.json", true)
-    request.send()
-
-    return
-
   attachListeners: ->
     @button_states = {}
+    window._debug_button_state = this.button_states
     @btn_just_pressed = {}
 
     # disable right click context menu
@@ -268,8 +243,9 @@ class Chem extends EventEmitter
     @canvas.addEventListener 'mousemove', (event) ->
       forwardMouseEvent 'mousemove', event
     @canvas.addEventListener 'mousedown', (event) =>
-      @button_states[mouse_offset + event.which] = true
-      @btn_just_pressed[mouse_offset + event.which] = true
+      button_id = mouse_offset + event.which
+      @button_states[button_id] = true
+      @btn_just_pressed[button_id] = true
 
       forwardMouseEvent 'mousedown', event
     @canvas.addEventListener 'mouseup', (event) =>
@@ -278,17 +254,21 @@ class Chem extends EventEmitter
       forwardMouseEvent 'mouseup', event
 
     # keyboard input
-    window.addEventListener 'keydown', (event) =>
-      @button_states[key_offset + event.which] = true
-      @btn_just_pressed[key_offset + event.which] = true
+    @canvas.addEventListener 'keydown', (event) =>
+      button_id = key_offset + event.which
+      @button_states[button_id] = true
+      @btn_just_pressed[button_id] = true
 
-      @emit 'keydown', key_offset + event.which
-    window.addEventListener 'keyup', (event) =>
-      @button_states[key_offset + event.which] = false
+      @emit 'keydown', button_id
+      event.preventDefault()
+      false
+    @canvas.addEventListener 'keyup', (event) =>
+      button_id = key_offset + event.which
+      @button_states[button_id] = false
 
-      @emit 'keyup', key_offset + event.which
-
-
+      @emit 'keyup', button_id
+      event.preventDefault()
+      false
 
   removeListeners: ->
     # TODO
@@ -296,4 +276,44 @@ class Chem extends EventEmitter
   stopMainLoop: ->
     unschedule @interval
 
-window.Chem = Chem
+# load assets
+spritesheet = null
+animations = null
+do ->
+  on_ready_queue = []
+  _exports.onReady = (cb) ->
+    if assets_loaded
+      cb()
+    else
+      on_ready_queue.push cb
+    return
+
+  # set assets_loaded after all assets are done loading
+  assets_loaded = false
+  spritesheet_done = false
+  animations_json_done = false
+  checkDoneLoading = ->
+    if spritesheet_done and animations_json_done
+      assets_loaded = true
+      cb() for cb in on_ready_queue
+    return
+
+  # get the spritesheet
+  spritesheet = new Image()
+  spritesheet.src = "spritesheet.png"
+  spritesheet.onload = ->
+    spritesheet_done = true
+    checkDoneLoading()
+
+  # get the animations.json file
+  request = new XMLHttpRequest()
+  request.onreadystatechange = ->
+    return unless request.readyState is 4 and request.status is 200
+    animations = JSON.parse(request.responseText)
+    animations_json_done = true
+    checkDoneLoading()
+  request.open("GET", "animations.json", true)
+  request.send()
+
+  return
+

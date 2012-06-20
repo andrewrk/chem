@@ -3,6 +3,7 @@
 * sprite on_animation_end
 * sfx
 
+* scope wrap each client source file before joining
 * parse named command line parameters
 * asset loading progress indication
 * requestAnimationFrame?
