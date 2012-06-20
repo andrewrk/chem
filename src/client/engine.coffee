@@ -3,6 +3,8 @@ extend = (obj, args...) ->
     obj[prop] = val for prop, val of arg
   obj
 
+Vec2d = window.Vec2d
+
 class EventEmitter
   constructor: ->
     @event_handlers = {}
@@ -109,7 +111,7 @@ class Sprite extends Indexable
   delete: ->
     @batch.remove this
 
-class Engine extends EventEmitter
+class Chem extends EventEmitter
   target_fps = 60
   min_fps = 20
   target_spf = 1 / target_fps
@@ -294,3 +296,4 @@ class Engine extends EventEmitter
   stopMainLoop: ->
     unschedule @interval
 
+window.Chem = Chem

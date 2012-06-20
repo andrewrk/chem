@@ -1,6 +1,9 @@
 fs = require('fs')
 path = require('path')
 
+# allows us to require .coffee files
+require('coffee-script')
+
 {spawn} = require("child_process")
 exec = (cmd, args=[], cb=->) ->
   bin = spawn(cmd, args)
@@ -10,15 +13,32 @@ exec = (cmd, args=[], cb=->) ->
     process.stderr.write data
   bin.on 'exit', cb
 
-compile = (cb) -> cb()
+chemPath = (file) ->
+  path.join(path.dirname(fs.realpathSync(__filename)), "..", file)
+
+userPath = (file) ->
+  path.join(process.cwd(), file)
+
+coffee = chemPath("./node_modules/coffee-script/bin/coffee")
+client_out = userPath("./public/game.js")
+spritesheet_out = userPath("./public/spritesheet.png")
+animations_json_out = userPath("./public/animations.json")
+
+chem_client_src = [
+  chemPath("./src/lib/vec2d.coffee")
+  chemPath("./src/client/engine.coffee")
+]
+
+compileClientSource = (watch_flag="") ->
+  {sources} = require(userPath("./chemfile"))
+  exec coffee, ["-#{watch_flag}cj", client_out].concat(chem_client_src).concat(sources)
 
 serveStaticFiles = (port) ->
   node_static = require('node-static')
   http = require('http')
   file_server = new node_static.Server("./public")
   app = http.createServer (request, response) ->
-    compile ->
-      file_server.serve request, response
+    file_server.serve request, response
   app.listen port
   console.info("Serving at http://localhost:#{port}")
 
@@ -45,13 +65,13 @@ tasks =
       process.exit(1)
       return
 
-    template_path = "../templates/#{template}"
-    src = path.join(path.dirname(fs.realpathSync(__filename)), template_path)
+    src = chemPath("templates/#{template}")
 
     # copy files from template to project_name
     exec 'cp', ['-r', src, project_name]
   dev: (args, options) ->
     serveStaticFiles(options.port or 10308)
+    compileClientSource('w')
 
 exports.run = ->
   cmd = process.argv[2]
@@ -62,17 +82,6 @@ exports.run = ->
     tasks.help([], {})
 
 ###
-client_src = [
-  "vec2d.coffee"
-  "engine.coffee"
-  "game.coffee"
-]
-client_out = "./public/game.js"
-spritesheet_out = "./public/spritesheet.png"
-animations_json_out = "./public/animations.json"
-
-
-coffee = "./node_modules/coffee-script/bin/coffee"
 img_path = "./assets/img"
 
 extend = (obj, args...) ->
@@ -90,7 +99,7 @@ fs = require('fs')
 createSpritesheet = ->
   # gather data about all image files
   # and place into array
-  {_default, animations} = require("./animations")
+  {_default, animations} = require("./chem")
   frame_list = []
   for name, anim of animations
     # apply the default animation properties

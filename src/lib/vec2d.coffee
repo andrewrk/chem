@@ -1,4 +1,5 @@
-class Vec2d
+_exports = exports ? window
+_exports.Vec2d = class Vec2d
   constructor: (x_or_pair, y) ->
     if y?
       @x = x_or_pair
@@ -79,5 +80,3 @@ class Vec2d
     this
   distanceSqrd: (other) -> Math.pow(@x - other.x, 2) + Math.pow(@y - other.y, 2)
   distance: (other) -> Math.sqrt(@distanceSqrd(other))
-
-exports?.Vec2d = Vec2d

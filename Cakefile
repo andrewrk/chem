@@ -10,8 +10,8 @@ exec = (cmd, args=[], cb=->) ->
   bin.on 'exit', cb
 
 compile = (watch_flag="") ->
-  coffee_flags = "-#{watch_flag}co"
-  exec coffee, [coffee_flags, "./", "./src"]
+  coffee_flags = "-#{watch_flag}cbo"
+  exec coffee, [coffee_flags, "./lib/", "./src/lib/"]
 
 task 'watch', -> compile('w')
 
