@@ -1,10 +1,16 @@
 fs = require('fs')
 path = require('path')
-
+{spawn} = require("child_process")
 # allows us to require .coffee files
 require('coffee-script')
 
-{spawn} = require("child_process")
+extend = (obj, args...) ->
+  for arg in args
+    obj[prop] = val for prop, val of arg
+  obj
+
+sign = (n) -> if n > 0 then 1 else if n < 0 then -1 else 0
+
 exec = (cmd, args=[], cb=->) ->
   bin = spawn(cmd, args)
   bin.stdout.on 'data', (data) ->
@@ -21,6 +27,7 @@ userPath = (file) ->
 
 coffee = chemPath("./node_modules/coffee-script/bin/coffee")
 client_out = userPath("./public/game.js")
+img_path = userPath("./assets/img")
 spritesheet_out = userPath("./public/spritesheet.png")
 animations_json_out = userPath("./public/animations.json")
 
@@ -42,64 +49,14 @@ serveStaticFiles = (port) ->
   app.listen port
   console.info("Serving at http://localhost:#{port}")
 
-tasks =
-  help: ->
-    process.stderr.write """
-    Usage: 
-
-      # create a new project
-      chem init <your_project_name> [<template_name>]
-      # possible templates are: empty, meteor
-
-      # run a development server which will automatically recompile your code,
-      # generate your spritesheets, and serve your assets
-      chem dev
-
-    """
-  init: (args) ->
-    project_name = args[0]
-    template = args[1] or "meteor"
-
-    if not project_name?
-      tasks.help()
-      process.exit(1)
-      return
-
-    src = chemPath("templates/#{template}")
-
-    # copy files from template to project_name
-    exec 'cp', ['-r', src, project_name]
-  dev: (args, options) ->
-    serveStaticFiles(options.port or 10308)
-    compileClientSource('w')
-
-exports.run = ->
-  cmd = process.argv[2]
-  task = tasks[cmd]
-  if task?
-    task(process.argv.slice(3), {})
-  else
-    tasks.help([], {})
-
-###
-img_path = "./assets/img"
-
-extend = (obj, args...) ->
-  for arg in args
-    obj[prop] = val for prop, val of arg
-  obj
-
-sign = (n) -> if n > 0 then 1 else if n < 0 then -1 else 0
-
-Canvas = require('canvas')
-Image = Canvas.Image
-fs = require('fs')
-{Vec2d} = require('./vec2d')
-{Spritesheet} = require('./spritesheet')
 createSpritesheet = ->
+  Canvas = require('canvas')
+  Image = Canvas.Image
+  {Vec2d} = require(chemPath('./lib/vec2d'))
+  {Spritesheet} = require(chemPath('./lib/spritesheet'))
   # gather data about all image files
   # and place into array
-  {_default, animations} = require("./chem")
+  {_default, animations} = require(userPath('./chemfile'))
   frame_list = []
   for name, anim of animations
     # apply the default animation properties
@@ -144,14 +101,43 @@ createSpritesheet = ->
   # render json animation data
   fs.writeFileSync animations_json_out, JSON.stringify(animations, null, 4), 'utf8'
 
-task 'spritesheet', createSpritesheet
+tasks =
+  help: ->
+    process.stderr.write """
+    Usage: 
 
-compile = (watch_flag="") ->
-  exec coffee, ["-#{watch_flag}cbj", client_out].concat(client_src)
+      # create a new project
+      chem init <your_project_name> [<template_name>]
+      # possible templates are: empty, meteor
 
-task 'watch', -> compile('w')
+      # run a development server which will automatically recompile your code,
+      # generate your spritesheets, and serve your assets
+      chem dev
 
-task 'build', ->
-  compile()
-  createSpritesheet()
-###
+    """
+  init: (args) ->
+    project_name = args[0]
+    template = args[1] or "meteor"
+
+    if not project_name?
+      tasks.help()
+      process.exit(1)
+      return
+
+    src = chemPath("templates/#{template}")
+
+    # copy files from template to project_name
+    exec 'cp', ['-r', src, project_name]
+  dev: (args, options) ->
+    serveStaticFiles(options.port or 10308)
+    compileClientSource('w')
+  spritesheet: createSpritesheet
+
+exports.run = ->
+  cmd = process.argv[2]
+  task = tasks[cmd]
+  if task?
+    task(process.argv.slice(3), {})
+  else
+    tasks.help([], {})
+

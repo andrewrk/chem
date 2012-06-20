@@ -1,5 +1,10 @@
 {Vec2d} = require("chem")
 
+# sources are compiled and joined into one game.js file in this order
+exports.sources = [
+  'game.coffee'
+]
+
 exports._default =
   delay: 1
   loop: true
