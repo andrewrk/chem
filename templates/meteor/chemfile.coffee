@@ -14,13 +14,15 @@ exports._default =
 
 exports.animations =
   meteor2:
+    # frames can be a list of filenames or a string to match the beginning
+    # of files with
     frames: ["meteor2.png"]
     anchor: new Vec2d(0, 48)
   meteor:
     frames: ["meteor.png"]
     anchor: new Vec2d(0, 24)
   ship:
-    frames: ["ship.png"]
+    frames: "ship"
     anchor: new Vec2d(0, 24)
   star:
     frames: ["star.png"]
