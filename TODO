@@ -3,6 +3,7 @@
 * sprite on_animation_end
 * sfx
 
+* poll instead of fs.watch. fs.watch is limited to 128 or some shit
 * support multiple languages such as livescript and coco
 * handle named frames
 * handle duplicate filenames as frames
@@ -11,7 +12,6 @@
 * parse named command line parameters
 * asset loading progress indication
 * requestAnimationFrame?
-* make animations.coffee declarations less redundant (the `frames` property)
 * implement removeListeners
 * firefox support?
 * joystick support?

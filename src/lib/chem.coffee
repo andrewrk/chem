@@ -60,21 +60,16 @@ watchers = []
 watchFiles = (files, cb) ->
   watcher.close() for watcher in watchers
   watchers = []
+  success = true
   for file in files
     try
       watchers.push fs.watch(file, cb)
     catch error
       console.error "Image file not found: #{file}"
-  return
+      success = false
+  return success
 
 watchSpritesheet = ->
-  # get list of files to watch
-  watch_files = []
-  # get list of all image files
-  {animations} = require(userPath('./chemfile'))
-  for name, anim of animations
-    for file in anim.frames
-      watch_files.push userPath("./assets/img/#{file}")
   # redo the spritesheet when any files change
   recompile = ->
     createSpritesheet()
@@ -82,8 +77,22 @@ watchSpritesheet = ->
     console.info "#{timestamp} - generated #{spritesheet_out}"
     console.info "#{timestamp} - generated #{animations_json_out}"
   rewatch = ->
-    watchFiles watch_files, recompile
-    recompile()
+    # get list of files to watch
+    watch_files = []
+    # get list of all image files
+    {animations} = forceRequire(userPath('./chemfile'))
+    all_img_files = getAllImgFiles()
+    success = true
+    for name, anim of animations
+      files = filesFromAnimFrames(anim.frames, name, all_img_files)
+      if files.length is 0
+        console.error "animation `#{name}` has no frames"
+        success = false
+        continue
+      for file in files
+        watch_files.push path.join(img_path, file)
+    if watchFiles(watch_files, recompile) and success
+      recompile()
   # when chemfile changes, recompile and rewatch
   chemfile_path = require.resolve(userPath("./chemfile"))
   fs.watch chemfile_path, rewatch
@@ -95,6 +104,33 @@ forceRequire = (module_path) ->
   delete require.cache[resolved_path]
   require(module_path)
 
+walk = (dir) ->
+  results = []
+  processDir = (full_path, part_path) ->
+    for file in fs.readdirSync(full_path)
+      full_file = path.join(full_path, file)
+      part_file = path.join(part_path, file)
+      stat = fs.statSync(full_file)
+      if stat.isDirectory()
+        processDir(full_file, part_file)
+      else
+        results.push part_file
+  processDir(dir, "")
+  results
+
+cmpStr = (a, b) -> if a < b then -1 else if a > b then 1 else 0
+
+getAllImgFiles = -> walk(img_path)
+
+filesFromAnimFrames = (frames, anim_name, all_img_files) ->
+  frames ?= anim_name
+  if typeof frames is 'string'
+    files = (img for img in all_img_files when img.indexOf(frames) is 0)
+    files.sort cmpStr
+    return files
+  else
+    return frames
+
 createSpritesheet = ->
   Canvas = require('canvas')
   Image = Canvas.Image
@@ -104,17 +140,18 @@ createSpritesheet = ->
   # and place into array
   {_default, animations} = forceRequire(userPath('./chemfile'))
   frame_list = []
+  all_img_files = getAllImgFiles()
   for name, anim of animations
     # apply the default animation properties
     animations[name] = anim = extend {}, _default, anim
 
     # change the frames array into an array of objects
-    files = anim.frames
+    files = filesFromAnimFrames(anim.frames, name, all_img_files)
     anim.frames = []
 
     for file in files
       image = new Image()
-      image.src = fs.readFileSync("#{img_path}/#{file}")
+      image.src = fs.readFileSync(path.join(img_path, file))
       frame =
         image: image
         size: new Vec2d(image.width, image.height)
