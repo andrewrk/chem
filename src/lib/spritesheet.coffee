@@ -1,5 +1,19 @@
 {Vec2d} = require('./vec2d')
 
+byReverseHeightThenFilename = (a, b) ->
+  diff = b.size.y - a.size.y
+  if diff is 0
+    if b.filename > a.filename then 1 else -1
+  else
+    diff
+
+byXThenY = (a, b) ->
+  diff = a.x - b.x
+  if diff is 0
+    a.y - b.y
+  else
+    diff
+
 exports.Spritesheet = class Spritesheet
   # a list of objects that have a .size and a .filename
   constructor: (@image_list) ->
@@ -7,20 +21,13 @@ exports.Spritesheet = class Spritesheet
   # figure out where to place each image in the sprite sheet
   # sets the .pos such that they are in a spritesheet
   calculatePositions: ->
-    # reverse sort by height, filename
-    @image_list.sort (a, b) ->
-      diff = b.size.y - a.size.y
-      if diff is 0
-        if b.filename > a.filename then 1 else -1
-      else
-        diff
+    @image_list.sort byReverseHeightThenFilename
 
     @size = new Vec2d()
     positions = []
 
     for image, image_i in @image_list
-      # keep positions sorted by x
-      positions.sort (a, b) -> a.x - b.x
+      positions.sort byXThenY
 
       image.pos = do =>
         for pos, pos_i in positions
