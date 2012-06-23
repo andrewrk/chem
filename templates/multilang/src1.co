@@ -1,0 +1,5 @@
+
+lalala = true
+do !->
+  lalala := false
+  console.log "hello from coco"

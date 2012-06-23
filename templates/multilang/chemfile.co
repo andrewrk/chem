@@ -1,0 +1,24 @@
+{Vec2d} = require("chem")
+
+# sources are compiled and joined into one game.js file in this order
+exports.sources = [
+  'src1.co'
+  'src2.ls'
+  'src3.js'
+  'src4.coffee'
+]
+
+exports._default =
+  delay: 1
+  loop: true
+  offset: new Vec2d(0, 0)
+  # possible values: a Vec2d instance, or "center"
+  anchor: "center"
+
+exports.animations =
+  animation_name:
+    # frames can be a list of filenames or a string to match the beginning
+    # of files with
+    frames: "img_file"
+    # you can override defaults here
+    loop: false

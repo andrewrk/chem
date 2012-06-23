@@ -4,10 +4,8 @@
 * sfx
 
 * poll instead of fs.watch. fs.watch is limited to 128 or some shit
-* support multiple languages such as livescript and coco
 * handle named frames
 * handle duplicate filenames as frames
-* scope wrap each client source file before joining
 * parse named command line parameters
 * asset loading progress indication
 * requestAnimationFrame?

@@ -1,8 +1,54 @@
 fs = require('fs')
 path = require('path')
+util = require('util')
 {spawn} = require("child_process")
-# allows us to require .coffee files
-require('coffee-script')
+
+chemPath = (file) ->
+  path.join(path.dirname(fs.realpathSync(__filename)), "..", file)
+
+userPath = (file) ->
+  path.join(process.cwd(), file)
+
+client_out = userPath("./public/game.js")
+img_path = userPath("./assets/img")
+spritesheet_out = userPath("./public/spritesheet.png")
+animations_json_out = userPath("./public/animations.json")
+
+fileCopy = (src, dest, flags, cb) ->
+  in_stream = fs.createReadStream(src)
+  out_stream = fs.createWriteStream(dest, flags: flags)
+  util.pump(in_stream, out_stream, cb)
+
+fileDelete = (file_path) -> try fs.unlinkSync(file_path)
+
+compilers =
+  coffee:
+    require: 'coffee-script'
+    compile: (src, dest, cb) ->
+      exec 'coffee', ['-cj', dest, src], cb
+  co:
+    require: 'coco'
+    compile: (src, dest, cb) ->
+      exec 'coco', ['-cj', dest, src], cb
+  ls:
+    require: 'LiveScript'
+    compile: (src, dest, cb) ->
+      exec 'livescript', ['-cj', dest, src], cb
+  js:
+    require: null
+    compile: (src, dest, cb) ->
+      fileCopy src, dest, 'w', cb
+
+chem_client_src = [
+  chemPath("./src/lib/vec2d.coffee")
+  chemPath("./src/client/engine.coffee")
+]
+
+all_out_files = [
+  client_out
+  spritesheet_out
+  animations_json_out
+]
 
 extend = (obj, args...) ->
   for arg in args
@@ -19,32 +65,50 @@ exec = (cmd, args=[], cb=->) ->
     process.stderr.write data
   bin.on 'exit', cb
 
-chemPath = (file) ->
-  path.join(path.dirname(fs.realpathSync(__filename)), "..", file)
-
-userPath = (file) ->
-  path.join(process.cwd(), file)
-
-coffee = chemPath("./node_modules/coffee-script/bin/coffee")
-client_out = userPath("./public/game.js")
-img_path = userPath("./assets/img")
-spritesheet_out = userPath("./public/spritesheet.png")
-animations_json_out = userPath("./public/animations.json")
-
-all_out_files = [
-  client_out
-  spritesheet_out
-  animations_json_out
-]
-
-chem_client_src = [
-  chemPath("./src/lib/vec2d.coffee")
-  chemPath("./src/client/engine.coffee")
-]
+compilerFromPath = (filepath) ->
+  if not filepath?
+    return null
+  ext = path.extname(filepath)
+  if ext.length <= 1
+    return null
+  lang = ext.substring(1)
+  compilers[lang]
 
 compileClientSource = (watch_flag="") ->
-  {sources} = require(userPath("./chemfile"))
-  exec coffee, ["-#{watch_flag}cj", client_out].concat(chem_client_src).concat(sources)
+  # figure out the path to the user's chemfile
+  chemfile = do ->
+    for file in fs.readdirSync(userPath("."))
+      if file.indexOf("chemfile.") == 0
+        return file
+    return null
+  if not (chemfile_compiler = compilerFromPath(chemfile))?
+    console.error "Missing chemfile or unrecognized chemfile extension."
+    return
+
+  if chemfile_compiler.require?
+    # allows us to parse the chemfile regardless of language
+    require(chemfile_compiler.require)
+
+  {sources} = forceRequire(userPath("./chemfile"))
+  all_sources = chem_client_src.concat(sources)
+  tempfile = "#{client_out}.tmp.js"
+  fileDelete client_out
+  compileNext = ->
+    if not (src = all_sources.shift())?
+      timestamp = (new Date()).toLocaleTimeString()
+      fileDelete tempfile
+      console.info "#{timestamp} - generated #{client_out}"
+    else
+      compiler = compilerFromPath(src)
+      if not compiler?
+        console.error "Unrecognized file extension for #{src}"
+        return
+      console.log "compile", src
+      compiler.compile src, tempfile, appendNext
+  appendNext = ->
+    fileCopy tempfile, client_out, 'a', compileNext
+
+  compileNext()
 
 serveStaticFiles = (port) ->
   node_static = require('node-static')
