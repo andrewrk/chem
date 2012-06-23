@@ -3,6 +3,9 @@
 * sprite on_animation_end
 * sfx
 
+* support multiple languages such as livescript and coco
+* handle named frames
+* handle duplicate filenames as frames
 * npm install -g chem doesn't work
 * scope wrap each client source file before joining
 * parse named command line parameters

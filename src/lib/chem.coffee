@@ -56,14 +56,20 @@ serveStaticFiles = (port) ->
   console.info("Serving at http://localhost:#{port}")
 
 # when any one of these files change, call callback
+watchers = []
 watchFiles = (files, cb) ->
+  watcher.close() for watcher in watchers
+  watchers = []
   for file in files
-    fs.watch file, (event, filename) ->
-      cb()
+    try
+      watchers.push fs.watch(file, cb)
+    catch error
+      console.error "Image file not found: #{file}"
+  return
 
 watchSpritesheet = ->
   # get list of files to watch
-  watch_files = [require.resolve(userPath("./chemfile"))]
+  watch_files = []
   # get list of all image files
   {animations} = require(userPath('./chemfile'))
   for name, anim of animations
@@ -75,10 +81,14 @@ watchSpritesheet = ->
     timestamp = (new Date()).toLocaleTimeString()
     console.info "#{timestamp} - generated #{spritesheet_out}"
     console.info "#{timestamp} - generated #{animations_json_out}"
-  watchFiles watch_files, recompile
-  recompile()
-
-
+  rewatch = ->
+    watchFiles watch_files, recompile
+    recompile()
+  # when chemfile changes, recompile and rewatch
+  chemfile_path = require.resolve(userPath("./chemfile"))
+  fs.watch chemfile_path, rewatch
+  # always compile and watch on first run
+  rewatch()
 
 forceRequire = (module_path) ->
   resolved_path = require.resolve(module_path)
