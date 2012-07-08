@@ -12,6 +12,7 @@ exec = (cmd, args=[], cb=->) ->
 compile = (watch_flag="") ->
   coffee_flags = "-#{watch_flag}cbo"
   exec coffee, [coffee_flags, "./lib/", "./src/lib/"]
+  exec coffee, [coffee_flags, "./lib/", "./src/shared/"]
 
 task 'watch', -> compile('w')
 

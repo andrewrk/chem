@@ -3,46 +3,60 @@ path = require('path')
 util = require('util')
 {spawn} = require("child_process")
 
+compilers =
+  '.coffee':
+    require: 'coffee-script'
+  '.co':
+    require: 'coco'
+  '.ls':
+    require: 'LiveScript'
+  '.js':
+    require: null
+
+compilerFromPath = (filepath) ->
+  if not filepath?
+    return null
+  ext = path.extname(filepath)
+  compilers[ext]
+
+chemfile_path = null
+getChemfilePath = ->
+  if chemfile_path?
+    return chemfile_path
+
+  chemfile_path = do ->
+    for file in fs.readdirSync(userPath("."))
+      if file.indexOf("chemfile.") == 0
+        return file
+    return null
+
+  # figure out the path to the user's chemfile
+  if not (chemfile_compiler = compilerFromPath(chemfile_path))?
+    console.error "Missing chemfile or unrecognized chemfile extension."
+    return null
+
+  if chemfile_compiler.require?
+    # allows us to parse the chemfile regardless of language
+    require(chemfile_compiler.require)
+
+  return chemfile_path
+
+forceRequireChemfile = ->
+  chem_path = path.resolve(getChemfilePath())
+  req_path = chem_path.substring(0, chem_path.length - path.extname(chem_path).length)
+  forceRequire(req_path)
+
+
 chemPath = (file) ->
   path.join(path.dirname(fs.realpathSync(__filename)), "..", file)
 
 userPath = (file) ->
   path.join(process.cwd(), file)
 
-client_out = userPath("./public/game.js")
+client_out = userPath("./public/main.js")
 img_path = userPath("./assets/img")
 spritesheet_out = userPath("./public/spritesheet.png")
 animations_json_out = userPath("./public/animations.json")
-
-fileCopy = (src, dest, flags, cb) ->
-  in_stream = fs.createReadStream(src)
-  out_stream = fs.createWriteStream(dest, flags: flags)
-  util.pump(in_stream, out_stream, cb)
-
-fileDelete = (file_path) -> try fs.unlinkSync(file_path)
-
-compilers =
-  coffee:
-    require: 'coffee-script'
-    compile: (src, dest, cb) ->
-      exec 'coffee', ['-cj', dest, src], cb
-  co:
-    require: 'coco'
-    compile: (src, dest, cb) ->
-      exec 'coco', ['-cj', dest, src], cb
-  ls:
-    require: 'LiveScript'
-    compile: (src, dest, cb) ->
-      exec 'livescript', ['-cj', dest, src], cb
-  js:
-    require: null
-    compile: (src, dest, cb) ->
-      fileCopy src, dest, 'w', cb
-
-chem_client_src = [
-  chemPath("./src/lib/vec2d.coffee")
-  chemPath("./src/client/engine.coffee")
-]
 
 all_out_files = [
   client_out
@@ -65,50 +79,19 @@ exec = (cmd, args=[], cb=->) ->
     process.stderr.write data
   bin.on 'exit', cb
 
-compilerFromPath = (filepath) ->
-  if not filepath?
-    return null
-  ext = path.extname(filepath)
-  if ext.length <= 1
-    return null
-  lang = ext.substring(1)
-  compilers[lang]
-
-compileClientSource = (watch_flag="") ->
-  # figure out the path to the user's chemfile
-  chemfile = do ->
-    for file in fs.readdirSync(userPath("."))
-      if file.indexOf("chemfile.") == 0
-        return file
-    return null
-  if not (chemfile_compiler = compilerFromPath(chemfile))?
-    console.error "Missing chemfile or unrecognized chemfile extension."
-    return
-
-  if chemfile_compiler.require?
-    # allows us to parse the chemfile regardless of language
-    require(chemfile_compiler.require)
-
-  {sources} = forceRequire(userPath("./chemfile"))
-  all_sources = chem_client_src.concat(sources)
-  tempfile = "#{client_out}.tmp.js"
-  fileDelete client_out
-  compileNext = ->
-    if not (src = all_sources.shift())?
+compileClientSource = (options) ->
+  {compile} = require('jspackage')
+  options.mainfile = userPath("./src/main")
+  options.libs = [
+    chemPath("./src/shared/")
+    chemPath("./src/client/")
+  ]
+  compile options, (err, compiled_code) ->
+    if err
       timestamp = (new Date()).toLocaleTimeString()
-      fileDelete tempfile
-      console.info "#{timestamp} - generated #{client_out}"
-    else
-      compiler = compilerFromPath(src)
-      if not compiler?
-        console.error "Unrecognized file extension for #{src}"
-        return
-      console.log "compile", src
-      compiler.compile src, tempfile, appendNext
-  appendNext = ->
-    fileCopy tempfile, client_out, 'a', compileNext
-
-  compileNext()
+      console.error "#{timestamp} - error: #{err}"
+      return
+    fs.writeFile(client_out, compiled_code, 'utf8')
 
 serveStaticFiles = (port) ->
   node_static = require('node-static')
@@ -144,7 +127,7 @@ watchSpritesheet = ->
     # get list of files to watch
     watch_files = []
     # get list of all image files
-    {animations} = forceRequire(userPath('./chemfile'))
+    {animations} = forceRequireChemfile()
     all_img_files = getAllImgFiles()
     success = true
     for name, anim of animations
@@ -158,8 +141,7 @@ watchSpritesheet = ->
     if watchFiles(watch_files, recompile) and success
       recompile()
   # when chemfile changes, recompile and rewatch
-  chemfile_path = require.resolve(userPath("./chemfile"))
-  fs.watch chemfile_path, rewatch
+  fs.watch getChemfilePath(), rewatch
   # always compile and watch on first run
   rewatch()
 
@@ -202,7 +184,7 @@ createSpritesheet = ->
   {Spritesheet} = require(chemPath('./lib/spritesheet'))
   # gather data about all image files
   # and place into array
-  {_default, animations} = forceRequire(userPath('./chemfile'))
+  {_default, animations} = forceRequireChemfile()
   frame_list = []
   all_img_files = getAllImgFiles()
   for name, anim of animations
@@ -277,7 +259,7 @@ tasks =
     exec 'cp', ['-r', src, project_name]
   dev: (args, options) ->
     serveStaticFiles(options.port or 10308)
-    compileClientSource('w')
+    compileClientSource(watch: true)
     watchSpritesheet()
   clean: ->
     exec 'rm', ['-f'].concat(all_out_files)

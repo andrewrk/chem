@@ -1,3 +1,5 @@
+#import "chem"
+
 {Vec2d, Engine, Sprite, Batch} = Chem
 
 randInt = (min, max) -> Math.floor(min + Math.random() * (max - min + 1))

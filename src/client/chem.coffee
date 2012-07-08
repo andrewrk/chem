@@ -1,3 +1,5 @@
+#import "vec2d"
+
 Vec2d = Chem.Vec2d
 _exports = window.Chem ||= {}
 
