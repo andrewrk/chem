@@ -3,6 +3,7 @@
 * sprite on_animation_end
 * sfx
 
+* watching is broken
 * poll instead of fs.watch. fs.watch is limited to 128 or some shit
 * handle named frames
 * handle duplicate filenames as frames
