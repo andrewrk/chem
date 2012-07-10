@@ -1,4 +1,4 @@
-#import "chem"
+#depend "chem"
 
 {Vec2d, Engine, Sprite, Batch} = Chem
 
