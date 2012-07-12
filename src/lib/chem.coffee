@@ -97,7 +97,8 @@ compileClientSource = (options) ->
 serveStaticFiles = (port) ->
   node_static = require('node-static')
   http = require('http')
-  file_server = new node_static.Server("./public")
+  public_dir = userPath("./public")
+  file_server = new node_static.Server(public_dir)
   app = http.createServer (request, response) ->
     file_server.serve request, response
   app.listen port
