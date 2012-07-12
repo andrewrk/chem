@@ -33,6 +33,7 @@ getChemfilePath = ->
   # figure out the path to the user's chemfile
   if not (chemfile_compiler = compilerFromPath(chemfile_path))?
     console.error "Missing chemfile or unrecognized chemfile extension."
+    process.exit(-1)
     return null
 
   if chemfile_compiler.require?
