@@ -82,8 +82,9 @@ exec = (cmd, args=[], cb=->) ->
 
 compileClientSource = (options) ->
   {compile} = require('jspackage')
-  options.mainfile = userPath("./src/main")
-  options.libs = [
+  {libs, main} = forceRequireChemfile()
+  options.mainfile = userPath(main)
+  options.libs = (userPath(l) for l in libs).concat [
     chemPath("./src/shared/")
     chemPath("./src/client/")
   ]
