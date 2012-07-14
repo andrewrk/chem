@@ -17,9 +17,10 @@ usage:
 set up dev environment for chem itself:
 
     sudo apt-get install libcairo2-dev
+    npm install .
     sudo npm link
     
 while developing:
 
-    cake watch
+    npm run-script dev
 

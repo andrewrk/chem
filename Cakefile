@@ -1,5 +1,7 @@
-coffee = "./node_modules/coffee-script/bin/coffee"
 {spawn} = require("child_process")
+
+coffee = "coffee"
+coco = "coco"
 
 exec = (cmd, args=[], cb=->) ->
   bin = spawn(cmd, args)
@@ -13,6 +15,10 @@ compile = (watch_flag="") ->
   coffee_flags = "-#{watch_flag}cbo"
   exec coffee, [coffee_flags, "./lib/", "./src/lib/"]
   exec coffee, [coffee_flags, "./lib/", "./src/shared/"]
+
+  coco_flags = coffee_flags
+  exec coco, [coco_flags, "./lib/", "./src/lib/"]
+  exec coco, [coco_flags, "./lib/", "./src/shared/"]
 
 task 'watch', -> compile('w')
 

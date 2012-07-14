@@ -1,7 +1,8 @@
 fs = require('fs')
 path = require('path')
 util = require('util')
-{spawn} = require("child_process")
+{spawn} = require('child_process')
+{watchFilesOnce} = require('./watch')
 
 compilers =
   '.coffee':
@@ -103,21 +104,7 @@ serveStaticFiles = (port) ->
   app = http.createServer (request, response) ->
     file_server.serve request, response
   app.listen port
-  console.info("Serving at http://localhost:#{port}")
-
-# when any one of these files change, call callback
-watchers = []
-watchFiles = (files, cb) ->
-  watcher.close() for watcher in watchers
-  watchers = []
-  success = true
-  for file in files
-    try
-      watchers.push fs.watch(file, cb)
-    catch error
-      console.error "Image file not found: #{file}"
-      success = false
-  return success
+  console.info("Serving at http://0.0.0.0:#{port}")
 
 watchSpritesheet = ->
   # redo the spritesheet when any files change
@@ -128,7 +115,7 @@ watchSpritesheet = ->
     console.info "#{timestamp} - generated #{animations_json_out}"
   rewatch = ->
     # get list of files to watch
-    watch_files = []
+    watch_files = [getChemfilePath()]
     # get list of all image files
     {animations} = forceRequireChemfile()
     all_img_files = getAllImgFiles()
@@ -141,10 +128,9 @@ watchSpritesheet = ->
         continue
       for file in files
         watch_files.push path.join(img_path, file)
-    if watchFiles(watch_files, recompile) and success
+    watchFilesOnce(watch_files, rewatch)
+    if success
       recompile()
-  # when chemfile changes, recompile and rewatch
-  fs.watch getChemfilePath(), rewatch
   # always compile and watch on first run
   rewatch()
 

@@ -1,0 +1,28 @@
+fs = require('fs')
+
+# emulates fs.watch
+const watchFileFallback = (filename, options, cb) ->
+  options.interval = 701
+  fs.watchFile filename, options, !(curr, prev) ->
+    if curr.mtime is not prev.mtime
+      cb \change, filename
+  return {close: -> fs.unwatchFile(filename)}
+
+const watchFile = fs.watch or watchFileFallback
+
+# when any one of these files change, call callback
+# and stop watching
+export const watchFilesOnce = !(files, cb) ->
+  const watchers = []
+  const doCallback = !(event) ->
+    if event is \change
+      watcher.close! for watcher of watchers
+      cb!
+  for file of files
+    try
+      watcher = fs.watch(file, doCallback)
+    catch err
+      watcher = watchFileFallback(file, doCallback)
+    watchers.push watcher
+
+
