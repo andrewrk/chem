@@ -1,0 +1,148 @@
+#depend "vec2d"
+#depend "event_emitter"
+#depend "button"
+#depend "helpers"
+
+const {
+  Vec2d
+  EventEmitter
+  Button
+  schedule
+} = _exports = Chem = window.Chem
+
+_exports.Engine = class Engine extends EventEmitter
+  const target_fps = 60
+  const min_fps = 20
+  const target_spf = 1 / target_fps
+
+  (@canvas) ->
+    super()
+    # add tabindex property to canvas so that it can receive keyboard input
+    @canvas.tabIndex = 0
+
+    @context = @canvas.getContext("2d")
+    @size = new Vec2d(@canvas.width, @canvas.height)
+
+  setSize: !(@size) ->
+    @canvas.width = @size.x
+    @canvas.height = @size.y
+
+  start: !->
+    @attachListeners()
+    @startMainLoop()
+
+  stop: !->
+    @stopMainLoop()
+    @removeListeners()
+
+  buttonState: (button) -> !!@button_states[button]
+  buttonJustPressed: (button) -> !!@btn_just_pressed[button]
+  mousePos: -> @mouse_pos
+
+  clear: !->
+    @context.clearRect 0, 0, @size.x, @size.y
+
+  draw: !(batch) ->
+    const now = new Date()
+
+    for sprites of batch.sprites
+      for id, sprite in sprites
+        const frame = sprite.animation.frames[sprite.getFrameIndex()]
+        @context.save()
+        @context.translate sprite.pos.x, sprite.pos.y
+        @context.scale sprite.scale.x, sprite.scale.y
+        @context.rotate sprite.rotation
+        @context.drawImage Chem.spritesheet, frame.pos.x, frame.pos.y, \
+          frame.size.x, frame.size.y, \
+          -sprite.animation.anchor.x, -sprite.animation.anchor.y, \
+          frame.size.x, frame.size.y
+        @context.restore()
+
+  drawFps: !->
+    return unless @fps?
+    @context.fillText "#{@fps} fps", 0, @size.y
+
+
+  # private
+  startMainLoop: !->
+    @main_loop_start_date = previous_update = new Date()
+    const max_frame_skips = target_fps - min_fps
+    fps_time_passed = 0
+    const fps_refresh_rate = 1
+    fps_count = 0
+    @interval = schedule target_spf, ~>
+      const now = new Date()
+      delta = (now - previous_update) / 1000
+      previous_update := now
+
+      fps_time_passed += delta
+
+      skip_count = 0
+      while delta > target_spf and skip_count < max_frame_skips
+        @callUpdate target_spf, 1
+        skip_count += 1
+        delta -= target_spf
+
+      const multiplier = delta / target_spf
+      @callUpdate delta, multiplier
+      @emit 'draw', @context
+      fps_count += 1
+
+      if fps_time_passed >= fps_refresh_rate
+        fps_time_passed = 0
+        @fps = fps_count / fps_refresh_rate
+        fps_count = 0
+
+  callUpdate: !(dt, dx) ->
+    @emit 'update', dt, dx
+    @btn_just_pressed = {}
+
+  attachListeners: !->
+    @button_states = {}
+    @btn_just_pressed = {}
+
+    # disable right click context menu
+    @canvas.addEventListener 'contextmenu', !(event) ->
+      event.preventDefault()
+
+    # mouse input
+    @mouse_pos = new Vec2d(0, 0)
+    forwardMouseEvent = !(name, event) ~>
+      @mouse_pos = new Vec2d(event.offsetX, event.offsetY)
+      @emit name, @mouse_pos, Button.MOUSE_OFFSET + event.which
+    @canvas.addEventListener 'mousemove', !(event) ->
+      forwardMouseEvent 'mousemove', event
+    @canvas.addEventListener 'mousedown', !(event) ~>
+      const button_id = Button.MOUSE_OFFSET + event.which
+      @button_states[button_id] = true
+      @btn_just_pressed[button_id] = true
+
+      forwardMouseEvent 'mousedown', event
+    @canvas.addEventListener 'mouseup', !(event) ~>
+      @button_states[Button.MOUSE_OFFSET + event.which] = false
+
+      forwardMouseEvent 'mouseup', event
+
+    # keyboard input
+    @canvas.addEventListener 'keydown', (event) ~>
+      const button_id = Button.KEY_OFFSET + event.which
+      @button_states[button_id] = true
+      @btn_just_pressed[button_id] = true
+
+      @emit 'keydown', button_id
+      event.preventDefault()
+      return false
+    @canvas.addEventListener 'keyup', (event) ~>
+      button_id = Button.KEY_OFFSET + event.which
+      @button_states[button_id] = false
+
+      @emit 'keyup', button_id
+      event.preventDefault()
+      return false
+
+  removeListeners: !->
+    # TODO
+
+  stopMainLoop: !->
+    @interval.cancel()
+

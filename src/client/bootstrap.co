@@ -1,0 +1,40 @@
+_exports = Chem = window.Chem ||= {}
+
+_exports.bootstrap = !->
+  # load assets
+  const on_ready_queue = []
+  _exports.onReady = !(cb) ->
+    if assets_loaded
+      cb()
+    else
+      on_ready_queue.push cb
+
+  # set assets_loaded after all assets are done loading
+  assets_loaded = false
+  spritesheet_done = false
+  animations_json_done = false
+  const checkDoneLoading = !->
+    if spritesheet_done and animations_json_done
+      assets_loaded := true
+      cb() for cb of on_ready_queue
+
+  # get the spritesheet
+  Chem.spritesheet = new Image()
+  Chem.spritesheet.src = "spritesheet.png"
+  Chem.spritesheet.onload = !->
+    spritesheet_done := true
+    checkDoneLoading()
+
+  # get the animations.json file
+  request = new XMLHttpRequest()
+  request.onreadystatechange = !->
+    return unless request.readyState is 4 and request.status is 200
+    Chem.animations = JSON.parse(request.responseText)
+    # cache some values so don't have to compute them all the time
+    for name, anim in Chem.animations
+      anim.duration = anim.delay * anim.frames.length
+      anim.name = name
+    animations_json_done := true
+    checkDoneLoading()
+  request.open("GET", "animations.json", true)
+  request.send()

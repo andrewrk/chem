@@ -1,0 +1,102 @@
+#depend "vec2d"
+#depend "helpers"
+#depend "event_emitter"
+
+const {
+  Vec2d
+  EventEmitter
+  schedule
+  wait
+} = _exports = Chem = window.Chem
+
+const _exports.Sprite = class Sprite extends EventEmitter
+  @id_count = 0
+
+  (animation_name, params) ->
+    super()
+    {
+      @pos
+      @scale
+      @zorder
+      @batch
+      @rotation
+    } = o = {
+      pos: new Vec2d(0, 0)
+      scale: new Vec2d(1, 1)
+      zorder: 0
+      batch: null
+      rotation: 0
+      visible: true
+      frame_index: 0
+      loop: null
+    } <<< params
+
+    @id = Sprite.id_count++
+
+    @setAnimationName animation_name
+    @setLoop o.loop ? @loop
+
+    @setVisible o.visible
+    @setFrameIndex 0
+
+#ifdef DEBUG
+    if Chem.animations!?
+      throw "You may not create Sprites until the onReady event has been fired from Chem."
+#endif
+
+  setAnimationName: !(animation_name) ->
+#ifdef DEBUG
+    throw "bad animation name" unless animation_name
+#endif
+    @setAnimation Chem.animations[animation_name]
+
+  setAnimation: !(@animation) ->
+    @animation_name = @animation.name
+    {@loop} = @animation
+    # size of first frame, which does not take scale into account
+    @size = new Vec2d(@animation.frames[0].size)
+
+  getSize: -> new Vec2d(@animation.frames[@getFrameIndex()].size)
+
+  setVisible: !(@visible) ->
+    return unless @batch?
+    if @visible
+      @batch.add this
+    else
+      @batch.remove this
+
+  setFrameIndex: !(frame_index) ->
+    const seconds_passed = frame_index * @animation.delay
+    date = new Date()
+    date.setMilliseconds(date.getMilliseconds() - seconds_passed * 1000)
+    @setAnimationStartDate(date)
+
+  setLoop: !(@loop) ->
+    @setUpInterval!
+
+  setAnimationStartDate: !(@animation_start_date) ->
+    @setUpInterval!
+
+  getFrameIndex: ->
+    const now = new Date()
+    const total_time = (now - @animation_start_date) / 1000
+    if @loop
+      Math.floor((total_time % @animation.duration) / @animation.delay)
+    else
+      Math.floor(total_time / @animation.delay) <? @animation.frames.length - 1
+
+  delete: !->
+    @batch.remove this
+
+  # private
+  setUpInterval: !->
+    @interval?.cancel()
+
+    _schedule = if @loop then schedule else wait
+
+    const now = new Date()
+    const time_since_start = (now - @animation_start_date) / 1000
+    const duration = @animation.duration - time_since_start
+
+    @interval = _schedule duration, ~> @emit \animation_end
+

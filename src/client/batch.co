@@ -1,0 +1,13 @@
+_exports = window.Chem ||= {}
+
+const _exports.Batch = class Batch
+  ->
+    # indexed by zorder
+    @sprites = []
+  add: !(sprite) ->
+    sprite.batch?.remove sprite
+    sprite.batch = this
+    (@sprites[sprite.zorder] ?= {})[sprite.id] = sprite
+  remove: !(sprite) ->
+    delete (@sprites[sprite.zorder] ?= {})[sprite.id]
+
