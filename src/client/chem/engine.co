@@ -86,12 +86,12 @@ _exports.Engine = class Engine extends EventEmitter
       const multiplier = delta / target_spf
       @callUpdate delta, multiplier
       @emit 'draw', @context
-      fps_count += 1
+      fps_count := fps_count + 1
 
       if fps_time_passed >= fps_refresh_rate
-        fps_time_passed = 0
+        fps_time_passed := 0
         @fps = fps_count / fps_refresh_rate
-        fps_count = 0
+        fps_count := 0
 
   callUpdate: !(dt, dx) ->
     @emit 'update', dt, dx
