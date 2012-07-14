@@ -1,0 +1,41 @@
+_exports = window.Chem ||= {}
+
+Key =
+  Shift: 16
+  Ctrl: 17
+  Alt: 18
+  Space: 32
+  Left: 37
+  Up: 38
+  Right: 39
+  Down: 40
+  1: 49
+  2: 50
+  3: 51
+  4: 52
+  A: 65
+  D: 68
+  E: 69
+  O: 79
+  R: 82
+  S: 83
+  W: 87
+  MetaLeft: 91
+  MetaRight: 92
+  Comma: 188
+
+Mouse =
+  Left: 1
+  Middle: 2
+  Right: 3
+
+# map both Key and Mouse into Button
+_exports.Button = Button = {}
+_exports.Button.KEY_OFFSET = KEY_OFFSET = 0
+for name, val in Key
+  Button["Key_#{name}"] = KEY_OFFSET + val
+_exports.Button.MOUSE_OFFSET = MOUSE_OFFSET = 256
+for name, val in Mouse
+  Button["Mouse_#{name}"] = MOUSE_OFFSET + val
+
+
