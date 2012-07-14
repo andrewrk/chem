@@ -14,11 +14,11 @@ exec = (cmd, args=[], cb=->) ->
 compile = (watch_flag="") ->
   coffee_flags = "-#{watch_flag}cbo"
   exec coffee, [coffee_flags, "./lib/", "./src/lib/"]
-  exec coffee, [coffee_flags, "./lib/", "./src/shared/"]
+  exec coffee, [coffee_flags, "./lib/", "./src/shared/chem/"]
 
   coco_flags = coffee_flags
   exec coco, [coco_flags, "./lib/", "./src/lib/"]
-  exec coco, [coco_flags, "./lib/", "./src/shared/"]
+  exec coco, [coco_flags, "./lib/", "./src/shared/chem/"]
 
 task 'watch', -> compile('w')
 

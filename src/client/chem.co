@@ -1,9 +1,9 @@
-#depend "batch"
-#depend "bootstrap"
-#depend "button"
-#depend "engine"
-#depend "event_emitter"
-#depend "sprite"
-#depend "vec2d"
+#depend "chem/batch"
+#depend "chem/bootstrap"
+#depend "chem/button"
+#depend "chem/engine"
+#depend "chem/event_emitter"
+#depend "chem/sprite"
+#depend "chem/vec2d"
 
 Chem.bootstrap()

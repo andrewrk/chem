@@ -1,4 +1,4 @@
-#depend "vec2d"
+#depend "chem/vec2d"
 #depend "event_emitter"
 #depend "button"
 #depend "helpers"
