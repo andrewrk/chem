@@ -39,9 +39,6 @@ _exports.Engine = class Engine extends EventEmitter
   buttonJustPressed: (button) -> !!@btn_just_pressed[button]
   mousePos: -> @mouse_pos
 
-  clear: !->
-    @context.clearRect 0, 0, @size.x, @size.y
-
   draw: !(batch) ->
     const now = new Date()
 
@@ -61,7 +58,6 @@ _exports.Engine = class Engine extends EventEmitter
   drawFps: !->
     return unless @fps?
     @context.fillText "#{@fps} fps", 0, @size.y
-
 
   # private
   startMainLoop: !->

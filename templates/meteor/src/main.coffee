@@ -143,7 +143,8 @@ class Game
     @hadGameOver = true
 
   draw: (context) =>
-    @engine.clear()
+    context.fillStyle = '#000000'
+    context.fillRect 0, 0, @engine.size.x, @engine.size.y
     @engine.draw @batch
     context.fillStyle = "#ffffff"
     context.font = "30px Arial"
@@ -152,6 +153,7 @@ class Game
       context.fillText "GAME OVER", @engine.size.x / 2, @engine.size.y / 2
 
     context.font = "12px Arial"
+    context.fillStyle = '#ffffff'
     @engine.drawFps()
 
 
