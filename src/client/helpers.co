@@ -1,0 +1,17 @@
+const _exports = window.Chem ||= {}
+
+_exports.wait = (sec, cb) ->
+  interval = setTimeout(cb, sec * 1000)
+  {
+    cancel: !->
+      if interval?
+        clearTimeout(interval)
+        @interval = null
+  }
+
+_exports.schedule = (sec, cb) ->
+  interval = setInterval(cb, sec * 1000)
+  {
+    cancel: !-> clearInterval(interval)
+  }
+

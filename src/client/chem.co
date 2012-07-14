@@ -1,9 +1,15 @@
 #depend "vec2d"
 #depend "event_emitter"
 #depend "button"
+#depend "helpers"
 
-const {Vec2d, EventEmitter, Button} = window.Chem
-const _exports = window.Chem ||= {}
+const {
+  Vec2d
+  EventEmitter
+  Button
+  schedule
+  wait
+} = _exports = window.Chem
 
 const _exports.Batch = class Batch
   ->
@@ -16,37 +22,54 @@ const _exports.Batch = class Batch
   remove: !(sprite) ->
     delete (@sprites[sprite.zorder] ?= {})[sprite.id]
 
-const _exports.Sprite = class Sprite
+const _exports.Sprite = class Sprite extends EventEmitter
   @id_count = 0
 
-  (animation, params) ->
-    o =
+  (animation_name, params) ->
+    super()
+    {
+      @pos
+      @scale
+      @zorder
+      @batch
+      @rotation
+    } = o = {
       pos: new Vec2d(0, 0)
       scale: new Vec2d(1, 1)
       zorder: 0
       batch: null
       rotation: 0
       visible: true
-    o <<< params
+      frame_index: 0
+      loop: null
+    } <<< params
 
     @id = Sprite.id_count++
 
-    {
-      @pos
-      @zorder
-      @rotation
-      @batch
-      @scale
-    } = o
+    @setAnimationName animation_name
+    @setLoop o.loop ? @loop
 
-    @setAnimation animation
     @setVisible o.visible
+    @setFrameIndex 0
 
-    # size of current frame, which does not take scale into account
-    @size = new Vec2d(animations[@animation].frames[0].size)
+#ifdef DEBUG
+    if animations!?
+      throw "You may not create Sprites until the onReady event has been fired from Chem."
+#endif
+
+  setAnimationName: !(animation_name) ->
+#ifdef DEBUG
+    throw "bad animation name" unless animation_name
+#endif
+    @setAnimation animations[animation_name]
 
   setAnimation: !(@animation) ->
-    throw "bad sprite name" unless @animation
+    @animation_name = @animation.name
+    {@loop} = @animation
+    # size of first frame, which does not take scale into account
+    @size = new Vec2d(@animation.frames[0].size)
+
+  getSize: -> new Vec2d(@animation.frames[@getFrameIndex()].size)
 
   setVisible: !(@visible) ->
     return unless @batch?
@@ -55,16 +78,45 @@ const _exports.Sprite = class Sprite
     else
       @batch.remove this
 
+  setFrameIndex: !(frame_index) ->
+    const seconds_passed = frame_index * @animation.delay
+    date = new Date()
+    date.setMilliseconds(date.getMilliseconds() - seconds_passed * 1000)
+    @setAnimationStartDate(date)
+
+  setLoop: !(@loop) ->
+    @setUpInterval!
+
+  setAnimationStartDate: !(@animation_start_date) ->
+    @setUpInterval!
+
+  getFrameIndex: ->
+    const now = new Date()
+    const total_time = (now - @animation_start_date) / 1000
+    if @loop
+      Math.floor((total_time % @animation.duration) / @animation.delay)
+    else
+      Math.floor(total_time / @animation.delay) <? @animation.frames.length - 1
+
   delete: !->
     @batch.remove this
+
+  # private
+  setUpInterval: !->
+    @interval?.cancel()
+
+    _schedule = if @loop then schedule else wait
+
+    const now = new Date()
+    const time_since_start = (now - @animation_start_date) / 1000
+    const duration = @animation.duration - time_since_start
+
+    @interval = _schedule duration, ~> @emit \animation_end
 
 _exports.Engine = class Engine extends EventEmitter
   const target_fps = 60
   const min_fps = 20
   const target_spf = 1 / target_fps
-
-  const schedule = (sec, cb) -> setInterval(cb, sec * 1000)
-  const unschedule = clearInterval
 
   (@canvas) ->
     super()
@@ -95,21 +147,17 @@ _exports.Engine = class Engine extends EventEmitter
 
   draw: !(batch) ->
     const now = new Date()
-    const total_time = (now - @main_loop_start_date) / 1000
 
     for sprites of batch.sprites
       for id, sprite in sprites
-        const animation = animations[sprite.animation]
-        const anim_duration = animation.delay * animation.frames.length
-        const frame_index = Math.floor((total_time % anim_duration) / animation.delay)
-        const frame = animation.frames[frame_index]
+        const frame = sprite.animation.frames[sprite.getFrameIndex()]
         @context.save()
         @context.translate sprite.pos.x, sprite.pos.y
         @context.scale sprite.scale.x, sprite.scale.y
         @context.rotate sprite.rotation
         @context.drawImage spritesheet, frame.pos.x, frame.pos.y, \
           frame.size.x, frame.size.y, \
-          -animation.anchor.x, -animation.anchor.y, \
+          -sprite.animation.anchor.x, -sprite.animation.anchor.y, \
           frame.size.x, frame.size.y
         @context.restore()
 
@@ -199,7 +247,7 @@ _exports.Engine = class Engine extends EventEmitter
     # TODO
 
   stopMainLoop: !->
-    unschedule @interval
+    @interval.cancel()
 
 # load assets
 spritesheet = null
@@ -233,6 +281,10 @@ let
   request.onreadystatechange = !->
     return unless request.readyState is 4 and request.status is 200
     animations := JSON.parse(request.responseText)
+    # cache some values so don't have to compute them all the time
+    for name, anim in animations
+      anim.duration = anim.delay * anim.frames.length
+      anim.name = name
     animations_json_done := true
     checkDoneLoading()
   request.open("GET", "animations.json", true)

@@ -1,6 +1,5 @@
-* respect loop property of animations
-* each animation should have its own time
-* sprite on_animation_end
+* compute fps in a better way
+
 * sfx
 
 * handle named frames
