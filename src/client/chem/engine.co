@@ -13,7 +13,10 @@ const {
 _exports.Engine = class Engine extends EventEmitter
   const target_fps = 60
   const min_fps = 20
+  const max_frame_skips = target_fps - min_fps
   const target_spf = 1 / target_fps
+  const fps_smoothness = 0.9
+  const fps_one_frame_weight = 1.0 - fps_smoothness
 
   (@canvas) ->
     super()
@@ -22,6 +25,7 @@ _exports.Engine = class Engine extends EventEmitter
 
     @context = @canvas.getContext("2d")
     @size = new Vec2d(@canvas.width, @canvas.height)
+    @fps = target_fps
 
   setSize: !(@size) ->
     @canvas.width = @size.x
@@ -57,21 +61,15 @@ _exports.Engine = class Engine extends EventEmitter
 
   drawFps: !->
     return unless @fps?
-    @context.fillText "#{@fps} fps", 0, @size.y
+    @context.fillText "#{Math.round(@fps)} fps", 0, @size.y
 
   # private
   startMainLoop: !->
-    @main_loop_start_date = previous_update = new Date()
-    const max_frame_skips = target_fps - min_fps
-    fps_time_passed = 0
-    const fps_refresh_rate = 1
-    fps_count = 0
+    last_draw = previous_update = new Date()
     @interval = schedule target_spf, ~>
-      const now = new Date()
+      now = new Date()
       delta = (now - previous_update) / 1000
       previous_update := now
-
-      fps_time_passed += delta
 
       skip_count = 0
       while delta > target_spf and skip_count < max_frame_skips
@@ -82,12 +80,11 @@ _exports.Engine = class Engine extends EventEmitter
       const multiplier = delta / target_spf
       @callUpdate delta, multiplier
       @emit 'draw', @context
-      fps_count := fps_count + 1
-
-      if fps_time_passed >= fps_refresh_rate
-        fps_time_passed := 0
-        @fps = fps_count / fps_refresh_rate
-        fps_count := 0
+      now = new Date()
+      const time_to_draw = (now - last_draw) / 1000
+      const fps = 1 / time_to_draw
+      @fps = @fps * fps_smoothness + fps * fps_one_frame_weight
+      last_draw := now
 
   callUpdate: !(dt, dx) ->
     @emit 'update', dt, dx
