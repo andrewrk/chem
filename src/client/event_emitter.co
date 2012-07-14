@@ -5,13 +5,15 @@ _exports.EventEmitter = class EventEmitter
     @event_handlers = {}
 
   on: !(event_name, handler) ->
-    @handlers(event_name).push handler
+    @event_handlers@@[event_name].push handler
 
   removeEventListeners: !(event_name) ->
-    @handlers(event_name).length = 0
+    @event_handlers@@[event_name].length = 0
 
+  # currently you cannot call removeListener directly in response
+  # to an event
   removeListener: !(event_name, handler) ->
-    handlers = @handlers(event_name)
+    const handlers = @event_handlers@@[event_name]
     for h, i of handlers
       if h is handler
         handlers.splice i, 1
@@ -19,9 +21,6 @@ _exports.EventEmitter = class EventEmitter
 
   # protected
   emit: !(event_name, ...args) ->
-    handler(...args) for handler of @handlers(event_name)
-
-  # private
-  handlers: (event_name) -> @event_handlers[event_name] ?= []
+    handler(...args) for handler of @event_handlers@@[event_name]
 
 
