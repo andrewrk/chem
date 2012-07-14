@@ -10,8 +10,6 @@ _exports.EventEmitter = class EventEmitter
   removeEventListeners: !(event_name) ->
     @event_handlers@@[event_name].length = 0
 
-  # currently you cannot call removeListener directly in response
-  # to an event
   removeListener: !(event_name, handler) ->
     const handlers = @event_handlers@@[event_name]
     for h, i of handlers
@@ -21,6 +19,9 @@ _exports.EventEmitter = class EventEmitter
 
   # protected
   emit: !(event_name, ...args) ->
-    handler(...args) for handler of @event_handlers@@[event_name]
+    # copy the array so we can remove listeners in response
+    # to an event
+    for h of @event_handlers@@[event_name]concat!
+      h(...args)
 
 
