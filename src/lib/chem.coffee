@@ -172,13 +172,13 @@ createSpritesheet = ->
   {Spritesheet} = require(chemPath('./lib/spritesheet'))
   # gather data about all image files
   # and place into array
-  {_default, animations} = forceRequireChemfile()
+  {animations, defaults} = forceRequireChemfile().spritesheet
   frame_list = []
   all_img_files = getAllImgFiles()
   seen = {}
   for name, anim of animations
     # apply the default animation properties
-    animations[name] = anim = extend {}, _default, anim
+    animations[name] = anim = extend {}, defaults, anim
 
     # change the frames array into an array of objects
     files = filesFromAnimFrames(anim.frames, name, all_img_files)

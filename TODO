@@ -1,9 +1,8 @@
-* rename _default better
-  - multiple spritesheet support?
 * write documentation
 * sfx
 * asset loading progress indication
 * implement removeListeners
 * get full list of keyboard keys
-* firefox support?
 * convert chem to use non-blocking and async
+* firefox support?
+* multiple spritesheet support?
