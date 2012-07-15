@@ -167,8 +167,7 @@ filesFromAnimFrames = (frames, anim_name, all_img_files) ->
     return frames
 
 createSpritesheet = ->
-  Canvas = require('canvas')
-  Image = Canvas.Image
+  {Image} = Canvas = require('canvas')
   {Vec2d} = require(chemPath('./lib/vec2d'))
   {Spritesheet} = require(chemPath('./lib/spritesheet'))
   # gather data about all image files

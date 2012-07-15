@@ -1,4 +1,6 @@
 * handle duplicate filenames as frames
+* rename _default better
+  - multiple spritesheet support?
 * write documentation
 * sfx
 * asset loading progress indication

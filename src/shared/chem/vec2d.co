@@ -1,6 +1,6 @@
 _exports = exports ? (window.Chem ||= {})
 _exports.Vec2d = class Vec2d
-  constructor: (x_or_pair, y) ->
+  (x_or_pair, y) ->
     if y?
       @x = x_or_pair
       @y = y
@@ -54,13 +54,13 @@ _exports.Vec2d = class Vec2d
   toString: -> "(#{@x}, #{@y})"
   lengthSqrd: -> @x * @x + @y * @y
   length: -> Math.sqrt(@lengthSqrd())
-  angle: -> if @lengthSqrd is 0 then 0 else Math.atan2(@y, @x)
+  angle: -> if @lengthSqrd() is 0 then 0 else Math.atan2(@y, @x)
   normalize: ->
-    length = @length()
+    const length = @length()
     if length is 0
       this
     else
-      @scale 1 / length
+      @scale(1 / length)
   normalized: -> @clone().normalize()
   boundMin: (other) ->
     if @x < other.x then @x = other.x
@@ -80,3 +80,4 @@ _exports.Vec2d = class Vec2d
     this
   distanceSqrd: (other) -> Math.pow(@x - other.x, 2) + Math.pow(@y - other.y, 2)
   distance: (other) -> Math.sqrt(@distanceSqrd(other))
+
