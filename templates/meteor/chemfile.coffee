@@ -32,3 +32,11 @@ exports.animations =
     frames: ["star.png"]
   star2:
     frames: ["star2.png"]
+  weird:
+    frames: [
+      "star.png"
+      "star2.png"
+      "meteor2.png"
+      "meteor.png"
+      "ship.png"
+    ]

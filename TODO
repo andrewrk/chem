@@ -1,4 +1,3 @@
-* handle duplicate filenames as frames
 * rename _default better
   - multiple spritesheet support?
 * write documentation
@@ -7,3 +6,4 @@
 * implement removeListeners
 * get full list of keyboard keys
 * firefox support?
+* convert chem to use non-blocking and async

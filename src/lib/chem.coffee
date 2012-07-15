@@ -175,6 +175,7 @@ createSpritesheet = ->
   {_default, animations} = forceRequireChemfile()
   frame_list = []
   all_img_files = getAllImgFiles()
+  seen = {}
   for name, anim of animations
     # apply the default animation properties
     animations[name] = anim = extend {}, _default, anim
@@ -184,14 +185,17 @@ createSpritesheet = ->
     anim.frames = []
 
     for file in files
-      image = new Image()
-      image.src = fs.readFileSync(path.join(img_path, file))
-      frame =
-        image: image
-        size: new Vec2d(image.width, image.height)
-        filename: file
-        pos: new Vec2d(0, 0)
-      frame_list.push frame
+      if not (frame = seen[file])?
+        image = new Image()
+        image.src = fs.readFileSync(path.join(img_path, file))
+
+        seen[file] = frame =
+          image: image
+          size: new Vec2d(image.width, image.height)
+          filename: file
+          pos: new Vec2d(0, 0)
+        frame_list.push frame
+
       anim.frames.push frame
 
     if anim.anchor is "center"
