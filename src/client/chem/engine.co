@@ -1,12 +1,11 @@
 #depend "chem/vec2d"
-#depend "event_emitter"
-#depend "button"
+#depend "chem/event_emitter"
+#depend "private/button_offset"
 
-const {
-  Vec2d
-  EventEmitter
-  Button
-} = _exports = Chem = window.Chem
+const {Vec2d, EventEmitter, Button} = window@Chem
+const {MOUSE_OFFSET, KEY_OFFSET} = window@Chem@Private
+const _exports = window@Chem
+const _private = window@Chem@Private
 
 _exports.Engine = class Engine extends EventEmitter
   const target_fps = 60
@@ -58,7 +57,7 @@ _exports.Engine = class Engine extends EventEmitter
         @context.translate sprite.pos.x, sprite.pos.y
         @context.scale sprite.scale.x, sprite.scale.y
         @context.rotate sprite.rotation
-        @context.drawImage Chem.spritesheet, frame.pos.x, frame.pos.y, \
+        @context.drawImage _private.spritesheet, frame.pos.x, frame.pos.y, \
           frame.size.x, frame.size.y, \
           -sprite.animation.anchor.x, -sprite.animation.anchor.y, \
           frame.size.x, frame.size.y
@@ -112,23 +111,23 @@ _exports.Engine = class Engine extends EventEmitter
     @mouse_pos = new Vec2d(0, 0)
     forwardMouseEvent = !(name, event) ~>
       @mouse_pos = new Vec2d(event.offsetX, event.offsetY)
-      @emit name, @mouse_pos, Button.MOUSE_OFFSET + event.which
+      @emit name, @mouse_pos, MOUSE_OFFSET + event.which
     @canvas.addEventListener 'mousemove', !(event) ->
       forwardMouseEvent 'mousemove', event
     @canvas.addEventListener 'mousedown', !(event) ~>
-      const button_id = Button.MOUSE_OFFSET + event.which
+      const button_id = MOUSE_OFFSET + event.which
       @button_states[button_id] = true
       @btn_just_pressed[button_id] = true
 
       forwardMouseEvent 'mousedown', event
     @canvas.addEventListener 'mouseup', !(event) ~>
-      @button_states[Button.MOUSE_OFFSET + event.which] = false
+      @button_states[MOUSE_OFFSET + event.which] = false
 
       forwardMouseEvent 'mouseup', event
 
     # keyboard input
     @canvas.addEventListener 'keydown', (event) ~>
-      const button_id = Button.KEY_OFFSET + event.which
+      const button_id = KEY_OFFSET + event.which
       @button_states[button_id] = true
       @btn_just_pressed[button_id] = true
 
@@ -136,7 +135,7 @@ _exports.Engine = class Engine extends EventEmitter
       event.preventDefault()
       return false
     @canvas.addEventListener 'keyup', (event) ~>
-      button_id = Button.KEY_OFFSET + event.which
+      button_id = KEY_OFFSET + event.which
       @button_states[button_id] = false
 
       @emit 'keyup', button_id

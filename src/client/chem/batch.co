@@ -1,6 +1,6 @@
-_exports = window.Chem ||= {}
+const _exports = window@Chem
 
-const _exports.Batch = class Batch
+_exports.Batch = class Batch
   ->
     # indexed by zorder
     @sprites = []

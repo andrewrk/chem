@@ -1,8 +1,7 @@
 * write documentation
 * sfx
-* asset loading progress indication
 * implement removeListeners
-* get full list of keyboard keys
 * convert chem to use non-blocking and async
 * firefox support?
 * multiple spritesheet support?
+* asset loading progress indication

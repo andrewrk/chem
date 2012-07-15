@@ -1,4 +1,4 @@
-const _exports = window.Chem ||= {}
+const _exports = window@Chem
 
 _exports.wait = (sec, cb) ->
   interval = setTimeout(cb, sec * 1000)

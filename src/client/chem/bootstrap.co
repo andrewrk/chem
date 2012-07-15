@@ -1,4 +1,5 @@
-_exports = Chem = window.Chem ||= {}
+const _exports = window@Chem
+const _private = window@Chem@Private
 
 _exports.bootstrap = !->
   # load assets
@@ -19,9 +20,9 @@ _exports.bootstrap = !->
       cb() for cb of on_ready_queue
 
   # get the spritesheet
-  Chem.spritesheet = new Image()
-  Chem.spritesheet.src = "spritesheet.png"
-  Chem.spritesheet.onload = !->
+  _private.spritesheet = new Image()
+  _private.spritesheet.src = "spritesheet.png"
+  _private.spritesheet.onload = !->
     spritesheet_done := true
     checkDoneLoading()
 
@@ -29,9 +30,9 @@ _exports.bootstrap = !->
   request = new XMLHttpRequest()
   request.onreadystatechange = !->
     return unless request.readyState is 4 and request.status is 200
-    Chem.animations = JSON.parse(request.responseText)
+    _private.animations = JSON.parse(request.responseText)
     # cache some values so don't have to compute them all the time
-    for name, anim in Chem.animations
+    for name, anim in _private.animations
       anim.duration = anim.delay * anim.frames.length
       anim.name = name
     animations_json_done := true

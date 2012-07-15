@@ -1,13 +1,15 @@
 #depend "chem/vec2d"
-#depend "helpers"
-#depend "event_emitter"
+#depend "chem/helpers"
+#depend "chem/event_emitter"
 
 const {
   Vec2d
   EventEmitter
   schedule
   wait
-} = _exports = Chem = window.Chem
+} = window@Chem
+const _exports = window@Chem
+const _private = window@Chem@Private
 
 const _exports.Sprite = class Sprite extends EventEmitter
   @id_count = 0
@@ -40,7 +42,7 @@ const _exports.Sprite = class Sprite extends EventEmitter
     @setFrameIndex 0
 
 #ifdef DEBUG
-    if Chem.animations!?
+    if _private.animations!?
       throw "You may not create Sprites until the onReady event has been fired from Chem."
 #endif
 
@@ -48,7 +50,7 @@ const _exports.Sprite = class Sprite extends EventEmitter
 #ifdef DEBUG
     throw "bad animation name" unless animation_name
 #endif
-    @setAnimation Chem.animations[animation_name]
+    @setAnimation _private.animations[animation_name]
 
   setAnimation: !(@animation) ->
     @animation_name = @animation.name

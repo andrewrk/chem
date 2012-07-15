@@ -1,4 +1,4 @@
-_exports = window.Chem ||= {}
+const _exports = window@Chem
 
 _exports.EventEmitter = class EventEmitter
   ->
