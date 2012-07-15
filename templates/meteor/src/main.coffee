@@ -1,6 +1,6 @@
 #depend "chem"
 
-{Vec2d, Engine, Sprite, Batch} = Chem
+{Vec2d, Engine, Sprite, Batch, Button} = Chem
 
 randInt = (min, max) -> Math.floor(min + Math.random() * (max - min + 1))
 
@@ -40,10 +40,10 @@ class Game
     @nextMeteor = @nextMeteorInterval
 
     @controls = {}
-    @controls[Control.MoveLeft] = Chem.Button.Key_Left
-    @controls[Control.MoveRight] = Chem.Button.Key_Right
-    @controls[Control.MoveUp] = Chem.Button.Key_Up
-    @controls[Control.MoveDown] = Chem.Button.Key_Down
+    @controls[Control.MoveLeft] = Button.Key_Left
+    @controls[Control.MoveRight] = Button.Key_Right
+    @controls[Control.MoveUp] = Button.Key_Up
+    @controls[Control.MoveDown] = Button.Key_Down
 
     @ship_x = 0
     @ship_y = @engine.size.y / 2
@@ -75,6 +75,8 @@ class Game
 
   update: (dt) =>
     if @hadGameOver
+      if @engine.buttonJustPressed(Button.Key_Space)
+        location.href = location.href
       return
     score_per_sec = 60
     @score += score_per_sec * dt
@@ -151,6 +153,10 @@ class Game
     context.fillText "Score: #{Math.floor(@score)}", 0, 30
     if @hadGameOver
       context.fillText "GAME OVER", @engine.size.x / 2, @engine.size.y / 2
+      context.font = "18px Arial"
+      context.fillText "space to restart", \
+        @engine.size.x / 2, \
+        @engine.size.y / 2 + 70
 
     context.font = "12px Arial"
     context.fillStyle = '#ffffff'
@@ -160,6 +166,7 @@ class Game
 canvas = document.getElementById("game")
 Chem.onReady ->
   engine = new Engine(canvas)
+  canvas.focus()
   game = new Game(engine)
   game.start()
 

@@ -1,13 +1,11 @@
 #depend "chem/vec2d"
 #depend "event_emitter"
 #depend "button"
-#depend "helpers"
 
 const {
   Vec2d
   EventEmitter
   Button
-  schedule
 } = _exports = Chem = window.Chem
 
 _exports.Engine = class Engine extends EventEmitter
@@ -17,6 +15,13 @@ _exports.Engine = class Engine extends EventEmitter
   const target_spf = 1 / target_fps
   const fps_smoothness = 0.9
   const fps_one_frame_weight = 1.0 - fps_smoothness
+
+  const requestAnimationFrame = window.requestAnimationFrame or \
+    window.webkitRequestAnimationFrame or \
+    window.mozRequestAnimationFrame or \
+    window.oRequestAnimationFrame or \
+    window.msRequestAnimationFrame or \
+    !(cb) -> window.setTimeout(cb, target_spf * 1000)
 
   (@canvas) ->
     super()
@@ -66,7 +71,8 @@ _exports.Engine = class Engine extends EventEmitter
   # private
   startMainLoop: !->
     last_draw = previous_update = new Date()
-    @interval = schedule target_spf, ~>
+    @main_loop_on = true
+    mainLoop = !~>
       now = new Date()
       delta = (now - previous_update) / 1000
       previous_update := now
@@ -85,6 +91,10 @@ _exports.Engine = class Engine extends EventEmitter
       const fps = 1 / time_to_draw
       @fps = @fps * fps_smoothness + fps * fps_one_frame_weight
       last_draw := now
+
+      if @main_loop_on
+        requestAnimationFrame(mainLoop, @canvas)
+    requestAnimationFrame(mainLoop, @canvas)
 
   callUpdate: !(dt, dx) ->
     @emit 'update', dt, dx
@@ -137,5 +147,5 @@ _exports.Engine = class Engine extends EventEmitter
     # TODO
 
   stopMainLoop: !->
-    @interval.cancel()
+    @main_loop_on = false
 
