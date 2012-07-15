@@ -1,11 +1,8 @@
-* sfx
-
-* handle named frames
-* handle duplicate filenames as frames
-* parse named command line parameters
-* asset loading progress indication
 * requestAnimationFrame?
+* handle duplicate filenames as frames
+* write documentation
+* sfx
+* asset loading progress indication
 * implement removeListeners
-* firefox support?
-* joystick support?
 * get full list of keyboard keys
+* firefox support?
