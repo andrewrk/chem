@@ -1,0 +1,18 @@
+const {spawn} = require('child_process')
+
+const exec = !(cmd, args=[], cb=->) ->
+  const bin = spawn(cmd, args)
+  bin.stdout.on \data, !(data) ->
+    process.stdout.write data
+  bin.stderr.on \data, !(data) ->
+    process.stderr.write data
+  bin.on \exit, cb
+
+const compile = !(watch_flag="") ->
+  const coco_flags = "-#{watch_flag}cbo"
+  exec 'coco', [coco_flags, "./lib/", "./src/lib/"]
+  exec 'coco', [coco_flags, "./lib/", "./src/shared/chem/"]
+
+task 'watch', !-> compile('w')
+
+task 'build', compile

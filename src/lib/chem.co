@@ -1,0 +1,260 @@
+const fs = require('fs')
+const path = require('path')
+const util = require('util')
+const {spawn} = require('child_process')
+const {watchFilesOnce} = require('./watch')
+
+const compilers =
+  '.coffee':
+    require: 'coffee-script'
+  '.co':
+    require: 'coco'
+  '.ls':
+    require: 'LiveScript'
+  '.js':
+    require: null
+
+const compilerFromPath = (filepath) ->
+  if filepath!?
+    return null
+  const ext = path.extname(filepath)
+  compilers[ext]
+
+chemfile_path = null
+const getChemfilePath = ->
+  if chemfile_path?
+    return chemfile_path
+
+  chemfile_path := do ->
+    for file of fs.readdirSync(userPath("."))
+      if file.indexOf("chemfile.") is 0
+        return file
+    return null
+
+  # figure out the path to the user's chemfile
+  if (const chemfile_compiler = compilerFromPath(chemfile_path))!?
+    console.error "Missing chemfile or unrecognized chemfile extension."
+    process.exit(-1)
+    return null
+
+  if chemfile_compiler.require?
+    # allows us to parse the chemfile regardless of language
+    require(chemfile_compiler.require)
+
+  return chemfile_path
+
+const forceRequireChemfile = ->
+  const chem_path = path.resolve(getChemfilePath())
+  const req_path = chem_path.substring(0, chem_path.length - path.extname(chem_path).length)
+  forceRequire(req_path)
+
+const chemPath = (file) ->
+  path.join(path.dirname(fs.realpathSync(__filename)), "..", file)
+
+const userPath = (file) ->
+  path.join(process.cwd(), file)
+
+const client_out = userPath("./public/main.js")
+const img_path = userPath("./assets/img")
+const spritesheet_out = userPath("./public/spritesheet.png")
+const animations_json_out = userPath("./public/animations.json")
+
+const all_out_files = [
+  client_out
+  spritesheet_out
+  animations_json_out
+]
+
+const sign = -> if it > 0 then 1 else if it < 0 then -1 else 0
+
+const exec = !(cmd, args=[], cb=->) ->
+  const bin = spawn(cmd, args)
+  bin.stdout.on 'data', !(data) ->
+    process.stdout.write data
+  bin.stderr.on 'data', !(data) ->
+    process.stderr.write data
+  bin.on 'exit', cb
+
+const compileClientSource = !(options) ->
+  const {compile} = require('jspackage')
+  const {libs, main} = forceRequireChemfile()
+  options.mainfile = userPath(main)
+  options.libs = (userPath(l) for l of libs).concat [
+    chemPath("./src/shared/")
+    chemPath("./src/client/")
+  ]
+  compile options, (err, compiled_code) ->
+    if err
+      timestamp = (new Date()).toLocaleTimeString()
+      console.error "#{timestamp} - error: #{err}"
+      return
+    fs.writeFile(client_out, compiled_code, 'utf8')
+
+const serveStaticFiles = !(port) ->
+  const node_static = require('node-static')
+  const http = require('http')
+  const public_dir = userPath("./public")
+  const file_server = new node_static.Server(public_dir)
+  const app = http.createServer !(request, response) ->
+    file_server.serve request, response
+  app.listen port
+  console.info("Serving at http://0.0.0.0:#port")
+
+const watchSpritesheet = !->
+  # redo the spritesheet when any files change
+  const recompile = !->
+    createSpritesheet()
+    const timestamp = (new Date()).toLocaleTimeString()
+    console.info "#timestamp - generated #spritesheet_out"
+    console.info "#timestamp - generated #animations_json_out"
+  const rewatch = !->
+    # get list of files to watch
+    const watch_files = [getChemfilePath()]
+    # get list of all image files
+    const {animations} = forceRequireChemfile()
+    const all_img_files = getAllImgFiles()
+    success = true
+    for name, anim in animations
+      const files = filesFromAnimFrames(anim.frames, name, all_img_files)
+      if files.length is 0
+        console.error "animation `#{name}` has no frames"
+        success = false
+        continue
+      for file of files
+        watch_files.push path.join(img_path, file)
+    watchFilesOnce(watch_files, rewatch)
+    if success
+      recompile()
+  # always compile and watch on first run
+  rewatch()
+
+const forceRequire = (module_path) ->
+  const resolved_path = require.resolve(module_path)
+  delete require.cache[resolved_path]
+  require(module_path)
+
+const walk = (dir) ->
+  const results = []
+  const processDir = !(full_path, part_path) ->
+    for file of fs.readdirSync(full_path)
+      const full_file = path.join(full_path, file)
+      const part_file = path.join(part_path, file)
+      const stat = fs.statSync(full_file)
+      if stat.isDirectory()
+        processDir(full_file, part_file)
+      else
+        results.push part_file
+  processDir(dir, "")
+  results
+
+const cmpStr = (a, b) -> if a < b then -1 else if a > b then 1 else 0
+
+const getAllImgFiles = -> walk(img_path)
+
+const filesFromAnimFrames = (frames, anim_name, all_img_files) ->
+  frames ?= anim_name
+  if typeof frames is 'string'
+    files = (img if img.indexOf(frames) is 0 for img of all_img_files)
+    files.sort cmpStr
+    files
+  else
+    frames
+
+const createSpritesheet = !->
+  const {Image} = Canvas = require('canvas')
+  const {Vec2d} = require(chemPath('./lib/vec2d'))
+  const {Spritesheet} = require(chemPath('./lib/spritesheet'))
+  # gather data about all image files
+  # and place into array
+  const {animations, defaults} = forceRequireChemfile().spritesheet
+  const frame_list = []
+  const all_img_files = getAllImgFiles()
+  const seen = {}
+  for name, anim in animations
+    # apply the default animation properties
+    animations[name] = anim = {} <<< defaults <<< anim
+
+    # change the frames array into an array of objects
+    const files = filesFromAnimFrames(anim.frames, name, all_img_files)
+    anim.frames = []
+
+    for file of files
+      if not (frame = seen[file])?
+        image = new Image()
+        image.src = fs.readFileSync(path.join(img_path, file))
+
+        seen[file] = frame =
+          image: image
+          size: new Vec2d(image.width, image.height)
+          filename: file
+          pos: new Vec2d(0, 0)
+        frame_list.push frame
+
+      anim.frames.push frame
+
+    if anim.anchor is \center
+      anim.anchor = anim.frames[0].size.scaled(0.5).floor()
+
+  sheet = new Spritesheet(frame_list)
+  sheet.calculatePositions()
+
+  # render to png
+  const canvas = new Canvas(sheet.size.x, sheet.size.y)
+  const context = canvas.getContext('2d')
+  for frame of frame_list
+    context.drawImage frame.image, frame.pos.x, frame.pos.y
+  const out = fs.createWriteStream(spritesheet_out)
+  const stream = canvas.createPNGStream()
+  stream.on \data, (chunk) -> out.write chunk
+
+  # strip properties from animations that we do not wish to commit to disk
+  for name, anim in animations
+    for frame of anim.frames
+      delete frame.image
+      delete frame.filename
+
+  # render json animation data
+  fs.writeFileSync animations_json_out, JSON.stringify(animations, null, 4), \utf8
+
+const tasks =
+  help: !->
+    process.stderr.write """
+    Usage: 
+
+      # create a new project
+      chem init <your_project_name> [<template_name>]
+      # possible templates are: meteor
+
+      # run a development server which will automatically recompile your code,
+      # generate your spritesheets, and serve your assets
+      chem dev
+
+    """
+  init: !(args) ->
+    const project_name = args[0]
+    const template = args[1] or "meteor"
+
+    if not project_name?
+      tasks.help()
+      process.exit(1)
+      return
+
+    const src = chemPath("templates/#template")
+
+    # copy files from template to project_name
+    exec 'cp', ['-r', src, project_name]
+  dev: !(args, options) ->
+    serveStaticFiles(options.port or 10308)
+    compileClientSource(watch: true)
+    watchSpritesheet()
+  clean: !->
+    exec 'rm', ['-f'].concat(all_out_files)
+
+export const run = !->
+  const cmd = process.argv[2]
+  const task = tasks[cmd]
+  if task?
+    task(process.argv.slice(3), {})
+  else
+    tasks.help([], {})
+

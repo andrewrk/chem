@@ -21,11 +21,10 @@
         "jspackage": "~0.4.3"
     },
     "devDependencies": {
-        "coffee-script": "~1.3.3",
         "coco": "~0.7.6"
     },
     "scripts": {
-        "dev": "npm install . && cake watch"
+        "dev": "npm install . && coke watch"
     },
     "bin": {
         "chem": "./bin/chem"

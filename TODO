@@ -1,7 +1,13 @@
-* write documentation
-* sfx
+Release 0.1
 * implement removeListeners
+* refactor meteor example to make it nice
+* add another template
+* command line options
+  - --list -l to list templates to choose from
+* write documentation
+
 * convert chem to use non-blocking and async
 * firefox support?
 * multiple spritesheet support?
 * asset loading progress indication
+* sfx
