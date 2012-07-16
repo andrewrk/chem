@@ -22,6 +22,7 @@ const _exports.Sprite = class Sprite extends EventEmitter
       @zorder
       @batch
       @rotation
+      @loop
     } = o = {
       pos: new Vec2d(0, 0)
       scale: new Vec2d(1, 1)
@@ -36,7 +37,6 @@ const _exports.Sprite = class Sprite extends EventEmitter
     @id = Sprite.id_count++
 
     @setAnimationName animation_name
-    @setLoop o.loop ? @loop
 
     @setVisible o.visible
     @setFrameIndex 0
@@ -54,7 +54,7 @@ const _exports.Sprite = class Sprite extends EventEmitter
 
   setAnimation: !(@animation) ->
     @animation_name = @animation.name
-    {@loop} = @animation
+    {@loop} ?= @animation
     # size of first frame, which does not take scale into account
     @size = @animation.frames[0].size
 

@@ -24,3 +24,6 @@ exports.spritesheet =
     ship: {}
     star_small: {}
     star_big: {}
+    explosion:
+      loop: false
+      delay: 0.05
