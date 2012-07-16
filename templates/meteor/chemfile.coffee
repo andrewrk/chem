@@ -12,23 +12,15 @@ exports.spritesheet =
   defaults:
     delay: 1
     loop: true
-    offset: v(0, 0)
     # possible values: a Vec2d instance, or "center"
     anchor: "center"
   animations:
-    meteor2:
+    meteor_big:
       # frames can be a list of filenames or a string to match the beginning
       # of files with. if you leave it out entirely, it defaults to the
       # animation name.
-      frames: ["meteor2.png"]
-      anchor: v(0, 48)
-    meteor:
-      frames: ["meteor.png"]
-      anchor: v(0, 24)
-    ship:
-      frames: "ship"
-      anchor: v(0, 24)
-    star:
-      frames: ["star.png"]
-    star2:
-      frames: ["star2.png"]
+      frames: "meteor_big"
+    meteor_small: {}
+    ship: {}
+    star_small: {}
+    star_big: {}

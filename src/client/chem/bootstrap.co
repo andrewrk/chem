@@ -1,3 +1,6 @@
+#depend "chem/vec2d"
+
+const {Vec2d} = window@Chem
 const _exports = window@Chem
 const _private = window@Chem@Private
 
@@ -35,6 +38,10 @@ _exports.bootstrap = !->
     for name, anim in _private.animations
       anim.duration = anim.delay * anim.frames.length
       anim.name = name
+      anim.anchor = new Vec2d(anim.anchor)
+      for frame of anim.frames
+        frame.pos = new Vec2d(frame.pos)
+        frame.size = new Vec2d(frame.size)
     animations_json_done := true
     checkDoneLoading()
   request.open("GET", "animations.json", true)

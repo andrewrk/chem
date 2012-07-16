@@ -56,9 +56,37 @@ const _exports.Sprite = class Sprite extends EventEmitter
     @animation_name = @animation.name
     {@loop} = @animation
     # size of first frame, which does not take scale into account
-    @size = new Vec2d(@animation.frames[0].size)
+    @size = @animation.frames[0].size
 
-  getSize: -> new Vec2d(@animation.frames[@getFrameIndex()].size)
+  # takes scale and current frame into account
+  getSize: ->
+    @animation.frames[@getFrameIndex()].size.times(@scale.applied(Math.abs))
+
+  # convenience
+  getTopLeft: -> @pos.minus(@animation.anchor)
+  getBottomRight: -> @getTopLeft().plus(@getSize())
+
+  getTop: -> @getTopLeft().y
+  getLeft: -> @getTopLeft().x
+  getBottom: -> @getBottomRight().y
+  getRight: -> @getBottomRight().x
+
+  setLeft: !(x) -> @pos.x = x + @animation.anchor.x
+  setRight: !(x) -> @pos.x = x - @animation.anchor.x
+  setTop: !(y) -> @pos.y = y + @animation.anchor.y
+  setBottom: !(y) -> @pos.y = y - @animation.anchor.y
+
+  isTouching: (sprite) ->
+    a_tl = @getTopLeft()
+    a_br = @getBottomRight()
+    b_tl = sprite.getTopLeft()
+    b_br = sprite.getBottomRight()
+    not_touching =
+      a_tl.x >= b_br.x or
+      a_br.x <= b_tl.x or
+      a_tl.y >= b_br.y or
+      a_br.y <= b_tl.y
+    return not not_touching
 
   setVisible: !(@visible) ->
     return unless @batch?

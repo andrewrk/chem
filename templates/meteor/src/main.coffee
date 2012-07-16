@@ -4,14 +4,8 @@
 
 randInt = (min, max) -> Math.floor(min + Math.random() * (max - min + 1))
 
-Control =
-  MoveLeft: 0
-  MoveRight: 1
-  MoveUp: 2
-  MoveDown: 3
-
-class Thing
-  constructor: (@x, @y, @dx, @dy, @sprite) ->
+class PhysicsObject
+  constructor: (@sprite, @vel) ->
     @gone = false
 
   delete: ->
@@ -27,44 +21,39 @@ class Game
     @meteors = []
     @batch = new Batch()
     @img_star = [
-      'star'
-      'star2'
+      'star_small'
+      'star_big'
     ]
     @img_meteor = [
-      'meteor'
-      'meteor2'
+      'meteor_small'
+      'meteor_big'
     ]
-    @sprite_ship = new Sprite('ship', batch:@batch)
+    @ship = new Sprite 'ship',
+      batch: @batch
+      pos: new Vec2d(0, @engine.size.y / 2)
+    @ship_vel = new Vec2d()
 
     @nextMeteorInterval = 0.3
     @nextMeteor = @nextMeteorInterval
 
-    @controls = {}
-    @controls[Control.MoveLeft] = Button.Key_Left
-    @controls[Control.MoveRight] = Button.Key_Right
-    @controls[Control.MoveUp] = Button.Key_Up
-    @controls[Control.MoveDown] = Button.Key_Down
-
-    @ship_x = 0
-    @ship_y = @engine.size.y / 2
-    @ship_dx = 0
-    @ship_dy = 0
-
     @score = 0
-
 
   garbage: =>
     @stars = (star for star in @stars when not star.gone)
 
   createStar: =>
-    @stars.push(new Thing(@engine.size.x, randInt(0, @engine.size.y),
-      -400 + Math.random() * 200, 0,
-      new Sprite(@img_star[randInt(0,1)], batch:@batch)))
+    sprite = new Sprite @img_star[randInt(0, 1)],
+      batch: @batch
+      pos: new Vec2d(@engine.size.x, randInt(0, @engine.size.y))
+    obj = new PhysicsObject(sprite, new Vec2d(-400 + Math.random() * 200, 0))
+    @stars.push(obj)
 
   createMeteor: ->
-    @meteors.push(new Thing(@engine.size.x, randInt(0, @engine.size.y),
-      -600 + Math.random() * 400, -200 + Math.random() * 400,
-      new Sprite(@img_meteor[randInt(0,1)], batch:@batch)))
+    sprite = new Sprite @img_meteor[randInt(0, 1)],
+      batch: @batch
+      pos: new Vec2d(@engine.size.x, randInt(0, @engine.size.y))
+    obj = new PhysicsObject(sprite, new Vec2d(-600 + Math.random() * 400, -200 + Math.random() * 400))
+    @meteors.push(obj)
 
   start: ->
     @engine.on('draw', @draw)
@@ -88,53 +77,45 @@ class Game
 
     @nextMeteorInterval -= dt * 0.01
 
-    for things in [@stars, @meteors]
-      for thing in things
-        if not thing.gone
-          thing.x += thing.dx * dt
-          thing.y += thing.dy * dt
-          thing.sprite.pos.x = thing.x
-          thing.sprite.pos.y = @engine.size.y - thing.y
-          if thing.x < 0
-            thing.delete()
+    for obj_list in [@stars, @meteors]
+      for obj in obj_list
+        if not obj.gone
+          obj.sprite.pos.add(obj.vel.scaled(dt))
+          if obj.sprite.getRight() < 0
+            obj.delete()
 
     ship_accel = 600
-    if @engine.buttonState(@controls[Control.MoveLeft])
-      @ship_dx -= ship_accel * dt
-    if @engine.buttonState(@controls[Control.MoveRight])
-      @ship_dx += ship_accel * dt
-    if @engine.buttonState(@controls[Control.MoveUp])
-      @ship_dy += ship_accel * dt
-    if @engine.buttonState(@controls[Control.MoveDown])
-      @ship_dy -= ship_accel * dt
 
-    @ship_x += @ship_dx * dt
-    @ship_y += @ship_dy * dt
+    if @engine.buttonState(Button.Key_Left)
+      @ship_vel.x -= ship_accel * dt
+    if @engine.buttonState(Button.Key_Right)
+      @ship_vel.x += ship_accel * dt
+    if @engine.buttonState(Button.Key_Up)
+      @ship_vel.y -= ship_accel * dt
+    if @engine.buttonState(Button.Key_Down)
+      @ship_vel.y += ship_accel * dt
 
-    if @ship_x < 0
-      @ship_x = 0
-      @ship_dx = 0
-    if @ship_y < 0
-      @ship_y = 0
-      @ship_dy = 0
-    if @ship_x + @sprite_ship.size.x > @engine.size.x
-      @ship_x = @engine.size.x - @sprite_ship.size.x
-      @ship_dx = 0
-    if @ship_y + @sprite_ship.size.y > @engine.size.y
-      @ship_y = @engine.size.y - @sprite_ship.size.y
-      @ship_dy = 0
+    @ship.pos.add(@ship_vel.scaled(dt))
 
-    @sprite_ship.pos.x = @ship_x
-    @sprite_ship.pos.y = @engine.size.y - @ship_y
+    corner = @ship.getTopLeft()
+    if corner.x < 0
+      @ship.setLeft(0)
+      @ship_vel.x = 0
+    if corner.y < 0
+      @ship.setTop(0)
+      @ship_vel.y = 0
+    corner = @ship.getBottomRight()
+    if corner.x > @engine.size.x
+      @ship.setRight(@engine.size.x)
+      @ship_vel.x = 0
+    if corner.y > @engine.size.y
+      @ship.setBottom(@engine.size.y)
+      @ship_vel.y = 0
 
     for meteor in @meteors
       if meteor.gone
         continue
-      not_colliding = @ship_x > meteor.x + meteor.sprite.size.x or \
-        @ship_y > meteor.y + meteor.sprite.size.y or \
-        @ship_x + @sprite_ship.size.x < meteor.x or  \
-        @ship_y + @sprite_ship.size.y < meteor.y
-      if not not_colliding
+      if @ship.isTouching(meteor.sprite)
         @gameOver()
         break
 
