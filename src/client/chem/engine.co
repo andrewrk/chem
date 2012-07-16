@@ -24,6 +24,8 @@ _exports.Engine = class Engine extends EventEmitter
 
   (@canvas) ->
     super()
+    @listeners = []
+
     # add tabindex property to canvas so that it can receive keyboard input
     @canvas.tabIndex = 0
 
@@ -71,19 +73,24 @@ _exports.Engine = class Engine extends EventEmitter
   startMainLoop: !->
     last_draw = previous_update = new Date()
     @main_loop_on = true
-    mainLoop = !~>
+
+    const callUpdate = !(dt, dx) ~>
+      @emit 'update', dt, dx
+      @btn_just_pressed = {}
+
+    const mainLoop = !~>
       now = new Date()
       delta = (now - previous_update) / 1000
       previous_update := now
 
       skip_count = 0
       while delta > target_spf and skip_count < max_frame_skips
-        @callUpdate target_spf, 1
+        callUpdate target_spf, 1
         skip_count += 1
         delta -= target_spf
 
       const multiplier = delta / target_spf
-      @callUpdate delta, multiplier
+      callUpdate delta, multiplier
       @emit 'draw', @context
       now = new Date()
       const time_to_draw = (now - last_draw) / 1000
@@ -95,16 +102,17 @@ _exports.Engine = class Engine extends EventEmitter
         requestAnimationFrame(mainLoop, @canvas)
     requestAnimationFrame(mainLoop, @canvas)
 
-  callUpdate: !(dt, dx) ->
-    @emit 'update', dt, dx
-    @btn_just_pressed = {}
-
   attachListeners: !->
     @button_states = {}
     @btn_just_pressed = {}
 
+    const addListener = !(element, event_name, listener) ~>
+      @listeners.push do
+        [element, event_name, listener]
+      element.addEventListener(event_name, listener, false)
+
     # disable right click context menu
-    @canvas.addEventListener 'contextmenu', !(event) ->
+    addListener @canvas, \contextmenu, !(event) ->
       event.preventDefault()
 
     # mouse input
@@ -112,38 +120,44 @@ _exports.Engine = class Engine extends EventEmitter
     forwardMouseEvent = !(name, event) ~>
       @mouse_pos = new Vec2d(event.offsetX, event.offsetY)
       @emit name, @mouse_pos, MOUSE_OFFSET + event.which
-    @canvas.addEventListener 'mousemove', !(event) ->
-      forwardMouseEvent 'mousemove', event
-    @canvas.addEventListener 'mousedown', !(event) ~>
+
+    addListener @canvas, \mousemove, !(event) ->
+      forwardMouseEvent \mousemove, event
+
+    addListener @canvas, \mousedown, !(event) ~>
       const button_id = MOUSE_OFFSET + event.which
       @button_states[button_id] = true
       @btn_just_pressed[button_id] = true
 
-      forwardMouseEvent 'mousedown', event
-    @canvas.addEventListener 'mouseup', !(event) ~>
+      forwardMouseEvent \mousedown, event
+
+    addListener @canvas, \mouseup, !(event) ~>
       @button_states[MOUSE_OFFSET + event.which] = false
 
-      forwardMouseEvent 'mouseup', event
+      forwardMouseEvent \mouseup, event
 
     # keyboard input
-    @canvas.addEventListener 'keydown', (event) ~>
+    addListener @canvas, \keydown, (event) ~>
       const button_id = KEY_OFFSET + event.which
       @button_states[button_id] = true
       @btn_just_pressed[button_id] = true
 
-      @emit 'keydown', button_id
+      @emit \keydown, button_id
       event.preventDefault()
-      return false
-    @canvas.addEventListener 'keyup', (event) ~>
-      button_id = KEY_OFFSET + event.which
+      false
+
+    addListener @canvas, \keyup, (event) ~>
+      const button_id = KEY_OFFSET + event.which
       @button_states[button_id] = false
 
-      @emit 'keyup', button_id
+      @emit \keyup, button_id
       event.preventDefault()
-      return false
+      false
 
   removeListeners: !->
-    # TODO
+    for [element, event_name, listener] of @listeners
+      element.removeEventListener(event_name, listener, false)
+    @listeners = []
 
   stopMainLoop: !->
     @main_loop_on = false
