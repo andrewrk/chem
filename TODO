@@ -1,8 +1,8 @@
 Release 0.1
-* command line options
-  - --list -l to list templates to choose from
 * write documentation
 
+* command line options
+  - --list -l to list templates to choose from
 * convert chem to use non-blocking and async
 * firefox support?
 * multiple spritesheet support?
