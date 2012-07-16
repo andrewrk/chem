@@ -16,7 +16,7 @@ class PhysicsObject
 
 class Game
   constructor: (@engine) ->
-    @hadGameOver = false
+    @had_game_over = false
     @stars = []
     @meteors = []
     @batch = new Batch()
@@ -33,8 +33,8 @@ class Game
       pos: new Vec2d(0, @engine.size.y / 2)
     @ship_vel = new Vec2d()
 
-    @nextMeteorInterval = 0.3
-    @nextMeteor = @nextMeteorInterval
+    @meteor_interval = 0.3
+    @next_meteor_at = @meteor_interval
 
     @score = 0
 
@@ -63,19 +63,19 @@ class Game
     @engine.start()
 
   update: (dt) =>
-    if @hadGameOver
+    if @had_game_over
       if @engine.buttonJustPressed(Button.Key_Space)
         location.href = location.href
       return
     score_per_sec = 60
     @score += score_per_sec * dt
 
-    @nextMeteor -= dt
-    if @nextMeteor <= 0
-      @nextMeteor = @nextMeteorInterval
+    @next_meteor_at -= dt
+    if @next_meteor_at <= 0
+      @next_meteor_at = @meteor_interval
       @createMeteor()
 
-    @nextMeteorInterval -= dt * 0.01
+    @meteor_interval -= dt * 0.01
 
     for obj_list in [@stars, @meteors]
       for obj in obj_list
@@ -121,9 +121,9 @@ class Game
 
     return
   gameOver: ->
-    if @hadGameOver
+    if @had_game_over
       return
-    @hadGameOver = true
+    @had_game_over = true
 
   draw: (context) =>
     context.fillStyle = '#000000'
@@ -132,7 +132,7 @@ class Game
     context.fillStyle = "#ffffff"
     context.font = "30px Arial"
     context.fillText "Score: #{Math.floor(@score)}", 0, 30
-    if @hadGameOver
+    if @had_game_over
       context.fillText "GAME OVER", @engine.size.x / 2, @engine.size.y / 2
       context.font = "18px Arial"
       context.fillText "space to restart", \
