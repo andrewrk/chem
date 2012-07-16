@@ -7,7 +7,7 @@ _exports.Batch = class Batch
   add: !(sprite) ->
     sprite.batch?.remove sprite
     sprite.batch = this
-    (@sprites[sprite.zorder] ?= {})[sprite.id] = sprite
+    (@sprites@[sprite.zorder])[sprite.id] = sprite
   remove: !(sprite) ->
-    delete (@sprites[sprite.zorder] ?= {})[sprite.id]
+    delete (@sprites@[sprite.zorder])[sprite.id]
 
