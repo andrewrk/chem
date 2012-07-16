@@ -233,7 +233,7 @@ const tasks =
     Usage: 
 
       # create a new project
-      # possible templates are: meteor
+      # possible templates are: meteor, readme
       
       chem init <your_project_name> [<template>]
 

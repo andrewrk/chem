@@ -47,8 +47,10 @@ const _exports.Sprite = class Sprite extends EventEmitter
 #endif
 
   setAnimationName: !(animation_name) ->
+    anim = _private.animations[animation_name]
 #ifdef DEBUG
-    throw "bad animation name" unless animation_name
+    if anim!?
+      throw "name not found in animation list: #animation_name"
 #endif
     @setAnimation _private.animations[animation_name]
 
