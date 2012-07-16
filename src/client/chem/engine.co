@@ -112,45 +112,41 @@ _exports.Engine = class Engine extends EventEmitter
       element.addEventListener(event_name, listener, false)
 
     # disable right click context menu
-    addListener @canvas, \contextmenu, !(event) ->
+    addListener @canvas, \contextmenu, !(event) ~>
       event.preventDefault()
 
     # mouse input
     @mouse_pos = new Vec2d(0, 0)
-    forwardMouseEvent = !(name, event) ~>
-      @mouse_pos = new Vec2d(event.offsetX, event.offsetY)
-      @emit name, @mouse_pos, MOUSE_OFFSET + event.which
+    const forwardMouseEvent = !(name, event) ~>
 
-    addListener @canvas, \mousemove, !(event) ->
-      forwardMouseEvent \mousemove, event
+    addListener @canvas, \mousemove, !(event) ~>
+      @mouse_pos = new Vec2d(event.offsetX, event.offsetY)
+      @emit \mousemove, @mouse_pos, MOUSE_OFFSET + event.which
 
     addListener @canvas, \mousedown, !(event) ~>
       const button_id = MOUSE_OFFSET + event.which
       @button_states[button_id] = true
       @btn_just_pressed[button_id] = true
-
-      forwardMouseEvent \mousedown, event
+      @emit \buttondown, button_id
 
     addListener @canvas, \mouseup, !(event) ~>
-      @button_states[MOUSE_OFFSET + event.which] = false
-
-      forwardMouseEvent \mouseup, event
+      const button_id = MOUSE_OFFSET + event.which
+      @button_states[button_id] = false
+      @emit \buttonup, button_id
 
     # keyboard input
     addListener @canvas, \keydown, (event) ~>
       const button_id = KEY_OFFSET + event.which
       @button_states[button_id] = true
       @btn_just_pressed[button_id] = true
-
-      @emit \keydown, button_id
+      @emit \buttondown, button_id
       event.preventDefault()
       false
 
     addListener @canvas, \keyup, (event) ~>
       const button_id = KEY_OFFSET + event.which
       @button_states[button_id] = false
-
-      @emit \keyup, button_id
+      @emit \buttonup, button_id
       event.preventDefault()
       false
 
