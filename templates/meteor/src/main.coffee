@@ -10,9 +10,8 @@ class PhysicsObject
 
   delete: ->
     @gone = true
-    if @sprite?
-      @sprite.delete()
-      @sprite = null
+    @sprite?.delete()
+    @sprite = null
 
 class Game
   constructor: (@engine) ->
@@ -36,12 +35,24 @@ class Game
     @meteor_interval = 0.3
     @next_meteor_at = @meteor_interval
 
+    @star_interval = 0.1
+    @next_star_at = @star_interval
+
+    @garbage_interval = 10
+    @next_garbage_at = @garbage_interval
+
     @score = 0
 
-  garbage: =>
-    @stars = (star for star in @stars when not star.gone)
+  start: ->
+    @engine.on('draw', @draw)
+    @engine.on('update', @update)
+    @engine.start()
 
-  createStar: =>
+  garbageCollect: ->
+    @stars = (star for star in @stars when not star.gone)
+    @meteors = (meteor for meteor in @meteors when not meteor.gone)
+
+  createStar: ->
     sprite = new Sprite @img_star[randInt(0, 1)],
       batch: @batch
       pos: new Vec2d(@engine.size.x, randInt(0, @engine.size.y))
@@ -54,13 +65,6 @@ class Game
       pos: new Vec2d(@engine.size.x, randInt(0, @engine.size.y))
     obj = new PhysicsObject(sprite, new Vec2d(-600 + Math.random() * 400, -200 + Math.random() * 400))
     @meteors.push(obj)
-
-  start: ->
-    @engine.on('draw', @draw)
-    @engine.on('update', @update)
-    setInterval(@createStar, 0.1 * 1000)
-    setInterval(@garbage, 10 * 1000)
-    @engine.start()
 
   update: (dt) =>
     if @had_game_over
@@ -76,6 +80,16 @@ class Game
       @createMeteor()
 
     @meteor_interval -= dt * 0.01
+
+    @next_star_at -= dt
+    if @next_star_at <= 0
+      @next_star_at = @star_interval
+      @createStar()
+
+    @next_garbage_at -= dt
+    if @next_garbage_at <= 0
+      @next_garbage_at = @garbage_interval
+      @garbageCollect()
 
     for obj_list in [@stars, @meteors]
       for obj in obj_list
