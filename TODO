@@ -1,5 +1,4 @@
 Release 0.1
-* refactor meteor example to make it nice
 * add another template
 * command line options
   - --list -l to list templates to choose from

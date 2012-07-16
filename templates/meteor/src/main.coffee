@@ -39,19 +39,12 @@ class Game
     @star_interval = 0.1
     @next_star_at = @star_interval
 
-    @garbage_interval = 10
-    @next_garbage_at = @garbage_interval
-
     @score = 0
 
   start: ->
     @engine.on('draw', @draw)
     @engine.on('update', @update)
     @engine.start()
-
-  garbageCollect: ->
-    @stars = (star for star in @stars when not star.gone)
-    @meteors = (meteor for meteor in @meteors when not meteor.gone)
 
   createStar: ->
     sprite = new Sprite @img_star[randInt(0, 1)],
@@ -91,17 +84,17 @@ class Game
       @next_star_at = @star_interval
       @createStar()
 
-    @next_garbage_at -= dt
-    if @next_garbage_at <= 0
-      @next_garbage_at = @garbage_interval
-      @garbageCollect()
-
-    for obj_list in [@stars, @meteors]
+    for list_name in ['stars', 'meteors']
+      cleaned_list = []
+      obj_list = @[list_name]
       for obj in obj_list
         if not obj.gone
           obj.sprite.pos.add(obj.vel.scaled(dt))
           if obj.sprite.getRight() < 0
             obj.delete()
+          else
+            cleaned_list.push(obj)
+      @[list_name] = cleaned_list
 
     if not @had_game_over
       ship_accel = 600
