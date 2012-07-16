@@ -12,7 +12,8 @@ exports.spritesheet =
   defaults:
     delay: 1
     loop: true
-    # possible values: a Vec2d instance, or "center"
+    # possible values: a Vec2d instance, or one of:
+    # ["center", "topleft", "topright", "bottomleft", "bottomright"]
     anchor: "center"
   animations:
     meteor_big:

@@ -192,8 +192,19 @@ const createSpritesheet = !->
 
       anim.frames.push frame
 
-    if anim.anchor is \center
-      anim.anchor = anim.frames[0].size.scaled(0.5).floor()
+    anim.anchor = switch anim.anchor
+      case \center
+        anim.frames[0].size.scaled(0.5).floor()
+      case \topleft
+        new Vec2d(0, 0)
+      case \topright
+        new Vec2d(anim.frames[0].size.x, 0)
+      case \bottomleft
+        new Vec2d(0, anim.frames[0].size.y)
+      case \bottomright
+        anim.frames[0].size
+      default
+        anim.anchor
 
   sheet = new Spritesheet(frame_list)
   sheet.calculatePositions()
