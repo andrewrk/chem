@@ -94,7 +94,7 @@ const serveStaticFiles = !(port) ->
   const node_static = require('node-static')
   const http = require('http')
   const public_dir = userPath("./public")
-  const file_server = new node_static.Server(public_dir)
+  const file_server = new node_static.Server(public_dir, cache: false)
   const app = http.createServer !(request, response) ->
     file_server.serve request, response
   app.listen port
