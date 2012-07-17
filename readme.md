@@ -422,7 +422,22 @@ subscribe to events.
 
 ##### methods
 
-(animation_name, params) ->
+`Sprite::new(animation_name, params)`
+
+    Example:
+
+    var sprite = new Chem.Sprite('some_animation_name', {
+      pos: new Vec2d(0, 0),
+      scale: new Vec2d(1, 1),
+      z_order: 0,
+      batch: some_batch,
+      rotation: 0,
+      visible: true,
+      frame_index: 0,
+      loop: true
+    });
+    
+    All the params are optional.
 
 `Sprite::setAnimationName(animation_name)`
 
