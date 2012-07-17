@@ -256,6 +256,9 @@ instances returned from the API.
 
  > `//depend "chem/batch"`
 
+A `Batch` is a set of sprites which you can conveniently draw using the
+`Engine::draw(batch)` method.
+
 `Batch::add(sprite)`:
 
     Adds a sprite to the batch. If called multiple times for the same sprite,
@@ -274,7 +277,6 @@ start with `Key_` and mouse buttons start with `Mouse_`.
 
 For example, the left mouse button is `Chem.Button.Mouse_Left` and the
 right arrow key is `Chem.Button.Key_Right`.
-
 
 See also:
  * `Engine::buttonState`
@@ -300,19 +302,19 @@ See `src/client/chem/button.co` for the full listing.
 
     Resize the game.
 
-start: !->
-stop: !->
-buttonState: (button) -> !!@button_states[button]
-buttonJustPressed: (button) -> !!@btn_just_pressed[button]
-mousePos: -> @mouse_pos
-draw: !(batch) ->
-drawFps: !->
+`Engine::start()`
+`Engine::stop()`
+`Engine::buttonState(button)`
+`Engine::buttonJustPressed(button)`
+`Engine::mousePos()`
+`Engine::draw(batch)`
+`Engine::drawFps()`
 
 ##### properties
 
-@size
-@fps
-@canvas
+`Engine::size`
+`Engine::fps`
+`Engine::canvas`
 
 ##### events
 
@@ -384,43 +386,50 @@ subscribe to events.
 
 (animation_name, params) ->
 
-setAnimationName: !(animation_name) ->
-setAnimation: !(@animation) ->
-getSize: ->
-getTopLeft: -> @pos.minus(@animation.anchor)
-getBottomRight: -> @getTopLeft().plus(@getSize())
+`Sprite::setAnimationName(animation_name)`
+`Sprite::setAnimation(animation)`
+`Sprite::getSize()`
+`Sprite::getTopLeft()`
+`Sprite::getBottomRight()`
 
-getTop: -> @getTopLeft().y
-getLeft: -> @getTopLeft().x
-getBottom: -> @getBottomRight().y
-getRight: -> @getBottomRight().x
+`Sprite::getTop()`
+`Sprite::getLeft()`
+`Sprite::getBottom()`
+`Sprite::getRight()`
 
-setLeft: !(x) -> @pos.x = x + @animation.anchor.x
-setRight: !(x) -> @pos.x = x - @animation.anchor.x
-setTop: !(y) -> @pos.y = y + @animation.anchor.y
-setBottom: !(y) -> @pos.y = y - @animation.anchor.y
+`Sprite::setLeft(x)`
+`Sprite::setRight(x)`
+`Sprite::setTop(y)`
+`Sprite::setBottom(y)`
 
-isTouching: (sprite) ->
-setVisible: !(@visible) ->
-setFrameIndex: !(frame_index) ->
-setLoop: !(@loop) ->
-setAnimationStartDate: !(@animation_start_date) ->
-getFrameIndex: ->
-delete: !->
+`Sprite::isTouching(sprite)`
+`Sprite::setVisible(visible)`
+`Sprite::setFrameIndex(frame_index)`
+`Sprite::setLoop(loop)`
+`Sprite::setAnimationStartDate(animation_start_date)`
+`Sprite::getFrameIndex()`
+`Sprite::delete()`
 
 ##### properties
 
-@pos
-@scale
-@zorder
-@batch
-@rotation
-@loop
-@id
+`Sprite::pos`
+`Sprite::scale`
+`Sprite::zorder`
+`Sprite::batch`
+`Sprite::rotation`
+`Sprite::loop`
+`Sprite::id`
 
 ##### events
 
 `Sprite:: 'animation_end' event`
+
+    Fired when the animation completes. If `loop` is true, this will be at a
+    regular interval. If `loop` is false, this will fire only once, until you
+    reset the frame index.
+
+    See also:
+     * `Sprite::setFrameIndex(frame_index)`
 
 #### Vec2d
 
