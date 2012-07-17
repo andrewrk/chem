@@ -91,11 +91,19 @@ const _exports.Sprite = class Sprite extends EventEmitter
     return not not_touching
 
   setVisible: !(@visible) ->
-    return unless @batch?
+    return if @batch!?
     if @visible
       @batch.add this
     else
       @batch.remove this
+
+  setZOrder: !(zorder) ->
+    if @batch?
+      @batch.remove(this)
+      @zorder = zorder
+      @batch.add(this)
+    else
+      @zorder = zorder
 
   setFrameIndex: !(frame_index) ->
     const seconds_passed = frame_index * @animation.delay
@@ -119,6 +127,7 @@ const _exports.Sprite = class Sprite extends EventEmitter
 
   delete: !->
     @batch.remove this
+    @batch = null
 
   # private
   setUpInterval: !->
