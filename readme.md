@@ -486,12 +486,31 @@ subscribe to events.
 
 `Sprite::setZOrder(z_order)`
 
+    Use to layer sprites the way you want to. Start with 0 as the bottom layer.
+    When you want to put something on top, use 1 for the z_order, 2 for
+    something on top of that, and so on.
     See also `Sprite::z_order`
     
 `Sprite::setFrameIndex(frame_index)`
+
+    Set the frame to show when the sprite is rendered. Animation will continue
+    from this frame as usual. To find out the frame count, use
+    `sprite.animation.frames.length`.
+
 `Sprite::setLoop(loop)`
+
+    See also `Sprite::loop`.
+
 `Sprite::setAnimationStartDate(animation_start_date)`
+
+    Does the same thing as `Sprite::setFrameIndex(frame_index)` except you
+    specify a date instead of a frame index.
+
 `Sprite::getFrameIndex()`
+
+    Returns the index of the current frame. See also
+    `Sprite::setFrameIndex(frame_index)`
+
 `Sprite::delete()`
 
     Indicates that the sprite should release all resources and no longer
@@ -536,7 +555,13 @@ subscribe to events.
 
 `Sprite::animation`
 
-    Read only.
+    Read only. The current animation of the sprite. Properties of `animation`
+    are:
+
+     * `anchor` - `Vec2d` instance
+     * `delay` - seconds
+     * `loop` - boolean
+     * `frames` - `[{size, pos}]` - both `size` and `pos` here are `Vec2d`s.
 
 `Sprite::animation_name`
 
