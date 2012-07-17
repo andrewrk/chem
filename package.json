@@ -18,7 +18,7 @@
     "dependencies": {
         "canvas": "~0.12.1",
         "node-static": "~0.6.0",
-        "jspackage": "~0.4.3"
+        "jspackage": "~0.4.5"
     },
     "devDependencies": {
         "coco": "~0.7.6"
