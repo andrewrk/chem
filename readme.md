@@ -442,14 +442,18 @@ subscribe to events.
 
     Like `Sprite::size` but takes scale and current frame into account.
 
+`Sprite::getAnchor()`
+
+    Convenience method to get a `Vec2d` representing the anchor position.
+    Takes into account scale.
+    Does not take into account rotation.
+
 `Sprite::getTopLeft()`
 `Sprite::getBottomRight()`
 
     Convenience methods returning a `Vec2d` instance of corners of the sprite.
     Takes into account scale and current frame.
     Does not take into account rotation.
-
-`Sprite::getTopLeft()`
 
 `Sprite::getTop()`
 `Sprite::getLeft()`
@@ -476,12 +480,20 @@ subscribe to events.
     Does not take into account rotation.
 
 `Sprite::setVisible(visible)`
+
+    Hides the sprite but keeps it ready to display again.
+    See also `Sprite::delete()`.
+
 `Sprite::setZOrder(zorder)`
 `Sprite::setFrameIndex(frame_index)`
 `Sprite::setLoop(loop)`
 `Sprite::setAnimationStartDate(animation_start_date)`
 `Sprite::getFrameIndex()`
 `Sprite::delete()`
+
+    Indicates that the sprite should release all resources and no longer
+    display on the canvas.
+    See also `Sprite::setVisible(visible)`.
 
 ##### properties
 

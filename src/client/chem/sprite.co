@@ -65,8 +65,8 @@ const _exports.Sprite = class Sprite extends EventEmitter
     @animation.frames[@getFrameIndex()].size.times(@scale.applied(Math.abs))
 
   # convenience
-  getCenter: -> @animation.anchor.times(@scale.applied(Math.abs))
-  getTopLeft: -> @pos.minus(@getCenter())
+  getAnchor: -> @animation.anchor.times(@scale.applied(Math.abs))
+  getTopLeft: -> @pos.minus(@getAnchor())
   getBottomRight: -> @getTopLeft().plus(@getSize())
 
   getTop: -> @getTopLeft().y
