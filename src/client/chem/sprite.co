@@ -127,7 +127,7 @@ const _exports.Sprite = class Sprite extends EventEmitter
       Math.floor(total_time / @animation.delay) <? @animation.frames.length - 1
 
   delete: !->
-    @batch.remove this
+    @batch?.remove this
     @batch = null
 
   # private
