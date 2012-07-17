@@ -272,6 +272,10 @@ instances returned from the API.
 Enumeration to get the button that a person is activating. Keyboard buttons
 start with `Key_` and mouse buttons start with `Mouse_`.
 
+For example, the left mouse button is `Chem.Button.Mouse_Left` and the
+right arrow key is `Chem.Button.Key_Right`.
+
+
 See also:
  * `Engine::buttonState`
  * `Engine::buttonJustPressed`
@@ -286,6 +290,29 @@ See `src/client/chem/button.co` for the full listing.
 
 ##### methods
 
+`Engine::new(canvas)`
+
+    Create an instance of the engine and bind it to a canvas:
+
+    var engine = new Chem.Engine(document.getElementById("the-canvas"));
+
+`Engine::setSize(size)`
+
+    Resize the game.
+
+start: !->
+stop: !->
+buttonState: (button) -> !!@button_states[button]
+buttonJustPressed: (button) -> !!@btn_just_pressed[button]
+mousePos: -> @mouse_pos
+draw: !(batch) ->
+drawFps: !->
+
+##### properties
+
+@size
+@fps
+@canvas
 
 ##### events
 
@@ -353,7 +380,47 @@ subscribe to events.
 
  > `//depend "chem/sprite"`
 
-TODO
+##### methods
+
+(animation_name, params) ->
+
+setAnimationName: !(animation_name) ->
+setAnimation: !(@animation) ->
+getSize: ->
+getTopLeft: -> @pos.minus(@animation.anchor)
+getBottomRight: -> @getTopLeft().plus(@getSize())
+
+getTop: -> @getTopLeft().y
+getLeft: -> @getTopLeft().x
+getBottom: -> @getBottomRight().y
+getRight: -> @getBottomRight().x
+
+setLeft: !(x) -> @pos.x = x + @animation.anchor.x
+setRight: !(x) -> @pos.x = x - @animation.anchor.x
+setTop: !(y) -> @pos.y = y + @animation.anchor.y
+setBottom: !(y) -> @pos.y = y - @animation.anchor.y
+
+isTouching: (sprite) ->
+setVisible: !(@visible) ->
+setFrameIndex: !(frame_index) ->
+setLoop: !(@loop) ->
+setAnimationStartDate: !(@animation_start_date) ->
+getFrameIndex: ->
+delete: !->
+
+##### properties
+
+@pos
+@scale
+@zorder
+@batch
+@rotation
+@loop
+@id
+
+##### events
+
+`Sprite:: 'animation_end' event`
 
 #### Vec2d
 

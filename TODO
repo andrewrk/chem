@@ -1,12 +1,8 @@
-Release 0.1
-* use buttondown buttonup instead of mousedown mouseup keydown keyup
 * utilize all the features in examples. if necessary create another example
   - mousedown/mouseup/mousemove
   - scaling sprites
   - changing a sprite's current frame
   - Batch.add / Batch.remove
-* write documentation
-
 * command line options
   - --list -l to list templates to choose from
 * convert chem to use non-blocking and async
