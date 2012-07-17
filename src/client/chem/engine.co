@@ -47,7 +47,6 @@ _exports.Engine = class Engine extends EventEmitter
 
   buttonState: (button) -> !!@button_states[button]
   buttonJustPressed: (button) -> !!@btn_just_pressed[button]
-  mousePos: -> @mouse_pos
 
   draw: !(batch) ->
     const now = new Date()

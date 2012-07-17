@@ -303,18 +303,56 @@ See `src/client/chem/button.co` for the full listing.
     Resize the game.
 
 `Engine::start()`
+
+    Call this to start the main loop and start listening to events.
+    
 `Engine::stop()`
+
+    Call this to stop the main loop and stop listening to events.
+
 `Engine::buttonState(button)`
+
+    Check if `button` is currently pressed. See also `Button`.
+
 `Engine::buttonJustPressed(button)`
-`Engine::mousePos()`
+
+    Call from the `update` event. It returns true if `button` is pressed,
+    but then returns false for subsequent calls until `button` is released
+    and pressed again.
+
+    See also `Button`.
+
 `Engine::draw(batch)`
+
+    Call from the `draw` event and pass in the `Batch` that you want to draw.
+    All of the sprites will be drawn with the correct rotations, offsets,
+    scaling, zorder, and animation applied.
+
 `Engine::drawFps()`
+
+    Draws the current frames per second in the corner of your game with
+    whatever fillColor and font are currently set.
 
 ##### properties
 
 `Engine::size`
+
+    Read only. `Vec2d` instance. Use `Engine::setSize` if you want to update
+    the size.
+
 `Engine::fps`
+
+    Read only. Contains an up to date value for the current frames per second.
+    
 `Engine::canvas`
+
+    Read only. The canvas element that the engine is using.
+
+`Engine::mouse_pos`
+
+    Read only. `Vec2d` instance representing the current mouse position
+    relative to the canvas.
+
 
 ##### events
 
@@ -387,23 +425,58 @@ subscribe to events.
 (animation_name, params) ->
 
 `Sprite::setAnimationName(animation_name)`
+
+    Changes the sprite's animation to the one indexed by `animation_name`.
+
+    Note that you probably also want to call `setFrameIndex(0)` if you want
+    the new animation to start from the beginning.
+
 `Sprite::setAnimation(animation)`
+
+    Changes the sprite's animation to `animation`.
+
+    Note that you probably also want to call `setFrameIndex(0)` if you want
+    the new animation to start from the beginning.
+
 `Sprite::getSize()`
+
+    Like `Sprite::size` but takes scale and current frame into account.
+
 `Sprite::getTopLeft()`
 `Sprite::getBottomRight()`
+
+    Convenience methods returning a `Vec2d` instance of corners of the sprite.
+    Takes into account scale and current frame.
+    Does not take into account rotation.
+
+`Sprite::getTopLeft()`
 
 `Sprite::getTop()`
 `Sprite::getLeft()`
 `Sprite::getBottom()`
 `Sprite::getRight()`
 
+    Convenience methods returning the location of edges of the sprite.
+    Takes into account scale and current frame.
+    Does not take into account rotation.
+
 `Sprite::setLeft(x)`
 `Sprite::setRight(x)`
 `Sprite::setTop(y)`
 `Sprite::setBottom(y)`
 
+    Convenience methods to set the location of edges of the sprite.
+    Takes into account scale and current frame.
+    Does not take into account rotation.
+
 `Sprite::isTouching(sprite)`
+
+    Returns boolean of whether the sprite is colliding with another.
+    Takes into account scale and current frame.
+    Does not take into account rotation.
+
 `Sprite::setVisible(visible)`
+`Sprite::setZOrder(zorder)`
 `Sprite::setFrameIndex(frame_index)`
 `Sprite::setLoop(loop)`
 `Sprite::setAnimationStartDate(animation_start_date)`
@@ -413,14 +486,51 @@ subscribe to events.
 ##### properties
 
 `Sprite::pos`
+
+    `Vec2d`. Get or set the position in the canvas this sprite is drawn.
+
+`Sprite::size`
+
+    Read only. `Vec2d` width and height of the first frame, not taking into
+    account `scale` or current frame.
+
 `Sprite::scale`
+
+    `Vec2d`. Get or set the scale with which the sprite is drawn.
+
 `Sprite::zorder`
+
+    Read only. Use `Sprite::setZOrder` to change the zorder of a sprite.
+    
 `Sprite::batch`
+
+    Read only. Use `Batch::add(sprite)` and `Batch::remove(sprite)` to
+    change this value.
+
 `Sprite::rotation`
+
+    Get or set the angle of the sprite, in radians. Going over 2 * pi is OK.
+
 `Sprite::loop`
+
+    Read only. Use `Sprite::setLoop(loop)` to set this value.
+
 `Sprite::id`
 
+    Read only. Uniquely identifies this `Sprite` among others.
+
+`Sprite::animation`
+
+    Read only.
+
+`Sprite::animation_name`
+
+    Read only.
+
 ##### events
+
+These are events that you can subscribe to. See `EventEmitter` on how to
+subscribe to events.
 
 `Sprite:: 'animation_end' event`
 
