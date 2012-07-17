@@ -119,7 +119,7 @@ Chem.onReady(function () {
 var Vec2d = require("chem").Vec2d;
 
 // extra folders to look for source files
-// you can use #depend statements to include any source files in these folders.
+// you can use //depend statements to include any source files in these folders.
 exports.libs = [];
 
 // the main source file which depends on the rest of your source files.
@@ -136,7 +136,7 @@ exports.spritesheet = {
   animations: {
     boom: {
       // frames can be a list of filenames or a string to match the beginning
-      // of files with. if you leave it out entirely, it defaults to the
+      // of files with. If you leave it out entirely, it defaults to the
       // animation name.
       frames: "explosion"
     },
@@ -166,11 +166,88 @@ See also [Meteor Attack demo](http://www.superjoesoftware.com/temp/chem-meteor-d
 
 ### Developing With Chem
 
-TODO: note about //depend and #depend syntax. Link to jspackage
+#### Chemfile
+
+Start by looking at your `chemfile`. This file contains all the instructions
+on how to build your app.
+
+This file, like every other source file in your app, can be in any compile-
+to-JavaScript language (including JavaScript itself) that you choose.
+
+ * `main` - this is the entry point into your app. Chem will use
+   [jspackage](https://github.com/superjoe30/jspackage/) with this as the
+   input file. Often this is set to `src/main`.
+
+ * `libs` - additional search paths for source code. Often this is used for
+   a `./public/vendor/` directory so you can depend on third party packages.
+
+   Within your code, you can use these directives:
+   
+    * `#depend "path/to/source"` - declares that the file must be included *before*
+      the current file in the final package.
+    * `#depend "some_other_file" bare` - does not include a top-level function
+      wrapper in the included file.
+    * `//depend "../another"` - you can do this in JavaScript too. Just use
+      whatever one-line commenting syntax your language supports.
+   
+    See [jspackage](https://github.com/superjoe30/jspackage/) for additional
+    information.
+
+ * `spritesheet`
+   - `defaults` - for each animation, these are the default values that will
+     be used if you do not specify one.
+   - `animations` - these will be available when you create a sprite.
+     * `anchor` - the "center of gravity" point. `pos` is centered here, and
+       a sprite's `rotation` rotates around this point. Use a Vec2d instance
+       for this value.
+     * `frames` - frames can be a list of filenames or a string to match the
+       beginning of files with. if you leave it out entirely, it defaults to
+       the animation name.
+     * `delay` - number of seconds between frames.
+     * `loop` - whether an animation should start over when it ends. You can
+       override this in individual sprites.
+
+#### Bootstrapping
+
+The simplest way to bootstrap is to depend on "chem":
+
+```js
+//depend "chem"
+
+Chem.onReady(function() {
+    // Now you can go for it. All asssets are loaded.
+});
+```
+
+However, you can choose to `depend` only on the parts of chem that you need,
+which will prevent unnecessary components from being included in your package.
+
+For example, this would only include the `Vecd2` class in your source package:
+
+```js
+//depend "chem/vec2d"
+
+console.log((new Chem.Vec2d()).toString());
+// prints "(0, 0)"
+```
+
+However, if you don't `depend` on "chem", you will need to call bootstrap
+manually, otherwise the `onReady` event will never be fired:
+
+```js
+//depend "chem/bootstrap"
+
+Chem.bootstrap();
+Chem.onReady(function() {
+    // ok go for it
+});
+```
 
 ### Reference
 
 #### Batch
+
+ > `//depend "chem/batch"`
 
 `Batch::add(sprite)`:
 
@@ -183,21 +260,40 @@ TODO: note about //depend and #depend syntax. Link to jspackage
 
 #### Button
 
-TODO
+ > `//depend "chem/button"`
+
+Enumeration to get the button that a person is activating. Keyboard buttons
+start with `Key_` and mouse buttons start with `Mouse_`.
+
+See also:
+ * `Engine::buttonState`
+ * `Engine::buttonJustPressed`
+ * `Engine:: 'buttondown' event`
+ * `Engine:: 'buttonup' event`
+
+See `src/client/chem/button.co` for the full listing.
 
 #### Engine
+
+ > `//depend "chem/engine"`
 
 TODO
 
 #### EventEmitter
 
+ > `//depend "chem/event_emitter"`
+
 TODO
 
 #### Sprite
 
+ > `//depend "chem/sprite"`
+
 TODO
 
 #### Vec2d
+
+ > `//depend "chem/vec2d"`
 
 This is straightforward. You are better off just looking at the source than
 reading documentation:
