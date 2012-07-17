@@ -2,13 +2,13 @@ const _exports = window@Chem
 
 _exports.Batch = class Batch
   ->
-    # indexed by zorder
+    # indexed by z_order
     @sprites = []
   add: !(sprite) ->
     sprite.batch?.remove sprite
     sprite.batch = this
     if sprite.visible
-      (@sprites@[sprite.zorder])[sprite.id] = sprite
+      (@sprites@[sprite.z_order])[sprite.id] = sprite
   remove: !(sprite) ->
-    delete (@sprites@[sprite.zorder])[sprite.id]
+    delete (@sprites@[sprite.z_order])[sprite.id]
 

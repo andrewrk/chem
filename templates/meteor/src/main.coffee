@@ -30,7 +30,7 @@ class Game
     @ship = new Sprite 'ship',
       batch: @batch
       pos: new Vec2d(0, @engine.size.y / 2)
-      zorder: 1
+      z_order: 1
     @ship_vel = new Vec2d()
 
     @meteor_interval = 0.3
@@ -50,7 +50,7 @@ class Game
     sprite = new Sprite @img_star[randInt(0, 1)],
       batch: @batch
       pos: new Vec2d(@engine.size.x, randInt(0, @engine.size.y))
-      zorder: 0
+      z_order: 0
     obj = new MovingSprite(sprite, new Vec2d(-400 + Math.random() * 200, 0))
     @stars.push(obj)
 
@@ -58,7 +58,7 @@ class Game
     sprite = new Sprite @img_meteor[randInt(0, 1)],
       batch: @batch
       pos: new Vec2d(@engine.size.x, randInt(0, @engine.size.y))
-      zorder: 1
+      z_order: 1
     obj = new MovingSprite(sprite, new Vec2d(-600 + Math.random() * 400, -200 + Math.random() * 400))
     @meteors.push(obj)
 

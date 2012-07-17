@@ -19,14 +19,14 @@ const _exports.Sprite = class Sprite extends EventEmitter
     {
       @pos
       @scale
-      @zorder
+      @z_order
       @batch
       @rotation
       @loop
     } = o = {
       pos: new Vec2d(0, 0)
       scale: new Vec2d(1, 1)
-      zorder: 0
+      z_order: 0
       batch: null
       rotation: 0
       visible: true
@@ -98,13 +98,13 @@ const _exports.Sprite = class Sprite extends EventEmitter
     else
       @batch.remove this
 
-  setZOrder: !(zorder) ->
+  setZOrder: !(z_order) ->
     if @batch?
       @batch.remove(this)
-      @zorder = zorder
+      @z_order = z_order
       @batch.add(this)
     else
-      @zorder = zorder
+      @z_order = z_order
 
   setFrameIndex: !(frame_index) ->
     const seconds_passed = frame_index * @animation.delay

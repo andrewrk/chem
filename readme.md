@@ -326,7 +326,7 @@ See `src/client/chem/button.co` for the full listing.
 
     Call from the `draw` event and pass in the `Batch` that you want to draw.
     All of the sprites will be drawn with the correct rotations, offsets,
-    scaling, zorder, and animation applied.
+    scaling, `z_order`, and animation applied.
 
 `Engine::drawFps()`
 
@@ -484,7 +484,10 @@ subscribe to events.
     Hides the sprite but keeps it ready to display again.
     See also `Sprite::delete()`.
 
-`Sprite::setZOrder(zorder)`
+`Sprite::setZOrder(z_order)`
+
+    See also `Sprite::z_order`
+    
 `Sprite::setFrameIndex(frame_index)`
 `Sprite::setLoop(loop)`
 `Sprite::setAnimationStartDate(animation_start_date)`
@@ -510,9 +513,9 @@ subscribe to events.
 
     `Vec2d`. Get or set the scale with which the sprite is drawn.
 
-`Sprite::zorder`
+`Sprite::z_order`
 
-    Read only. Use `Sprite::setZOrder` to change the zorder of a sprite.
+    Read only. Use `Sprite::setZOrder` to change the `z_order` of a sprite.
     
 `Sprite::batch`
 
