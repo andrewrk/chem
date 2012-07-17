@@ -91,7 +91,7 @@ _exports.Engine = class Engine extends EventEmitter
 
       const multiplier = delta / target_spf
       callUpdate delta, multiplier
-      @emit 'draw', @context
+      @emit \draw, @context
       now = new Date()
       const time_to_draw = (now - last_draw) / 1000
       const fps = 1 / time_to_draw

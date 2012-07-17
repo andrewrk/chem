@@ -170,12 +170,12 @@ See also [Meteor Attack demo](http://www.superjoesoftware.com/temp/chem-meteor-d
 #### Chemfile
 
 Start by looking at your `chemfile`. This file contains all the instructions
-on how to build your app.
+on how to build your game.
 
-This file, like every other source file in your app, can be in any compile-
+This file, like every other source file in your game, can be in any compile-
 to-JavaScript language (including JavaScript itself) that you choose.
 
- * `main` - this is the entry point into your app. Chem will use
+ * `main` - this is the entry point into your game. Chem will use
    [jspackage](https://github.com/superjoe30/jspackage/) with this as the
    input file. Often this is set to `src/main`.
 
@@ -244,6 +244,12 @@ Chem.onReady(function() {
 });
 ```
 
+#### Vec2d Convention
+
+As a convention, any `Vec2d` instances you get from Chem are not clones. That
+is, pay careful attention not to perform destructive behavior on the `Vec2d`
+instances returned from the API.
+
 ### Reference
 
 #### Batch
@@ -269,8 +275,8 @@ start with `Key_` and mouse buttons start with `Mouse_`.
 See also:
  * `Engine::buttonState`
  * `Engine::buttonJustPressed`
- * `Engine:: 'buttondown' event`
- * `Engine:: 'buttonup' event`
+ * `Engine:: 'buttondown' event (button)`
+ * `Engine:: 'buttonup' event (button)`
 
 See `src/client/chem/button.co` for the full listing.
 
@@ -278,13 +284,70 @@ See `src/client/chem/button.co` for the full listing.
 
  > `//depend "chem/engine"`
 
-TODO
+##### methods
+
+
+##### events
+
+These are events that you can subscribe to. See `EventEmitter` on how to
+subscribe to events.
+
+`Engine:: 'update' event (dt, dx)`
+    
+    Fired as often as possible, capping at about 60 FPS. Use it to compute
+    the next frame in your game.
+
+    `dt` is the "delta time" - the amount of time in seconds that has passed 
+    since `update` was last fired.
+
+    `dx` is a multiplier intended to adjust your physics. If your game is
+    running perfectly smoothly at 60 FPS, `dx` will be exactly 1. If your game
+    is running half as fast as it should, at 30 FPS, `dx` will be 2. `dx` is
+    equal to `dt` * 60.
+
+`Engine:: 'draw' event (context)`
+
+    You should perform all canvas drawing based on your game state in response
+    to this event.
+
+    See also:
+     * `Engine::draw`
+
+`Engine:: 'mousemove' event (pos, button)`
+
+    Fired when the mouse moves.
+    `pos`: a `Vec2d` instance.
+    `button`: an enum from `Button`.
+
+    See also:
+     * `Engine::mousePos()`
+
+`Engine:: 'buttondown' event (button)`
+`Engine:: 'buttonup' event (button)`
+
+    Fired when the player presses a button down or up, respectively.
+    `button`: an enum from `Button`.
 
 #### EventEmitter
 
  > `//depend "chem/event_emitter"`
 
-TODO
+##### public
+
+`EventEmitter::on(event_name, handler)`:
+
+    `handler` will now be called when `event_name` is fired. 
+
+`EventEmitter::removeListener(event_name, handler)`:
+
+    `handler` is the one you registered with `on`. It will no longer be called
+    when `event_name` is fired.
+
+##### protected
+
+`EventEmitter::emit(event_name, ...args)`
+
+    Fires an `event_name` event with `args`. Listeners will be notified.
 
 #### Sprite
 
