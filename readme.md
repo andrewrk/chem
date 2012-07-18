@@ -306,6 +306,14 @@ See `src/client/chem/button.co` for the full listing.
 
     Call this to start the main loop and start listening to events.
     
+`Engine::setMinFps(min_fps)`
+
+    If the FPS drops below this value, your engine will lag instead of trying
+    to compensate with a larger dt/dx sent to `update`
+    Defaults to 20.
+
+    See also `Engine:: 'update' event(dt, dx)`
+    
 `Engine::stop()`
 
     Call this to stop the main loop and stop listening to events.

@@ -9,8 +9,6 @@ const _private = window@Chem@Private
 
 _exports.Engine = class Engine extends EventEmitter
   const target_fps = 60
-  const min_fps = 20
-  const max_frame_skips = target_fps - min_fps
   const target_spf = 1 / target_fps
   const fps_smoothness = 0.9
   const fps_one_frame_weight = 1.0 - fps_smoothness
@@ -33,9 +31,14 @@ _exports.Engine = class Engine extends EventEmitter
     @size = new Vec2d(@canvas.width, @canvas.height)
     @fps = target_fps
 
+    @setMinFps(20)
+
   setSize: !(@size) ->
     @canvas.width = @size.x
     @canvas.height = @size.y
+
+  setMinFps: !->
+    @max_spf = 1 / it
 
   start: !->
     @attachListeners()
@@ -65,37 +68,27 @@ _exports.Engine = class Engine extends EventEmitter
         @context.restore()
 
   drawFps: !->
-    return unless @fps?
     @context.fillText "#{Math.round(@fps)} fps", 0, @size.y
 
   # private
   startMainLoop: !->
-    last_draw = previous_update = new Date()
+    previous_update = new Date()
     @main_loop_on = true
 
-    const callUpdate = !(dt, dx) ~>
-      @emit 'update', dt, dx
+    const mainLoop = !~>
+      const now = new Date()
+      const delta = (now - previous_update) / 1000
+      previous_update := now
+      # make sure dt is never zero
+      # if FPS is too low, lag instead of causing physics glitches
+      const dt = 0.00000001 >? delta <? @max_spf
+      const multiplier = dt / target_spf
+      @emit \update, dt, multiplier
       @btn_just_pressed = {}
 
-    const mainLoop = !~>
-      now = new Date()
-      delta = (now - previous_update) / 1000
-      previous_update := now
-
-      skip_count = 0
-      while delta > target_spf and skip_count < max_frame_skips
-        callUpdate target_spf, 1
-        skip_count += 1
-        delta -= target_spf
-
-      const multiplier = delta / target_spf
-      callUpdate delta, multiplier
       @emit \draw, @context
-      now = new Date()
-      const time_to_draw = (now - last_draw) / 1000
-      const fps = 1 / time_to_draw
+      const fps = 1 / delta <? 90000
       @fps = @fps * fps_smoothness + fps * fps_one_frame_weight
-      last_draw := now
 
       if @main_loop_on
         requestAnimationFrame(mainLoop, @canvas)
