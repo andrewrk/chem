@@ -20,7 +20,7 @@ _exports.Engine = class Engine extends EventEmitter
     window.msRequestAnimationFrame or \
     !(cb) -> window.setTimeout(cb, target_spf * 1000)
 
-  (@canvas) ->
+  (@canvas) ~>
     super()
     @listeners = []
 

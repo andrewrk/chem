@@ -1,5 +1,4 @@
 {Vec2d} = require("chem")
-v = (x, y) -> new Vec2d(x, y)
 
 # extra folders to look for source files
 # you can use #depend statements to include any source files in these folders.

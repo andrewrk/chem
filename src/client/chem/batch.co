@@ -1,7 +1,7 @@
 const _exports = window@Chem
 
 _exports.Batch = class Batch
-  ->
+  ~>
     # indexed by z_order
     @sprites = []
   add: !(sprite) ->

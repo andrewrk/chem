@@ -1,7 +1,7 @@
 const _exports = window@Chem
 
 _exports.EventEmitter = class EventEmitter
-  ->
+  ~>
     @event_handlers = {}
 
   on: !(event_name, handler) ->
