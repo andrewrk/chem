@@ -22,7 +22,6 @@ const _exports.Sprite = class Sprite extends EventEmitter
       @z_order
       @batch
       @rotation
-      @loop
     } = o = {
       pos: new Vec2d(0, 0)
       scale: new Vec2d(1, 1)
@@ -37,7 +36,7 @@ const _exports.Sprite = class Sprite extends EventEmitter
     @id = Sprite.id_count++
 
     @setAnimationName animation_name
-
+    @setLoop o.loop
     @setVisible o.visible
     @setFrameIndex 0
 
@@ -56,7 +55,7 @@ const _exports.Sprite = class Sprite extends EventEmitter
 
   setAnimation: !(@animation) ->
     @animation_name = @animation.name
-    {@loop} ?= @animation
+    @_loop = @loop ? @animation.loop
     # size of first frame, which does not take scale into account
     @size = @animation.frames[0].size
 
@@ -113,6 +112,8 @@ const _exports.Sprite = class Sprite extends EventEmitter
     @setAnimationStartDate(date)
 
   setLoop: !(@loop) ->
+    # this is the actual value we'll use to check if we're going to loop.
+    @_loop = @loop ? @animation.loop
     @setUpInterval!
 
   setAnimationStartDate: !(@animation_start_date) ->
@@ -121,7 +122,7 @@ const _exports.Sprite = class Sprite extends EventEmitter
   getFrameIndex: ->
     const now = new Date()
     const total_time = (now - @animation_start_date) / 1000
-    if @loop
+    if @_loop
       Math.floor((total_time % @animation.duration) / @animation.delay)
     else
       Math.floor(total_time / @animation.delay) <? @animation.frames.length - 1
@@ -134,7 +135,7 @@ const _exports.Sprite = class Sprite extends EventEmitter
   setUpInterval: !->
     @interval?.cancel()
 
-    _schedule = if @loop then schedule else wait
+    _schedule = if @_loop then schedule else wait
 
     const now = new Date()
     const time_since_start = (now - @animation_start_date) / 1000

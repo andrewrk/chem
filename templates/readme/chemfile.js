@@ -7,6 +7,7 @@ exports.libs = [];
 // the main source file which depends on the rest of your source files.
 exports.main = 'src/main';
 
+function v (x, y) { return {x: x, y: y}; }
 exports.spritesheet = {
   defaults: {
     delay: 0.05,
