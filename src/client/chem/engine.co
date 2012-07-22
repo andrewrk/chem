@@ -112,7 +112,9 @@ _exports.Engine = class Engine extends EventEmitter
     const forwardMouseEvent = !(name, event) ~>
 
     addListener @canvas, \mousemove, !(event) ~>
-      @mouse_pos = Vec2d(event.offsetX, event.offsetY)
+      @mouse_pos = Vec2d(
+        event.offsetX ? (event.pageX - event.target.offsetLeft),
+        event.offsetY ? (event.pageY - event.target.offsetTop))
       @emit \mousemove, @mouse_pos, MOUSE_OFFSET + event.which
 
     addListener @canvas, \mousedown, !(event) ~>
