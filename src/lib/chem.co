@@ -246,7 +246,7 @@ const tasks =
     """
   init: !(args) ->
     const project_name = args[0]
-    const template = args[1] or "meteor"
+    const template = args[1] or "readme"
 
     if not project_name?
       tasks.help()
