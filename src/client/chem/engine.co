@@ -28,7 +28,7 @@ _exports.Engine = class Engine extends EventEmitter
     @canvas.tabIndex = 0
 
     @context = @canvas.getContext("2d")
-    @size = new Vec2d(@canvas.width, @canvas.height)
+    @size = Vec2d(@canvas.width, @canvas.height)
     @fps = target_fps
 
     @setMinFps(20)
@@ -108,11 +108,11 @@ _exports.Engine = class Engine extends EventEmitter
       event.preventDefault()
 
     # mouse input
-    @mouse_pos = new Vec2d(0, 0)
+    @mouse_pos = Vec2d()
     const forwardMouseEvent = !(name, event) ~>
 
     addListener @canvas, \mousemove, !(event) ~>
-      @mouse_pos = new Vec2d(event.offsetX, event.offsetY)
+      @mouse_pos = Vec2d(event.offsetX, event.offsetY)
       @emit \mousemove, @mouse_pos, MOUSE_OFFSET + event.which
 
     addListener @canvas, \mousedown, !(event) ~>

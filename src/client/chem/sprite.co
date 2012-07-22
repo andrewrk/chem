@@ -23,8 +23,8 @@ const _exports.Sprite = class Sprite extends EventEmitter
       @batch
       @rotation
     } = o = {
-      pos: new Vec2d(0, 0)
-      scale: new Vec2d(1, 1)
+      pos: Vec2d(0, 0)
+      scale: Vec2d(1, 1)
       z_order: 0
       batch: null
       rotation: 0

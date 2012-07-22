@@ -38,10 +38,10 @@ _exports.bootstrap = !->
     for name, anim in _private.animations
       anim.duration = anim.delay * anim.frames.length
       anim.name = name
-      anim.anchor = new Vec2d(anim.anchor)
+      anim.anchor = Vec2d(anim.anchor)
       for frame of anim.frames
-        frame.pos = new Vec2d(frame.pos)
-        frame.size = new Vec2d(frame.size)
+        frame.pos = Vec2d(frame.pos)
+        frame.size = Vec2d(frame.size)
     animations_json_done := true
     checkDoneLoading()
   request.open("GET", "animations.json", true)
