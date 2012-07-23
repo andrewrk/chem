@@ -1,0 +1,17 @@
+const _exports = window@Chem
+
+_exports.Sound = class Sound
+  audioReadyToPlay = -> it.currentTime is 0 or it.currentTime is it.duration
+
+  (url) ~>
+    @audio_pool = [ new Audio(url) ]
+
+  play: ->
+    for audio of @audio_pool
+      if audioReadyToPlay(audio)
+        audio.play()
+        return audio
+    new_audio = new Audio(@audio_pool[0].currentSrc)
+    new_audio.play()
+    @audio_pool.push(new_audio)
+    return new_audio

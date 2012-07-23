@@ -423,6 +423,26 @@ subscribe to events.
 
     Fires an `event_name` event with `args`. Listeners will be notified.
 
+#### Sound
+
+> `//depend "chem/sound"`
+
+`Sound::new(url)`
+
+    Example:
+
+    var sound = new Chem.Sound('url/to/sound.ogg');
+
+`Sound::play()`
+
+    Plays the sound. If the sound is already playing, it will play another
+    instance at the same time.
+
+    Returns the HTML5 Audio object that is generating the sound, which has these
+    methods: pause(), play()
+
+    And these properties: currentTime, duration
+
 #### Sprite
 
  > `//depend "chem/sprite"`

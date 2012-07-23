@@ -11,7 +11,7 @@ const {
 const _exports = window@Chem
 const _private = window@Chem@Private
 
-const _exports.Sprite = class Sprite extends EventEmitter
+_exports.Sprite = class Sprite extends EventEmitter
   @id_count = 0
 
   (animation_name, params={}) ~>
@@ -135,8 +135,7 @@ const _exports.Sprite = class Sprite extends EventEmitter
   setUpInterval: !->
     @interval?.cancel()
 
-    _schedule = if @_loop then schedule else wait
-
+    const _schedule = if @_loop then schedule else wait
     const now = new Date()
     const time_since_start = (now - @animation_start_date) / 1000
     const duration = @animation.duration - time_since_start
