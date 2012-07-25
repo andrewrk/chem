@@ -1,24 +1,16 @@
-const fs = require('fs')
-const path = require('path')
-const util = require('util')
-const {spawn} = require('child_process')
-const {watchFilesOnce} = require('./watch')
-
-const compilers =
-  '.coffee':
-    require: 'coffee-script'
-  '.co':
-    require: 'coco'
-  '.ls':
-    require: 'LiveScript'
-  '.js':
-    require: null
+const
+  fs = require('fs')
+  path = require('path')
+  util = require('util')
+  {spawn} = require('child_process')
+  jspackage = require('jspackage')
+  {watchFilesOnce} = require('./watch')
 
 const compilerFromPath = (filepath) ->
   if filepath!?
     return null
   const ext = path.extname(filepath)
-  compilers[ext]
+  jspackage.extensions[ext]
 
 chemfile_path = null
 const getChemfilePath = ->
@@ -76,14 +68,13 @@ const exec = !(cmd, args=[], cb=->) ->
   bin.on 'exit', cb
 
 const compileClientSource = !(options) ->
-  const {compile} = require('jspackage')
   const {libs, main} = forceRequireChemfile()
   options.mainfile = userPath(main)
   options.libs = (userPath(l) for l of libs).concat [
     chemPath("./src/shared/")
     chemPath("./src/client/")
   ]
-  compile options, (err, compiled_code) ->
+  jspackage.compile options, (err, compiled_code) ->
     if err
       timestamp = (new Date()).toLocaleTimeString()
       console.error "#{timestamp} - error: #{err}"
