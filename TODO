@@ -1,3 +1,5 @@
+* more sugar for Sound.
+* asset loading progress indication
 * utilize all the features in examples. if necessary create another example
   - mousedown/mouseup/mousemove
   - scaling sprites
@@ -8,5 +10,4 @@
 * convert chem to use non-blocking and async
 * firefox support?
 * multiple spritesheet support?
-* asset loading progress indication
 * sfx
