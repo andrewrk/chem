@@ -1,5 +1,3 @@
-var Vec2d = require("chem").Vec2d;
-
 // extra folders to look for source files
 // you can use #depend statements to include any source files in these folders.
 exports.libs = [];
@@ -7,7 +5,7 @@ exports.libs = [];
 // the main source file which depends on the rest of your source files.
 exports.main = 'src/main';
 
-function v (x, y) { return {x: x, y: y}; }
+var v = require("chem").Vec2d;
 exports.spritesheet = {
   defaults: {
     delay: 0.05,
