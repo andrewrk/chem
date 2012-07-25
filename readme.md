@@ -49,6 +49,7 @@ package. JavaScript files get a top-level closure inserted around them.
  * coco
  * coffee-script
  * LiveScript
+ * iced-coffee-script
 
 ### ./src/main.js
 ```js

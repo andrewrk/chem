@@ -224,9 +224,9 @@ const tasks =
     Usage: 
 
       # create a new project
-      # possible templates are: meteor, readme
+      # possible templates are: meteor, readme, readme-coco
       
-      chem init <your_project_name> [<template>]
+      chem init <your_project_name> [--example <template>]
 
 
       # run a development server which will automatically recompile your code,
@@ -234,10 +234,15 @@ const tasks =
       
       chem dev
 
+
+      # delete all generated files
+
+      chem clean
+
     """
-  init: !(args) ->
+  init: !(args, argv) ->
     const project_name = args[0]
-    const template = args[1] or "readme"
+    const template = argv.example or "readme"
 
     if not project_name?
       tasks.help()
@@ -256,10 +261,12 @@ const tasks =
     exec 'rm', ['-f'].concat(all_out_files)
 
 export const run = !->
-  const cmd = process.argv[2]
+  {argv} = require('optimist')
+
+  const cmd = argv._.0
   const task = tasks[cmd]
   if task?
-    task(process.argv.slice(3), {})
+    task(argv._.slice(1), argv)
   else
-    tasks.help([], {})
+    tasks.help()
 
