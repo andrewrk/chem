@@ -12,17 +12,20 @@ const watchFile = fs.watch or watchFileFallback
 
 # when any one of these files change, call callback
 # and stop watching
-export const watchFilesOnce = !(files, cb) ->
-  const watchers = []
+export const watchFilesOnce = (files, cb) ->
+  watchers = []
+  const close = !->
+    watcher.close! for watcher of watchers
+    watchers := []
   const doCallback = !(event) ->
     if event is \change
-      watcher.close! for watcher of watchers
+      close!
       cb!
   for file of files
     try
       watcher = fs.watch(file, doCallback)
     catch err
       watcher = watchFileFallback(file, doCallback)
-    watchers.push watcher
+    watchers.push(watcher)
 
-
+  {close}
