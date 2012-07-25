@@ -60,6 +60,7 @@ Chem.onReady(function () {
     var canvas = document.getElementById("game");
     var engine = new Chem.Engine(canvas);
     var batch = new Chem.Batch();
+    var boom = new Chem.Sound('sfx/boom.ogg');
     var ship = new Chem.Sprite('ship', {
         batch: batch,
         pos: new Vec2d(200, 200),
@@ -90,6 +91,7 @@ Chem.onReady(function () {
 
         // press space to blow yourself up
         if (engine.buttonJustPressed(Chem.Button.Key_Space)) {
+            boom.play();
             ship.setAnimationName('boom');
             ship.setFrameIndex(0);
             ship.on('animation_end', function() {
