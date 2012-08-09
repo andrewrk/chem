@@ -30,7 +30,7 @@ class Game
     @ship = new Sprite 'ship',
       batch: @batch
       pos: new Vec2d(0, @engine.size.y / 2)
-      z_order: 1
+      z_order: 2
     @ship_vel = new Vec2d()
 
     @meteor_interval = 0.3

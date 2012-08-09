@@ -14,8 +14,8 @@ chem - html5 game engine optimized for rapid development
     # generate your spritesheets, and serve your assets
     chem dev
 
-    # remove all generated files
-    chem clean
+    # see more commands
+    chem
     
 ## Synopsis
 
@@ -727,5 +727,5 @@ class Vec2d
     sudo npm link
     
     # while developing:
-    npm run-script dev
+    npm run dev
 

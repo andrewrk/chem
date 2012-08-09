@@ -1,7 +1,6 @@
 const
   fs = require('fs')
   path = require('path')
-  util = require('util')
   {spawn} = require('child_process')
   jspackage = require('jspackage')
   {watchFilesOnce} = require('./watch')
