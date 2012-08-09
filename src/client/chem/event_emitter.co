@@ -1,24 +1,22 @@
 const _exports = window@Chem
 
 _exports.EventEmitter = class EventEmitter
+  ..count = 0
+
   ~>
     @event_handlers = {}
+    @next_id = 0
+    @prop = "__EventEmitter_#{..count++}_id"
 
   on: !(event_name, handler) ->
-    @event_handlers@@[event_name].push handler
+    handler[@prop] = @next_id
+    @event_handlers@[event_name][@next_id] = handler
+    @next_id += 1
 
   removeListener: !(event_name, handler) ->
-    const handlers = @event_handlers@@[event_name]
-    for h, i of handlers
-      if h is handler
-        handlers.splice i, 1
-        return
+    delete @event_handlers@[event_name][handler[@prop]]
 
   # protected
   emit: !(event_name, ...args) ->
-    # copy the array so we can remove listeners in response
-    # to an event
-    for h of @event_handlers@@[event_name]concat!
+    for id, h in @event_handlers@[event_name]
       h(...args)
-
-
