@@ -1,3 +1,4 @@
+[![build status](https://secure.travis-ci.org/superjoe30/chem.png)](http://travis-ci.org/superjoe30/chem)
 chem - html5 game engine optimized for rapid development
 ========================================================
 
