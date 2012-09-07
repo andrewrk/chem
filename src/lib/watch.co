@@ -12,7 +12,7 @@ const watchFile = fs.watch or watchFileFallback
 
 # when any one of these files change, call callback
 # and stop watching
-export const watchFilesOnce = (files, cb) ->
+export function watchFilesOnce (files, cb)
   watchers = []
   const close = !->
     watcher.close! for watcher of watchers

@@ -259,7 +259,7 @@ const tasks =
   clean: !->
     exec 'rm', ['-f'].concat(all_out_files)
 
-export const run = !->
+export !function run
   {argv} = require('optimist')
 
   const cmd = argv._.0
