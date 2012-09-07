@@ -131,8 +131,8 @@ _exports.Engine = class Engine extends EventEmitter
     # keyboard input
     addListener @canvas, \keydown, (event) ~>
       const button_id = KEY_OFFSET + event.which
+      @btn_just_pressed[button_id] = !@button_states[button_id]
       @button_states[button_id] = true
-      @btn_just_pressed[button_id] = true
       @emit \buttondown, button_id
       event.preventDefault()
       false
