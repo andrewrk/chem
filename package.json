@@ -19,10 +19,8 @@
         "canvas": "~0.12.1",
         "node-static": "~0.6.0",
         "jspackage": "~0.4.9",
-        "optimist": "~0.3.4"
-    },
-    "devDependencies": {
-        "coco": "~0.7.6"
+        "optimist": "~0.3.4",
+        "coco": "~0.8.1"
     },
     "scripts": {
         "dev": "npm install . && coke watch"
