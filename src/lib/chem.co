@@ -166,6 +166,9 @@ const createSpritesheet = !->
 
     # change the frames array into an array of objects
     const files = filesFromAnimFrames(anim.frames, name, all_img_files)
+    if files.length is 0
+      console.error "animation `#{name}` has no frames"
+      process.exit(-1)
     anim.frames = []
 
     for file of files
