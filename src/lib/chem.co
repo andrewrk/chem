@@ -93,10 +93,10 @@ const serveStaticFiles = !(port) ->
 const watchSpritesheet = !->
   # redo the spritesheet when any files change
   const recompile = !->
-    createSpritesheet()
+    const generated_files = createSpritesheet()
     const timestamp = (new Date()).toLocaleTimeString()
-    console.info "#timestamp - generated #spritesheet_out"
-    console.info "#timestamp - generated #animations_json_out"
+    for file of generated_files
+      console.info "#timestamp - generated #file"
   const rewatch = !->
     # get list of files to watch
     const watch_files = [getChemfilePath()]
@@ -151,12 +151,14 @@ const filesFromAnimFrames = (frames, anim_name, all_img_files) ->
     frames
 
 const createSpritesheet = !->
+  const {spritesheet} = forceRequireChemfile()
+  return [] unless spritesheet?
   const {Image} = Canvas = require('canvas')
   const {Vec2d} = require(chemPath('./lib/vec2d'))
   const {Spritesheet} = require(chemPath('./lib/spritesheet'))
   # gather data about all image files
   # and place into array
-  const {animations, defaults} = forceRequireChemfile().spritesheet
+  const {animations, defaults} = spritesheet
   const frame_list = []
   const all_img_files = getAllImgFiles()
   const seen = {}
@@ -219,6 +221,7 @@ const createSpritesheet = !->
 
   # render json animation data
   fs.writeFileSync animations_json_out, JSON.stringify(animations, null, 4), \utf8
+  return [spritesheet_out, animations_json_out]
 
 const tasks =
   help: !->
