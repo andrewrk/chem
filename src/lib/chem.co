@@ -67,7 +67,8 @@ const exec = !(cmd, args=[], cb=->) ->
   bin.on 'exit', cb
 
 const compileClientSource = !(options) ->
-  const {libs, main} = forceRequireChemfile()
+  {libs, main} = forceRequireChemfile()
+  libs ?= []
   options.mainfile = userPath(main)
   options.libs = (userPath(l) for l of libs).concat [
     chemPath("./src/shared/")
