@@ -252,6 +252,12 @@ As a convention, any `Vec2d` instances you get from Chem are not clones. That
 is, pay careful attention not to perform destructive behavior on the `Vec2d`
 instances returned from the API.
 
+#### Not Using a Spritesheet
+
+If you omit the spritesheet object in your chemfile, no spritesheet files will
+be generated. Be sure to set `Chem.use_spritesheet = false` in your app code to
+avoiding attempting to load the missing resources.
+
 ### Reference
 
 #### Batch

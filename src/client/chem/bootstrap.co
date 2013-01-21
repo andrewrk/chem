@@ -22,27 +22,35 @@ _exports.bootstrap = !->
       assets_loaded := true
       cb() for cb of on_ready_queue
 
-  # get the spritesheet
-  _private.spritesheet = new Image()
-  _private.spritesheet.src = "spritesheet.png"
-  _private.spritesheet.onload = !->
-    spritesheet_done := true
-    checkDoneLoading()
+  # give the app a chance to skip spritesheet loading
+  _exports.use_spritesheet = true
+  setTimeout !->
+    unless _exports.use_spritesheet
+      spritesheet_done := true
+      animations_json_done := true
+      return checkDoneLoading()
 
-  # get the animations.json file
-  request = new XMLHttpRequest()
-  request.onreadystatechange = !->
-    return unless request.readyState is 4 and request.status is 200
-    _private.animations = JSON.parse(request.responseText)
-    # cache some values so don't have to compute them all the time
-    for name, anim in _private.animations
-      anim.duration = anim.delay * anim.frames.length
-      anim.name = name
-      anim.anchor = Vec2d(anim.anchor)
-      for frame of anim.frames
-        frame.pos = Vec2d(frame.pos)
-        frame.size = Vec2d(frame.size)
-    animations_json_done := true
-    checkDoneLoading()
-  request.open("GET", "animations.json", true)
-  request.send()
+    # get the spritesheet
+    _private.spritesheet = new Image()
+    _private.spritesheet.src = "spritesheet.png"
+    _private.spritesheet.onload = !->
+      spritesheet_done := true
+      checkDoneLoading()
+
+    # get the animations.json file
+    request = new XMLHttpRequest()
+    request.onreadystatechange = !->
+      return unless request.readyState is 4 and request.status is 200
+      _private.animations = JSON.parse(request.responseText)
+      # cache some values so don't have to compute them all the time
+      for name, anim in _private.animations
+        anim.duration = anim.delay * anim.frames.length
+        anim.name = name
+        anim.anchor = Vec2d(anim.anchor)
+        for frame of anim.frames
+          frame.pos = Vec2d(frame.pos)
+          frame.size = Vec2d(frame.size)
+      animations_json_done := true
+      checkDoneLoading()
+    request.open("GET", "animations.json", true)
+    request.send()
