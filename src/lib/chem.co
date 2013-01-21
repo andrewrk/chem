@@ -140,7 +140,9 @@ const walk = (dir) ->
 
 const cmpStr = (a, b) -> if a < b then -1 else if a > b then 1 else 0
 
-const getAllImgFiles = -> walk(img_path)
+const getAllImgFiles = ->
+  return [] unless fs.existsSync img_path
+  walk(img_path)
 
 const filesFromAnimFrames = (frames, anim_name, all_img_files) ->
   frames ?= anim_name
