@@ -66,6 +66,7 @@ _exports.Engine = class Engine extends EventEmitter
         @context.restore()
 
   drawFps: !->
+    @context.textAlign = 'left';
     @context.fillText "#{Math.round(@fps)} fps", 0, @size.y
 
   # private
