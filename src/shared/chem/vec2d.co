@@ -70,6 +70,8 @@ _exports.Vec2d = class Vec2d
     if @y > other.y then @y = other.y
   floor: -> @apply(Math.floor)
   floored: -> @applied(Math.floor)
+  ceil: -> @apply(Math.ceil)
+  ceiled: -> @applied(Math.ceil)
   project: (other) ->
     @scale(@dot(other) / other.lengthSqrd())
     this
