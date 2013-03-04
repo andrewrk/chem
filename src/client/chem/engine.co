@@ -52,8 +52,6 @@ _exports.Engine = class Engine extends EventEmitter
   buttonJustPressed: (button) -> !!@btn_just_pressed[button]
 
   draw: !(batch) ->
-    const now = new Date()
-
     for sprites of batch.sprites
       for id, sprite in sprites
         const frame = sprite.animation.frames[sprite.getFrameIndex()]
