@@ -11,7 +11,8 @@ exports.spritesheet = {
     delay: 0.05,
     loop: false,
     // possible values: a Vec2d instance, or one of:
-    // ["center", "topleft", "topright", "bottomleft", "bottomright"]
+    // ["center", "topleft", "topright", "bottomleft", "bottomright",
+    //  "top", "right", "bottom", "left"]
     anchor: "center"
   },
   animations: {

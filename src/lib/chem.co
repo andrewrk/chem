@@ -201,6 +201,14 @@ const createSpritesheet = !->
         new Vec2d(0, anim.frames[0].size.y)
       case \bottomright
         anim.frames[0].size
+      case \bottom
+        new Vec2d(anim.frames[0].size.x / 2, anim.frames[0].size.y)
+      case \top
+        new Vec2d(anim.frames[0].size.x / 2, 0)
+      case \right
+        new Vec2d(anim.frames[0].size.x, anim.frames[0].size.y / 2)
+      case \left
+        new Vec2d(0, anim.frames[0].size.y / 2)
       default
         anim.anchor
 

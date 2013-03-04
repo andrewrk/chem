@@ -131,8 +131,9 @@ exports.spritesheet = {
   defaults: {
     delay: 0.05,
     loop: false,
-    // possible values: an object with x and y properties, or one of:
-    // ["center", "topleft", "topright", "bottomleft", "bottomright"]
+    // possible values: a Vec2d instance, or one of:
+    // ["center", "topleft", "topright", "bottomleft", "bottomright",
+    //  "top", "right", "bottom", "left"]
     anchor: "center"
   },
   animations: {
