@@ -7,6 +7,20 @@ const {MOUSE_OFFSET, KEY_OFFSET} = window@Chem@Private
 const _exports = window@Chem
 const _private = window@Chem@Private
 
+_exports.getImage = !(name, frameIndex=0) ->
+  anim = _private.animations[name]
+  buffer = document.createElement('canvas')
+  frame = anim.frames[frameIndex]
+  buffer.width = frame.size.x
+  buffer.height = frame.size.y
+  context = buffer.getContext('2d')
+  context.drawImage _private.spritesheet, frame.pos.x, frame.pos.y, \
+    frame.size.x, frame.size.y, 0, 0, frame.size.x, frame.size.y
+  return buffer
+
+_exports.animations = _private.animations;
+_exports.spritesheet = _private.spritesheet;
+
 _exports.Engine = class Engine extends EventEmitter
   const target_fps = 60
   const target_spf = 1 / target_fps
@@ -150,4 +164,3 @@ _exports.Engine = class Engine extends EventEmitter
 
   stopMainLoop: !->
     @main_loop_on = false
-
