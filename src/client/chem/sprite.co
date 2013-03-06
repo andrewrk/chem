@@ -42,14 +42,14 @@ _exports.Sprite = class Sprite extends EventEmitter
 
 #ifdef DEBUG
     if _private.animations!?
-      throw "You may not create Sprites until the onReady event has been fired from Chem."
+      throw new Error("You may not create Sprites until the onReady event has been fired from Chem.")
 #endif
 
   setAnimationName: !(animation_name) ->
     anim = _private.animations[animation_name]
 #ifdef DEBUG
     if anim!?
-      throw "name not found in animation list: #animation_name"
+      throw new Error("name not found in animation list: #animation_name")
 #endif
     @setAnimation _private.animations[animation_name]
 
