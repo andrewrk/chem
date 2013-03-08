@@ -8,6 +8,9 @@ _exports.bootstrap = !->
   # load assets
   const on_ready_queue = []
   _exports.onReady = !(cb) ->
+    _exports.animations = _private.animations;
+    _exports.spritesheet = _private.spritesheet;
+
     if assets_loaded
       cb()
     else
