@@ -8,9 +8,6 @@ _exports.bootstrap = !->
   # load assets
   const on_ready_queue = []
   _exports.onReady = !(cb) ->
-    _exports.animations = _private.animations;
-    _exports.spritesheet = _private.spritesheet;
-
     if assets_loaded
       cb()
     else
@@ -23,6 +20,8 @@ _exports.bootstrap = !->
   const checkDoneLoading = !->
     if spritesheet_done and animations_json_done
       assets_loaded := true
+      _exports.animations = _private.animations;
+      _exports.spritesheet = _private.spritesheet;
       cb() for cb of on_ready_queue
 
   # give the app a chance to skip spritesheet loading
