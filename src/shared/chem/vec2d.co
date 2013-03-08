@@ -35,6 +35,11 @@ _exports.Vec2d = class Vec2d
     @y *= other.y
     this
   times: (other) -> @clone().mult(other)
+  div: (other) ->
+    @x /= other.x
+    @y /= other.y
+    this
+  divBy: (other) -> @clone().div(other)
   scale: (scalar) ->
     @x *= scalar
     @y *= scalar
