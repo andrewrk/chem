@@ -22,12 +22,14 @@ _exports.Sprite = class Sprite extends EventEmitter
       @z_order
       @batch
       @rotation
+      @alpha
     } = o = {
       pos: Vec2d(0, 0)
       scale: Vec2d(1, 1)
       z_order: 0
       batch: null
       rotation: 0
+      alpha: 1
       visible: true
       frame_index: 0
       loop: null

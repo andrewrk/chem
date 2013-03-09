@@ -70,6 +70,7 @@ _exports.Engine = class Engine extends EventEmitter
         @context.translate sprite.pos.x, sprite.pos.y
         @context.scale sprite.scale.x, sprite.scale.y
         @context.rotate sprite.rotation
+        @context.globalAlpha = sprite.alpha
         @context.drawImage _private.spritesheet, frame.pos.x, frame.pos.y, \
           frame.size.x, frame.size.y, \
           -sprite.animation.anchor.x, -sprite.animation.anchor.y, \
