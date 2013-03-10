@@ -2,7 +2,7 @@
   "name": "chem",
   "description": "chem game engine",
   "author": "Andrew Kelley <superjoe30@gmail.com>",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "licenses": [
     {
       "type": "MIT",
