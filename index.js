@@ -253,7 +253,9 @@ function filesFromAnimFrames (frames, anim_name, all_img_files){
     files.sort(cmpStr);
     return files;
   } else {
-    return frames;
+    return frames.map(function(img) {
+      return path.join(img_path, img);
+    });
   }
 }
 function createSpritesheet(cb) {
