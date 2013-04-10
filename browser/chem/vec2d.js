@@ -93,6 +93,10 @@ Vec2d.prototype.distanceSqrd = function(other){
   return dx * dx + dy * dy;
 };
 Vec2d.prototype.distance = function(other){
+  console.log("warning: Vec2d::distance is deprecated");
+  return this.distanceTo(other);
+};
+Vec2d.prototype.distanceTo = function(other){
   return Math.sqrt(this.distanceSqrd(other));
 };
 Vec2d.prototype.equals = function(other){
