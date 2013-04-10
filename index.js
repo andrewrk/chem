@@ -153,7 +153,7 @@ function compileClientSource (myOptions){
   jspackage.compile(options, function(err, compiled_code){
     if (err) {
       var timestamp = new Date().toLocaleTimeString();
-      console.error(timestamp + " - error: " + err);
+      console.error(timestamp + " - " + err);
       return;
     }
     return fs.writeFile(client_out, compiled_code, 'utf8');
