@@ -646,3 +646,41 @@ See [node-vec2d](https://github.com/superjoe30/node-vec2d)
     # set up dev environment for chem itself:
     sudo apt-get install libcairo2-dev
     sudo npm link
+
+## History
+
+### 0.3.0
+
+ * rewrite chem to be faster and less error prone
+ * support node.js v0.10
+
+### 0.2.7
+
+ * update jspackage - fixes dependencies rendered out of order sometimes
+
+### 0.2.6
+
+ * add sprite.alpha property
+
+### 0.2.5
+
+ * add `div` and `divBy` to `Vec2d`
+
+### 0.2.4
+
+ * correctly expose animations and spritesheet
+
+### 0.2.3
+
+(recalled)
+
+### 0.2.2
+
+ * expose animations, spritesheet, and getImage
+ * throw error objects, not strings
+
+### 0.2.1
+
+ * add top, bottom, left, right anchor shortcuts
+ * Vec2d: add ceil and ceiled
+ * drawFps: text align left
