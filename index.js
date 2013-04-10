@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-exports.run = run;
-
 var fs = require('fs')
   , path = require('path')
   , chokidar = require('chokidar')
@@ -10,6 +8,7 @@ var fs = require('fs')
   , spawn = require('child_process').spawn
   , jspackage = require('jspackage')
   , express = require('express')
+  , optimist = require('optimist')
   , Spritesheet = require('spritesheet')
   , Batch = require('batch')
   , client_out = userPath("./public/main.js")
@@ -30,15 +29,14 @@ var tasks = {
     process.stderr.write("Usage: \n\n  # create a new project\n  # possible templates are: meteor, readme, readme-coco\n  \n  chem init <your_project_name> [--example <template>]\n\n\n  # run a development server which will automatically recompile your code,\n  # generate your spritesheets, and serve your assets\n  \n  chem dev\n\n\n  # delete all generated files\n\n  chem clean\n");
   },
   init: function(args, argv){
-    var project_name, template, src;
-    project_name = args[0];
-    template = argv.example || "readme";
+    var project_name = args[0];
+    var template = argv.example || "readme";
     if (project_name == null) {
       tasks.help();
       process.exit(1);
       return;
     }
-    src = chemPath("templates/" + template);
+    var src = chemPath("templates/" + template);
     // copy files from template to project_name
     exec('cp', ['-r', src, project_name]);
   },
@@ -53,11 +51,13 @@ var tasks = {
     exec('rm', ['-f'].concat(all_out_files));
   }
 };
+
+run();
+
 function run(){
-  var argv, cmd, task;
-  argv = require('optimist').argv;
-  cmd = argv._[0];
-  task = tasks[cmd];
+  var argv = optimist.argv;
+  var cmd = argv._[0];
+  var task = tasks[cmd];
   if (task != null) {
     task(argv._.slice(1), argv);
   } else {
@@ -148,8 +148,7 @@ function compileClientSource (myOptions){
   options.libs = libs.map(function(l) {
     return userPath(l);
   }).concat([
-    chemPath("./src/shared/"),
-    chemPath("./src/client/"),
+    chemPath("./browser/"),
   ]);
   jspackage.compile(options, function(err, compiled_code){
     if (err) {
@@ -172,14 +171,16 @@ function watchSpritesheet (){
   // redo the spritesheet when any files change
   // always compile and watch on first run
   rewatch();
-  function recompile(cb){
+  function recompile(){
     createSpritesheet(function(err, generated_files) {
-      if (err) return cb(err);
       var timestamp = new Date().toLocaleTimeString();
-      generated_files.forEach(function(file) {
-        console.info(timestamp + " - generated " + file);
-      });
-      cb();
+      if (err) {
+        console.info(timestamp + " - " + err.stack);
+      } else {
+        generated_files.forEach(function(file) {
+          console.info(timestamp + " - generated " + file);
+        });
+      }
     });
   }
   function rewatch(){
@@ -242,8 +243,12 @@ function getAllImgFiles(cb) {
 function filesFromAnimFrames (frames, anim_name, all_img_files){
   frames = frames || anim_name;
   if (typeof frames === 'string') {
-    var files = all_img_files.filter(function(img) {
+    var files = all_img_files.map(function(img){
+      return path.relative(img_path, img);
+    }).filter(function(img) {
       return img.indexOf(frames) === 0;
+    }).map(function(img) {
+      return path.join(img_path, img);
     });
     files.sort(cmpStr);
     return files;
