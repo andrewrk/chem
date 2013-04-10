@@ -1,1 +1,0 @@
-export require('./vec2d').Vec2d

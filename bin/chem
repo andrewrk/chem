@@ -1,7 +1,0 @@
-#!/usr/bin/env node
-
-var path = require('path');
-var fs = require('fs');
-var bin_dir = path.dirname(fs.realpathSync(__filename));
-var chem_path = path.resolve(bin_dir, "..", "lib", "chem");
-require(chem_path).run();

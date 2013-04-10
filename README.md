@@ -732,7 +732,4 @@ class Vec2d
     # set up dev environment for chem itself:
     sudo apt-get install libcairo2-dev
     sudo npm link
-    
-    # while developing:
-    npm run dev
 

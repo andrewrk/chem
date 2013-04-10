@@ -1,6 +1,6 @@
 {
   "name": "chem",
-  "description": "chem game engine",
+  "description": "html5 canvas game engine optimized for rapid development",
   "author": "Andrew Kelley <superjoe30@gmail.com>",
   "version": "0.2.7",
   "licenses": [
@@ -10,25 +10,24 @@
     }
   ],
   "engines": {
-    "node": "~0.8.2"
+    "node": ">=0.8.2"
   },
-  "main": "./lib/index",
+  "main": "index.js",
   "repository": {
     "type": "git",
     "url": "git://github.com/superjoe30/chem.git"
   },
   "dependencies": {
-    "canvas": "~0.12.1",
-    "node-static": "~0.6.0",
     "jspackage": "~0.5.0",
     "optimist": "~0.3.4",
-    "coco": "0.8.1"
-  },
-  "scripts": {
-    "dev": "npm install && coke watch",
-    "prepublish": "coke build"
+    "vec2d": "~0.1.1",
+    "chokidar": "~0.6.2",
+    "express": "~3.1.1",
+    "spritesheet": "0.0.2",
+    "batch": "~0.3.2",
+    "findit": "~0.1.2"
   },
   "bin": {
-    "chem": "./bin/chem"
+    "chem": "./index.js"
   }
 }
