@@ -639,97 +639,10 @@ subscribe to events.
 
  > `//depend "chem/vec2d"`
 
-This is straightforward. You are better off just looking at the source than
-reading documentation:
-
-```coco
-class Vec2d
-  (x_or_pair, y) ->
-    if y?
-      @x = x_or_pair
-      @y = y
-    else if x_or_pair?
-      if x_or_pair instanceof Array
-        @x = x_or_pair[0]
-        @y = x_or_pair[1]
-      else
-        @x = x_or_pair.x
-        @y = x_or_pair.y
-    else
-      @x = 0
-      @y = 0
-
-  offset: (dx, dy) -> new Vec2d(@x + dx, @y + dy)
-  add: (other) ->
-    @x += other.x
-    @y += other.y
-    this
-  sub: (other) ->
-    @x -= other.x
-    @y -= other.y
-    this
-  plus: (other) -> @clone().add(other)
-  minus: (other) -> @clone().sub(other)
-  neg: ->
-    @x = -@x
-    @y = -@y
-    this
-  mult: (other) ->
-    @x *= other.x
-    @y *= other.y
-    this
-  times: (other) -> @clone().mult(other)
-  scale: (scalar) ->
-    @x *= scalar
-    @y *= scalar
-    this
-  scaled: (scalar) -> @clone().scale(scalar)
-  clone: -> new Vec2d(@x, @y)
-  apply: (func) ->
-    @x = func(@x)
-    @y = func(@y)
-    this
-  applied: (func) -> @clone().apply(func)
-  distanceTo: (other) ->
-    dx = other.x - @x
-    dy = other.y - @y
-    Math.sqrt(dx * dx + dy * dy)
-  equals: (other) -> @x is other.x and @y is other.y
-  toString: -> "(#{@x}, #{@y})"
-  lengthSqrd: -> @x * @x + @y * @y
-  length: -> Math.sqrt(@lengthSqrd())
-  angle: -> if @lengthSqrd() is 0 then 0 else Math.atan2(@y, @x)
-  normalize: ->
-    const length = @length()
-    if length is 0
-      this
-    else
-      @scale(1 / length)
-  normalized: -> @clone().normalize()
-  boundMin: (other) ->
-    if @x < other.x then @x = other.x
-    if @y < other.y then @y = other.y
-  boundMax: (other) ->
-    if @x > other.x then @x = other.x
-    if @y > other.y then @y = other.y
-  floor: -> @apply(Math.floor)
-  floored: -> @applied(Math.floor)
-  project: (other) ->
-    @scale(@dot(other) / other.lengthSqrd())
-    this
-  dot: (other) -> @x * other.x + @y * other.y
-  rotate: (other) ->
-    @x = @x * other.x - @y * other.y
-    @y = @x * other.y + @y * other.x
-    this
-  distanceSqrd: (other) -> Math.pow(@x - other.x, 2) + Math.pow(@y - other.y, 2)
-  distance: (other) -> Math.sqrt(@distanceSqrd(other))
-
-```
+See [node-vec2d](https://github.com/superjoe30/node-vec2d)
 
 ## Developing chem
 
     # set up dev environment for chem itself:
     sudo apt-get install libcairo2-dev
     sudo npm link
-
