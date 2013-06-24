@@ -1,33 +1,11 @@
 {
   "name": "chem",
-  "description": "html5 canvas game engine optimized for rapid development",
+  "description": "html5 canvas game engine optimized for rapid development - runtime",
   "author": "Andrew Kelley <superjoe30@gmail.com>",
   "version": "0.3.0",
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "https://raw.github.com/superjoe30/chem/master/LICENSE"
-    }
-  ],
-  "engines": {
-    "node": ">=0.8.2"
-  },
   "main": "index.js",
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/superjoe30/chem.git"
-  },
+  "license": "MIT",
   "dependencies": {
-    "jspackage": "~0.5.0",
-    "optimist": "~0.3.4",
-    "vec2d": "~0.1.1",
-    "chokidar": "~0.6.2",
-    "express": "~3.1.1",
-    "spritesheet": "0.0.2",
-    "batch": "~0.3.2",
-    "findit": "~0.1.2"
-  },
-  "bin": {
-    "chem": "./index.js"
+    "vec2d": "~0.1.1"
   }
 }
