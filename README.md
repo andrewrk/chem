@@ -584,6 +584,13 @@ See [node-vec2d](https://github.com/superjoe30/node-vec2d)
 
 ## History
 
+### 0.4.1
+
+ * `chem.getImage` moved to `chem.resources.getImage`
+ * `chem.animations` moved to `chem.resources.animations`
+ * `chem.spritesheet` moved to `chem.resources.spritesheet`
+ * fix double bootstrap bug
+
 ### 0.4.0
 
  * use browserify for packaging instead of jspackage

@@ -7,9 +7,8 @@ module.exports = {
   Sound: require('./lib/sound'),
   Sprite: require('./lib/sprite'),
   Batch: require('./lib/batch'),
+  resources: resources,
   onReady: resources.onReady,
-  animations: resources.animations,
-  spritesheet: resources.spritesheet,
 };
 
 resources.bootstrap();
