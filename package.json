@@ -5,6 +5,10 @@
   "version": "0.3.0",
   "main": "index.js",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/superjoe30/chem.git"
+  },
   "dependencies": {
     "vec2d": "~0.1.1"
   }
