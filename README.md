@@ -3,7 +3,7 @@ chem - html5 game engine optimized for rapid development
 
 ## Usage
 
-    # install chem
+    # install chem command line interface
     sudo apt-get install libcairo2-dev
     sudo npm install -g chem-cli
 
@@ -16,6 +16,8 @@ chem - html5 game engine optimized for rapid development
 
     # see more commands
     chem
+
+See [chem-cli](http://github.com/superjoe30/chem-cli) for more information.
     
 ## Synopsis
 
@@ -596,11 +598,18 @@ See [node-vec2d](https://github.com/superjoe30/node-vec2d)
 
 ## Developing chem
 
+See also [chem-cli](http://github.com/superjoe30/chem-cli)
+
     # set up dev environment for chem itself:
     sudo apt-get install libcairo2-dev
     sudo npm link
 
 ## History
+
+### 0.4.2
+
+ * support `buttonJustReleased`
+ * ability to add button capture exceptions
 
 ### 0.4.1
 
