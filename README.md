@@ -1,5 +1,19 @@
-chem - html5 game engine optimized for rapid development
-========================================================
+# chem
+
+canvas-based game engine and toolchain optimized for rapid development.
+
+## Features
+
+ * Automatically creates a spritesheet for your assets and then
+   loads the assets at runtime.
+ * Provides convenient API for drawing animated sprites in a canvas
+   - Supports anchor points and rotation
+ * Write code in JavaScript or other compile-to-javascript
+   languages such as Coffee-Script.
+ * Everything from code to spritesheet is compiled automatically
+   when you save.
+ * Handles main loop and frame skipping.
+ * Convenient API for keyboard and mouse input.
 
 ## Usage
 
@@ -152,8 +166,8 @@ exports.spritesheet = {
  * [Meteor Attack](https://github.com/superjoe30/meteor-attack) - dodge meteors in space
  * [holocaust](https://github.com/superjoe30/holocaust/) -
    rebuild society after a nuclear holocaust ravages the world
- * [Dr. Chemical's Lab](https://github.com/superjoe30/dr-chemicals-lab/tree/master/javascript)
-   - PyWeek #14 entry, ported to chem
+ * [Dr. Chemical's Lab](https://github.com/superjoe30/dr-chemicals-lab/tree/master/javascript) -
+   PyWeek #14 entry, ported to chem
  * [vapor](https://github.com/thejoshwolfe/vapor) - vaporware game. Not cool yet.
 
 ## Documentation
