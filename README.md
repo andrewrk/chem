@@ -165,7 +165,7 @@ to-JavaScript language (including JavaScript itself) that you choose.
 
  * `main` - this is the entry point into your game. Chem will use
    [browserify](https://github.com/substack/browserify/) with this as the
-   input file. Often this is set to `src/main`.
+   input file. Often this is set to `src/main.js`.
 
  * `spritesheet`
    - `defaults` - for each animation, these are the default values that will
@@ -180,6 +180,15 @@ to-JavaScript language (including JavaScript itself) that you choose.
      * `delay` - number of seconds between frames.
      * `loop` - whether an animation should start over when it ends. You can
        override this in individual sprites.
+
+#### Use any "compile to JS" language
+
+Supported languages:
+
+ * JavaScript (obviously)
+ * [Coffee-Script](http://coffeescript.org/)
+ * [LiveScript](http://livescript.net/)
+ * [Coco](https://github.com/satyr/coco)
 
 #### Getting Started
 
