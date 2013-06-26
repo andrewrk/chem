@@ -10,6 +10,10 @@ canvas-based game engine and toolchain optimized for rapid development.
    - Supports anchor points and rotation
  * Write code in JavaScript or other compile-to-javascript
    languages such as Coffee-Script.
+ * Uses [browserify](https://github.com/substack/node-browserify) to compile
+   your code which allows you to harness the power of code on [npm](https://npmjs.org/).
+   - For example, [A* search](https://github.com/superjoe30/node-astar)
+   - Allows you to organize code modules using `require` and `module.exports` syntax.
  * Everything from code to spritesheet is compiled automatically
    when you save.
  * Handles main loop and frame skipping.
