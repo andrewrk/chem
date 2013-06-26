@@ -238,6 +238,7 @@ right arrow key is `chem.button.KeyRight`.
 See also:
  * `Engine::buttonState`
  * `Engine::buttonJustPressed`
+ * `Engine::buttonJustReleased`
  * `Engine:: 'buttondown' event (button)`
  * `Engine:: 'buttonup' event (button)`
 
@@ -283,9 +284,15 @@ var Engine = require('chem').Engine;
 
 `Engine::buttonJustPressed(button)`
 
-    Call from the `update` event. It returns true if `button` is pressed,
-    but then returns false for subsequent calls until `button` is released
-    and pressed again.
+    Call from the `update` event. It returns `true` for the 1 frame
+    after the button was pressed.
+
+    See also `button`.
+
+`Engine::buttonJustReleased(button)`
+
+    Call from the `update` event. It returns `true` for the 1 frame
+    after the button was released.
 
     See also `button`.
 
@@ -320,6 +327,17 @@ var Engine = require('chem').Engine;
     Read only. `Vec2d` instance representing the current mouse position
     relative to the canvas.
 
+`Engine::buttonCaptureExceptions`
+
+    Read/write. This is an object which is initially empty and contains
+    buttons which the game should bubble up instead of capturing.
+
+    Example:
+
+    ```js
+    // now you can press Ctrl+R, etc
+    engine.buttonCaptureExceptions[chem.button.KeyCtrl] = true;
+    ```
 
 ##### events
 
