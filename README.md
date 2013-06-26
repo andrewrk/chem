@@ -21,8 +21,6 @@ See [chem-cli](http://github.com/superjoe30/chem-cli) for more information.
     
 ## Synopsis
 
-[See the demo in action.](http://www.superjoesoftware.com/temp/chem-readme-demo/public/index.html)
-
 ### Layout
 
 #### Source files
@@ -149,7 +147,14 @@ exports.spritesheet = {
 
 [See the demo in action.](http://www.superjoesoftware.com/temp/chem-readme-demo/public/index.html)
 
-See also [Meteor Attack demo](http://www.superjoesoftware.com/temp/chem-meteor-demo/public/index.html)
+## Demo Projects Using Chem
+
+ * [Meteor Attack](https://github.com/superjoe30/meteor-attack) - dodge meteors in space
+ * [holocaust](https://github.com/superjoe30/holocaust/) -
+   rebuild society after a nuclear holocaust ravages the world
+ * [Dr. Chemical's Lab](https://github.com/superjoe30/dr-chemicals-lab/tree/master/javascript)
+   - PyWeek #14 entry, ported to chem
+ * [vapor](https://github.com/thejoshwolfe/vapor) - vaporware game. Not cool yet.
 
 ## Documentation
 
