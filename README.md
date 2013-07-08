@@ -21,19 +21,24 @@ canvas-based game engine and toolchain optimized for rapid development.
 
 ## Usage
 
-    # install chem command line interface
+    # install dependencies in ubuntu
     sudo apt-get install libcairo2-dev
-    sudo npm install -g chem-cli
 
-    # create a new project
-    chem init <your_project_name>
+    # start with a nearly-empty project,
+    # such as a freshly created project from github with only a .git/ and README.md.
+    cd my-project
 
-    # run a development server which will automatically recompile your code,
-    # generate your spritesheets, and serve your assets
-    chem dev
+    # init the project with chem-cli
+    npm install chem-cli
+    ./node_modules/.bin/chem init
+
+    # the `dev` command will run a development server which will automatically recompile your code,
+    # generate your spritesheets, and serve your assets.
+    # after running `init` above, simply:
+    npm run dev
 
     # see more commands
-    chem
+    ./node_modules/.bin/chem
 
 See [chem-cli](http://github.com/superjoe30/chem-cli) for more information.
     
