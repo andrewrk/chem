@@ -643,6 +643,12 @@ See also [chem-cli](http://github.com/superjoe30/chem-cli)
 
 ## History
 
+### 0.4.3
+
+ * proper bubbling of events for mouse events. (fixes hiding the cursor
+   when mouse down if you have `canvas.style.cursor = 'none'`)
+   
+
 ### 0.4.2
 
  * support `buttonJustReleased`
