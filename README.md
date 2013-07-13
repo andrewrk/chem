@@ -521,6 +521,13 @@ var Sprite = require('chem').Sprite;
     Takes into account scale and current frame.
     Does not take into account rotation.
 
+`Sprite::hitTest(vec2d)`
+
+    Returns boolean of whether the point is inside the bounding box
+    of the sprite.
+    Takes into account scale and current frame.
+    Does not take into account rotation.
+
 `Sprite::setVisible(visible)`
 
     Hides the sprite but keeps it ready to display again.
