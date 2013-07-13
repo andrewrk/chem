@@ -650,6 +650,11 @@ See also [chem-cli](http://github.com/superjoe30/chem-cli)
 
 ## History
 
+### 0.4.4
+
+ * add Sprite::hitTest(vec2d)
+ * fix not respecting `loop` property in chemfile
+
 ### 0.4.3
 
  * proper bubbling of events for mouse events. (fixes hiding the cursor
