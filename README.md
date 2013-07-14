@@ -173,6 +173,7 @@ exports.spritesheet = {
 ## Demo Projects Using Chem
 
  * [Meteor Attack](https://github.com/superjoe30/meteor-attack) - dodge meteors in space
+ * [Disinfecticide](https://github.com/superjoe30/disinfecticide) - use extreme measures to control a deadly disease outbreak.
  * [holocaust](https://github.com/superjoe30/holocaust/) -
    rebuild society after a nuclear holocaust ravages the world
  * [Dr. Chemical's Lab](https://github.com/superjoe30/dr-chemicals-lab/tree/master/javascript) -
