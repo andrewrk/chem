@@ -441,6 +441,14 @@ var Sound = require('chem').Sound;
 
     And these properties: `currentTime`, `duration`
 
+`sound.setVolume(value)`
+
+    Sets the `volume` property. Same as HTML5 Audio object.
+
+`sound.setPreload(value)`
+
+    Sets the `preload` property. Same as HTML5 Audio object.
+
 #### Sprite
 
 ```js
