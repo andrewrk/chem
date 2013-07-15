@@ -659,6 +659,11 @@ See also [chem-cli](http://github.com/superjoe30/chem-cli)
 
 ## History
 
+### 0.4.5
+
+ * sound: ability to set preload and volume properties
+ * focus canvas on mouse down - fixes focus problem
+
 ### 0.4.4
 
  * add Sprite::hitTest(vec2d)
