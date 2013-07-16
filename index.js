@@ -6,6 +6,7 @@ module.exports = {
   button: require('./lib/button'),
   Sound: require('./lib/sound'),
   Sprite: require('./lib/sprite'),
+  Label: require('./lib/label'),
   Batch: require('./lib/batch'),
   resources: resources,
   onReady: resources.onReady,
