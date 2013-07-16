@@ -820,7 +820,7 @@ See also `setVisible(visible)`.
 
 ##### pos
 
-`Vec2d`. Get or set the position in the canvas this sprite is drawn.
+`Vec2d`. Get or set the position in the canvas this label is drawn.
 
 ##### size
 
@@ -829,20 +829,20 @@ account `scale` or current frame.
 
 ##### scale
 
-`Vec2d`. Get or set the scale with which the sprite is drawn.
+`Vec2d`. Get or set the scale with which the label is drawn.
 
 ##### zOrder
 
-Read only. Use `Sprite::setZOrder` to change the `zOrder` of a sprite.
+Read only. Use `Label::setZOrder` to change the `zOrder` of a label.
       
 ##### batch
 
-Read only. Use `Batch::add(sprite)` and `Batch::remove(sprite)` to
+Read only. Use `Batch::add(label)` and `Batch::remove(label)` to
 change this value.
 
 ##### rotation
 
-Get or set the angle of the sprite, in radians. Going over 2 * pi is OK.
+Get or set the angle of the label, in radians. Going over 2 * pi is OK.
 
 ##### alpha
 
