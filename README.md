@@ -21,24 +21,26 @@ canvas-based game engine and toolchain optimized for rapid development.
 
 ## Usage
 
-    # install dependencies in ubuntu
-    sudo apt-get install libcairo2-dev
+```bash
+# install dependencies in ubuntu
+sudo apt-get install libcairo2-dev
 
-    # start with a nearly-empty project,
-    # such as a freshly created project from github with only a .git/ and README.md.
-    cd my-project
+# start with a nearly-empty project, such as a freshly created project
+# from github with only a .git/ and README.md.
+cd my-project
 
-    # init the project with chem-cli
-    npm install chem-cli
-    ./node_modules/.bin/chem init
+# init the project with chem-cli
+npm install chem-cli
+./node_modules/.bin/chem init
 
-    # the `dev` command will run a development server which will automatically recompile your code,
-    # generate your spritesheets, and serve your assets.
-    # after running `init` above, simply:
-    npm run dev
+# the `dev` command will run a development server which will automatically
+# recompile your code, generate your spritesheets, and serve your assets.
+# after running `init` above, simply:
+npm run dev
 
-    # see more commands
-    ./node_modules/.bin/chem
+# see more commands
+./node_modules/.bin/chem
+```
 
 See [chem-cli](http://github.com/superjoe30/chem-cli) for more information.
     
@@ -64,68 +66,67 @@ See [chem-cli](http://github.com/superjoe30/chem-cli) for more information.
 
 ### ./src/main.js
 ```js
-var chem = require('chem');
-var Vec2d = chem.vec2d;
+var chem = require("chem");
+var v = chem.vec2d;
 
 chem.onReady(function () {
-    var canvas = document.getElementById("game");
-    var engine = new chem.Engine(canvas);
-    var batch = new chem.Batch();
-    var boom = new chem.Sound('sfx/boom.ogg');
-    var ship = new chem.Sprite('ship', {
-        batch: batch,
-        pos: new Vec2d(200, 200),
-        rotation: Math.PI / 2
-    });
-    var shipVel = new Vec2d();
-    var rotationSpeed = Math.PI * 0.04;
-    var thrustAmt = 0.1;
-    engine.on('update', function (dt, dx) {
-        ship.pos.add(shipVel);
+  var canvas = document.getElementById("game");
+  var engine = new chem.Engine(canvas);
+  var batch = new chem.Batch();
+  var boom = new chem.Sound('sfx/boom.ogg');
+  var ship = new chem.Sprite('ship', {
+    batch: batch,
+    pos: v(200, 200),
+    rotation: Math.PI / 2
+  });
+  var shipVel = v();
+  var rotationSpeed = Math.PI * 0.04;
+  var thrustAmt = 0.1;
+  var fpsLabel = engine.createFpsLabel();
+  engine.on('update', function (dt, dx) {
+    ship.pos.add(shipVel);
 
-        // rotate the ship with left and right arrow keys
-        if (engine.buttonState(chem.button.KeyLeft)) {
-            ship.rotation -= rotationSpeed * dx;
-        }
-        if (engine.buttonState(chem.button.KeyRight)) {
-            ship.rotation += rotationSpeed * dx;
-        }
+    // rotate the ship with left and right arrow keys
+    if (engine.buttonState(chem.button.KeyLeft)) {
+      ship.rotation -= rotationSpeed * dx;
+    }
+    if (engine.buttonState(chem.button.KeyRight)) {
+      ship.rotation += rotationSpeed * dx;
+    }
 
-        // apply forward and backward thrust with up and down arrow keys
-        var thrust = new Vec2d(Math.cos(ship.rotation), Math.sin(ship.rotation));
-        if (engine.buttonState(chem.button.KeyUp)) {
-            shipVel.add(thrust.scaled(thrustAmt * dx));
-        }
-        if (engine.buttonState(chem.button.KeyDown)) {
-            shipVel.sub(thrust.scaled(thrustAmt * dx));
-        }
+    // apply forward and backward thrust with up and down arrow keys
+    var thrust = v(Math.cos(ship.rotation), Math.sin(ship.rotation));
+    if (engine.buttonState(chem.button.KeyUp)) {
+      shipVel.add(thrust.scaled(thrustAmt * dx));
+    }
+    if (engine.buttonState(chem.button.KeyDown)) {
+      shipVel.sub(thrust.scaled(thrustAmt * dx));
+    }
 
-        // press space to blow yourself up
-        if (engine.buttonJustPressed(chem.button.KeySpace)) {
-            boom.play();
-            ship.setAnimationName('boom');
-            ship.setFrameIndex(0);
-            ship.on('animationend', function() {
-                ship.delete();
-            });
-        }
-    });
-    engine.on('draw', function (context) {
-        // clear canvas to black
-        context.fillStyle = '#000000'
-        context.fillRect(0, 0, engine.size.x, engine.size.y);
+    // press space to blow yourself up
+    if (engine.buttonJustPressed(chem.button.KeySpace)) {
+      boom.play();
+      ship.setAnimationName('boom');
+      ship.setFrameIndex(0);
+      ship.on('animationend', function() {
+        ship.delete();
+      });
+    }
+  });
+  engine.on('draw', function (context) {
+    // clear canvas to black
+    context.fillStyle = '#000000'
+    context.fillRect(0, 0, engine.size.x, engine.size.y);
 
-        // draw all sprites in batch
-        engine.draw(batch);
+    // draw all sprites in batch
+    batch.draw(context);
 
-        // draw a little fps counter in the corner
-        context.fillStyle = '#ffffff'
-        engine.drawFps();
-    });
-    engine.start();
-    canvas.focus();
+    // draw a little fps counter in the corner
+    fpsLabel.draw(context);
+  });
+  engine.start();
+  canvas.focus();
 });
-
 ```
 ### ./chemfile.js
 ```js
@@ -180,11 +181,9 @@ exports.spritesheet = {
    PyWeek #14 entry, ported to chem
  * [vapor](https://github.com/thejoshwolfe/vapor) - vaporware game. Not cool yet.
 
-## Documentation
+## Developing With Chem
 
-### Developing With Chem
-
-#### Chemfile
+### Chemfile
 
 Start by looking at your `chemfile`. This file contains all the instructions
 on how to build your game.
@@ -210,7 +209,7 @@ to-JavaScript language (including JavaScript itself) that you choose.
      * `loop` - whether an animation should start over when it ends. You can
        override this in individual sprites.
 
-#### Use any "compile to JS" language
+### Use any "compile to JS" language
 
 Supported languages:
 
@@ -219,7 +218,7 @@ Supported languages:
  * [LiveScript](http://livescript.net/)
  * [Coco](https://github.com/satyr/coco)
 
-#### Getting Started
+### Getting Started
 
 The first step is to require "chem":
 
@@ -227,43 +226,57 @@ The first step is to require "chem":
 var chem = require('chem');
 
 chem.onReady(function() {
-    // Now you can go for it. All asssets are loaded.
+  // Now you can go for it. All asssets are loaded.
 });
 ```
 
-#### Vec2d Convention
+### Vec2d Convention
 
-As a convention, any `Vec2d` instances you get from Chem are not clones. That
-is, pay careful attention not to perform destructive behavior on the `Vec2d`
-instances returned from the API.
+As a convention, any `Vec2d` instances you get from Chem are not clones.
+That is, pay careful attention not to perform destructive behavior on the
+`Vec2d` instances returned from the API.
 
-#### Not Using a Spritesheet
+### Not Using a Spritesheet
 
-If you omit the spritesheet object in your chemfile, no spritesheet files will
-be generated. Be sure to set `chem.useSpritesheet = false` in your app code to
-avoiding attempting to load the missing resources.
+If you omit the spritesheet object in your chemfile, no spritesheet files
+will be generated. Be sure to set `chem.useSpritesheet = false` in your app code to avoiding attempting to load the missing resources.
 
-### Reference
+## Reference Documentation
 
-#### Batch
+### Batch
 
 ```js
 var Batch = require('chem').Batch;
 ```
 
-A `Batch` is a set of sprites which you can conveniently draw using the
-`Engine::draw(batch)` method.
+A `Batch` is a set of sprites and/or labels which you can draw together.
 
-`Batch::add(sprite)`:
+#### methods
 
-    Adds a sprite to the batch. If called multiple times for the same sprite,
-    the sprite is only added once.
+##### new Batch()
 
-`Batch::remove(sprite)`:
+##### add(item)
 
-    Removes a sprite from the batch. OK to call multiple times.
+Adds a sprite or label to the batch. If called multiple times for
+the same item, the item is only added once.
 
-#### button
+ * `item` - `sprite` or `label` to add
+
+##### remove(item)
+
+Removes an item from the batch. OK to call multiple times.
+
+ * `item` - `sprite` or `label` to remove
+
+##### draw(context)
+
+Draw all the sprites and labels in the batch.
+All of the sprites and labels will be drawn with the correct
+rotations, offsets, scaling, `zOrder`, and animation applied.
+
+ * `context` - 2D canvas drawing context.
+
+### button
 
 ```js
 var button = require('chem').button;
@@ -284,364 +297,623 @@ See also:
 
 See `lib/button.js` for the full listing.
 
-#### Engine
+### Engine
 
 ```js
 var Engine = require('chem').Engine;
 ```
 
-##### methods
+#### methods
 
-`Engine::new(canvas)`
+##### new Engine(canvas)
 
-    Create an instance of the engine and bind it to a canvas:
+Create an instance of the engine and bind it to a canvas:
 
-    var engine = new chem.Engine(document.getElementById("the-canvas"));
+```js
+var engine = new chem.Engine(document.getElementById("the-canvas"));
+```
 
-`Engine::setSize(size)`
+##### setSize(size)
 
-    Resize the game.
+Resize the game.
 
-`Engine::start()`
+##### start()
 
-    Call this to start the main loop and start listening to events.
+Call this to start the main loop and start listening to events.
+
+##### setMinFps(minFps)
+
+If the FPS drops below this value, your engine will lag instead of
+trying to compensate with a larger dt/dx sent to `update`
+Defaults to `20`.
+
+See also `Engine:: 'update' event (dt, dx)`
     
-`Engine::setMinFps(minFps)`
+##### stop()
 
-    If the FPS drops below this value, your engine will lag instead of trying
-    to compensate with a larger dt/dx sent to `update`
-    Defaults to 20.
+Call this to stop the main loop and stop listening to events.
 
-    See also `Engine:: 'update' event(dt, dx)`
+##### buttonState(button)
+
+Return true if and only if `button` is currently pressed. See also `button`.
+
+##### buttonJustPressed(button)
+
+Call from the `update` event. It returns `true` for the 1 frame
+after the button was pressed.
+
+See also `button`.
+
+##### buttonJustReleased(button)
+
+Call from the `update` event. It returns `true` for the 1 frame
+after the button was released.
+
+See also `button`.
+
+##### createFpsLabel()
+
+Creates a `Label` which is a frames per second display. Draw it with
+`Label::draw(context)`.
+
+See also `Label`.
+
+#### properties
+
+##### size
+
+Read only. `Vec2d` instance. Use `Engine::setSize` if you want to update
+the size.
+
+##### fps
+
+Read only. Contains an up to date value for the current frames per second.
     
-`Engine::stop()`
+##### canvas
 
-    Call this to stop the main loop and stop listening to events.
+Read only. The canvas element that the engine is using.
 
-`Engine::buttonState(button)`
+##### mousePos
 
-    Check if `button` is currently pressed. See also `button`.
+Read only. `Vec2d` instance representing the current mouse position
+relative to the canvas.
 
-`Engine::buttonJustPressed(button)`
+##### buttonCaptureExceptions
 
-    Call from the `update` event. It returns `true` for the 1 frame
-    after the button was pressed.
+Read/write. This is an object which is initially empty and contains
+buttons which the game should bubble up instead of capturing.
 
-    See also `button`.
+Example:
 
-`Engine::buttonJustReleased(button)`
+```js
+// now you can press Ctrl+R, etc
+engine.buttonCaptureExceptions[chem.button.KeyCtrl] = true;
+```
 
-    Call from the `update` event. It returns `true` for the 1 frame
-    after the button was released.
+#### events
 
-    See also `button`.
+These are events that you can subscribe to:
 
-`Engine::draw(batch)`
+```js
+engine.on('eventName', function() {
+  // your code here
+});
+```
 
-    Call from the `draw` event and pass in the `Batch` that you want to draw.
-    All of the sprites will be drawn with the correct rotations, offsets,
-    scaling, `zOrder`, and animation applied.
+For more information see [EventEmitter](http://nodejs.org/docs/latest/api/events.html#events_class_events_eventemitter)
 
-`Engine::drawFps()`
-
-    Draws the current frames per second in the corner of your game with
-    whatever fillColor and font are currently set.
-
-##### properties
-
-`Engine::size`
-
-    Read only. `Vec2d` instance. Use `Engine::setSize` if you want to update
-    the size.
-
-`Engine::fps`
-
-    Read only. Contains an up to date value for the current frames per second.
+##### 'update' (dt, dx)
     
-`Engine::canvas`
+Fired as often as possible, capping at about 60 FPS. Use it to compute
+the next frame in your game.
 
-    Read only. The canvas element that the engine is using.
+For some games it makes sense to ignore `dt` and `dx` and compute the
+next frame in a fixed timestep.
 
-`Engine::mousePos`
+ * `dt` - "delta time" - the amount of time in seconds that has passed 
+   since `update` was last fired.
+ * `dx` - a multiplier intended to adjust your physics. If your game is
+   running perfectly smoothly at 60 FPS, `dx` will be exactly 1. If your game
+   is running half as fast as it should, at 30 FPS, `dx` will be 2. `dx` is
+   equal to `dt` * 60.
 
-    Read only. `Vec2d` instance representing the current mouse position
-    relative to the canvas.
+See also `setMinFps(fps)`.
 
-`Engine::buttonCaptureExceptions`
+##### 'draw' (context)
 
-    Read/write. This is an object which is initially empty and contains
-    buttons which the game should bubble up instead of capturing.
+You should perform all canvas drawing based on your game state in response
+to this event.
 
-    Example:
+See also `Batch::draw`.
 
-    ```js
-    // now you can press Ctrl+R, etc
-    engine.buttonCaptureExceptions[chem.button.KeyCtrl] = true;
-    ```
+##### 'mousemove' (pos, button)
 
-##### events
+Fired when the mouse moves.
 
-These are events that you can subscribe to. See `EventEmitter` on how to
-subscribe to events.
+ * `pos` - a `Vec2d` instance.
+ * `button` - an enum from `button`.
 
-`Engine:: 'update' event (dt, dx)`
-    
-    Fired as often as possible, capping at about 60 FPS. Use it to compute
-    the next frame in your game.
+See also `Engine::mousePos`.
 
-    `dt` is the "delta time" - the amount of time in seconds that has passed 
-    since `update` was last fired.
+##### 'buttondown' (button)
 
-    `dx` is a multiplier intended to adjust your physics. If your game is
-    running perfectly smoothly at 60 FPS, `dx` will be exactly 1. If your game
-    is running half as fast as it should, at 30 FPS, `dx` will be 2. `dx` is
-    equal to `dt` * 60.
+Fired when the player presses a button down.
 
-`Engine:: 'draw' event (context)`
+ * `button`: an enum from `button`.
 
-    You should perform all canvas drawing based on your game state in response
-    to this event.
+##### 'buttonup' (button)
 
-    See also:
-     * `Engine::draw`
+Fired when the player releases a button.
 
-`Engine:: 'mousemove' event (pos, button)`
+ * `button`: an enum from `button`.
 
-    Fired when the mouse moves.
-    `pos`: a `Vec2d` instance.
-    `button`: an enum from `button`.
-
-    See also:
-     * `Engine::mousePos`
-
-`Engine:: 'buttondown' event (button)`
-`Engine:: 'buttonup' event (button)`
-
-    Fired when the player presses a button down or up, respectively.
-    `button`: an enum from `button`.
-
-#### Sound
+### Sound
 
 ```js
 var Sound = require('chem').Sound;
 ```
 
-`new Sound(url)`
+A `Sound` is a pool of HTML5 `Audio` objects. It abstracts away dealing
+with a pool so that you can fire off the same sound effect while it is
+already playing.
 
-    Example:
+If you want to create looping background music, you should use `Audio`
+directly.
 
-    var sound = new chem.Sound('url/to/sound.ogg');
+#### methods
 
-`sound.play()`
+##### new Sound(url)
 
-    Plays the sound. If the sound is already playing, it will play another
-    instance at the same time.
+Create a sound pool based on its URL:
 
-    Returns the HTML5 Audio object that is generating the sound, which has these
-    methods: `pause()`, `play()`
+```js
+var sound = new chem.Sound('url/to/sound.ogg');
+```
 
-    And these properties: `currentTime`, `duration`
+##### play()
 
-`sound.setVolume(value)`
+Plays the sound. If the sound is already playing, it will play another
+instance at the same time.
 
-    Sets the `volume` property. Same as HTML5 Audio object.
+Returns the HTML5 Audio object that is generating the sound, which has these
+methods:
 
-`sound.setPreload(value)`
+ * `pause()`
+ * `play()`
 
-    Sets the `preload` property. Same as HTML5 Audio object.
+And these properties:
 
-#### Sprite
+ * `currentTime`
+ * `duration`
+
+##### setVolume(value)
+
+Sets the `volume` property. Same as HTML5 Audio object.
+
+##### setPreload(value)
+
+Sets the `preload` property. Same as HTML5 Audio object.
+
+### Sprite
 
 ```js
 var Sprite = require('chem').Sprite;
 ```
 
-##### methods
+A `Sprite` is a graphic that you might want to move around on the screen.
 
-`Sprite::new(animationName, params)`
+#### methods
 
-    Example:
+##### new Sprite(animationName, params)
 
-    var sprite = new chem.Sprite('some_animation_name', {
-      pos: new Vec2d(0, 0),
-      scale: new Vec2d(1, 1),
-      zOrder: 0,
-      batch: some_batch,
-      rotation: 0,
-      visible: true,
-      frameIndex: 0,
-      loop: true
-    });
+Example:
+
+```js
+var sprite = new chem.Sprite('some_animation_name', {
+  pos: new Vec2d(0, 0),
+  scale: new Vec2d(1, 1),
+  zOrder: 0,
+  batch: some_batch,
+  rotation: 0,
+  visible: true,
+  frameIndex: 0,
+  loop: true,
+  alpha: 1,
+});
+```
+
+All the parameters are optional.
+
+##### setAnimationName(animationName)
+
+Changes the sprite's animation to the one indexed by `animationName`.
+
+Note that you probably also want to call `setFrameIndex(0)` if you want
+the new animation to start from the beginning.
+
+ * `animationName` - string which should be found in your `chemfile.js`
+
+##### setAnimation(animation)
+
+Changes the sprite's animation to `animation`.
+
+Note that you probably also want to call `setFrameIndex(0)` if you want
+the new animation to start from the beginning.
+
+Typically you will not use this method; you will use `setAnimationName`
+instead.
+
+ * `animation` - animation object
+
+##### draw(context)
+
+Draws the sprite onto the context. Most of the time you will not
+do this directly; instead you will add the sprite to a batch
+and call `batch.draw(context)`.
+
+See `Batch`.
+
+##### getSize()
+
+Like `Sprite::size` but takes scale and current frame into account.
+
+##### getAnchor()
+
+Convenience method to get a `Vec2d` representing the anchor position.
+Takes into account scale.
+Does not take into account rotation.
+
+##### getTopLeft()
+
+Convenience method returning a `Vec2d` instance of the corner of the sprite.
+Takes into account scale and current frame.
+Does not take into account rotation.
+
+##### getBottomRight()
+
+Convenience method returning a `Vec2d` instance of the corner of the sprite.
+Takes into account scale and current frame.
+Does not take into account rotation.
+
+##### getTop()
+
+Convenience method returning the location of the edge of the sprite.
+Takes into account scale and current frame.
+Does not take into account rotation.
+
+##### getLeft()
+
+Convenience method returning the location of the edge of the sprite.
+Takes into account scale and current frame.
+Does not take into account rotation.
+
+##### getBottom()
+
+Convenience method returning the location of the edge of the sprite.
+Takes into account scale and current frame.
+Does not take into account rotation.
+
+##### getRight()
+
+Convenience method returning the location of the edge of the sprite.
+Takes into account scale and current frame.
+Does not take into account rotation.
+
+##### setLeft(x)
+
+Convenience method to set the location of the edge of the sprite.
+Takes into account scale and current frame.
+Does not take into account rotation.
+
+##### setRight(x)
+
+Convenience method to set the location of the edge of the sprite.
+Takes into account scale and current frame.
+Does not take into account rotation.
+
+##### setTop(y)
+
+Convenience method to set the location of the edge of the sprite.
+Takes into account scale and current frame.
+Does not take into account rotation.
+
+##### setBottom(y)
+
+Convenience method to set the location of the edge of the sprite.
+Takes into account scale and current frame.
+Does not take into account rotation.
+
+##### isTouching(sprite)
+
+Returns boolean of whether the sprite is colliding with another.
+Takes into account scale and current frame.
+Does not take into account rotation.
+
+##### hitTest(vec2d)
+
+Returns boolean of whether the point is inside the bounding box
+of the sprite.
+Takes into account scale and current frame.
+Does not take into account rotation.
+
+##### setVisible(visible)
+
+Hides the sprite but keeps it ready to display again.
+See also `delete()`.
+
+##### setZOrder(zOrder)
+
+Use to layer labels and sprites the way you want to.
+Start with 0 as the bottom layer.
+When you want to put something on top, use 1 for the zOrder, 2 for
+something on top of that, and so on.
+
+See also `Sprite::zOrder`
     
-    All the params are optional.
+##### setFrameIndex(frameIndex)
 
-`Sprite::setAnimationName(animationName)`
+Set the frame to show when the sprite is rendered. Animation will continue
+from this frame as usual. To find out the frame count, use
+`sprite.animation.frames.length`.
 
-    Changes the sprite's animation to the one indexed by `animationName`.
+##### setLoop(loop)
 
-    Note that you probably also want to call `setFrameIndex(0)` if you want
-    the new animation to start from the beginning.
+This value overrides the animation's loop property. If set to `null`,
+it will fall back to the animation's loop property.
 
-`Sprite::setAnimation(animation)`
+See also `Sprite::loop`.
 
-    Changes the sprite's animation to `animation`.
+##### setAnimationStartDate(animationStartDate)
 
-    Note that you probably also want to call `setFrameIndex(0)` if you want
-    the new animation to start from the beginning.
+Does the same thing as `Sprite::setFrameIndex(frameIndex)` except you
+specify a date instead of a frame index.
 
-`Sprite::getSize()`
+##### getFrameIndex()
 
-    Like `Sprite::size` but takes scale and current frame into account.
+Returns the index of the current frame. See also
+`setFrameIndex(frameIndex)`
 
-`Sprite::getAnchor()`
+##### delete()
 
-    Convenience method to get a `Vec2d` representing the anchor position.
-    Takes into account scale.
-    Does not take into account rotation.
+Indicates that the sprite should release all resources and no longer
+display on the canvas.
 
-`Sprite::getTopLeft()`
-`Sprite::getBottomRight()`
+See also `setVisible(visible)`.
 
-    Convenience methods returning a `Vec2d` instance of corners of the sprite.
-    Takes into account scale and current frame.
-    Does not take into account rotation.
+#### properties
 
-`Sprite::getTop()`
-`Sprite::getLeft()`
-`Sprite::getBottom()`
-`Sprite::getRight()`
+##### pos
 
-    Convenience methods returning the location of edges of the sprite.
-    Takes into account scale and current frame.
-    Does not take into account rotation.
+`Vec2d`. Get or set the position in the canvas this sprite is drawn.
 
-`Sprite::setLeft(x)`
-`Sprite::setRight(x)`
-`Sprite::setTop(y)`
-`Sprite::setBottom(y)`
+##### size
 
-    Convenience methods to set the location of edges of the sprite.
-    Takes into account scale and current frame.
-    Does not take into account rotation.
+Read only. `Vec2d` width and height of the first frame, not taking into
+account `scale` or current frame.
 
-`Sprite::isTouching(sprite)`
+##### scale
 
-    Returns boolean of whether the sprite is colliding with another.
-    Takes into account scale and current frame.
-    Does not take into account rotation.
+`Vec2d`. Get or set the scale with which the sprite is drawn.
 
-`Sprite::hitTest(vec2d)`
+##### zOrder
 
-    Returns boolean of whether the point is inside the bounding box
-    of the sprite.
-    Takes into account scale and current frame.
-    Does not take into account rotation.
+Read only. Use `Sprite::setZOrder` to change the `zOrder` of a sprite.
+      
+##### batch
 
-`Sprite::setVisible(visible)`
+Read only. Use `Batch::add(sprite)` and `Batch::remove(sprite)` to
+change this value.
 
-    Hides the sprite but keeps it ready to display again.
-    See also `Sprite::delete()`.
+##### rotation
 
-`Sprite::setZOrder(zOrder)`
+Get or set the angle of the sprite, in radians. Going over 2 * pi is OK.
 
-    Use to layer sprites the way you want to. Start with 0 as the bottom layer.
-    When you want to put something on top, use 1 for the zOrder, 2 for
-    something on top of that, and so on.
-    See also `Sprite::zOrder`
-    
-`Sprite::setFrameIndex(frameIndex)`
+##### loop
 
-    Set the frame to show when the sprite is rendered. Animation will continue
-    from this frame as usual. To find out the frame count, use
-    `sprite.animation.frames.length`.
+Read only. Use `Sprite::setLoop(loop)` to set this value.
 
-`Sprite::setLoop(loop)`
+##### alpha
 
-    This value overrides the animation's loop property. If set to `null`,
-    it will fall back to the animation's loop property.
-    See also `Sprite::loop`.
+Get or set the opacity on a scale of 0 to 1.
 
-`Sprite::setAnimationStartDate(animationStartDate)`
+##### id
 
-    Does the same thing as `Sprite::setFrameIndex(frameIndex)` except you
-    specify a date instead of a frame index.
+Read only. Uniquely identifies this `Sprite` among other sprites.
 
-`Sprite::getFrameIndex()`
+##### animation
 
-    Returns the index of the current frame. See also
-    `Sprite::setFrameIndex(frameIndex)`
+Read only. The current animation of the sprite. Properties of `animation` are:
 
-`Sprite::delete()`
+ * `anchor` - `Vec2d` instance
+ * `delay` - seconds
+ * `loop` - boolean
+ * `frames` - `[{size, pos}]` - both `size` and `pos` here are `Vec2d`s.
 
-    Indicates that the sprite should release all resources and no longer
-    display on the canvas.
-    See also `Sprite::setVisible(visible)`.
+##### animationName
 
-##### properties
+Read only.
 
-`Sprite::pos`
+#### events
 
-    `Vec2d`. Get or set the position in the canvas this sprite is drawn.
+These are events that you can subscribe to.
 
-`Sprite::size`
+See [EventEmitter](http://nodejs.org/docs/latest/api/events.html#events_class_events_eventemitter).
 
-    Read only. `Vec2d` width and height of the first frame, not taking into
-    account `scale` or current frame.
+##### 'animationend'
 
-`Sprite::scale`
+Fired when the animation completes. If `loop` is true, this will be at a
+regular interval. If `loop` is false, this will fire only once, until you
+reset the frame index.
 
-    `Vec2d`. Get or set the scale with which the sprite is drawn.
+See also `setFrameIndex(frameIndex)`.
 
-`Sprite::zOrder`
+### Label
 
-    Read only. Use `Sprite::setZOrder` to change the `zOrder` of a sprite.
-    
-`Sprite::batch`
+```js
+var Label = require('chem').Label;
+```
 
-    Read only. Use `Batch::add(sprite)` and `Batch::remove(sprite)` to
-    change this value.
+A Label is a piece of text that you want to display somewhere on the screen.
 
-`Sprite::rotation`
+#### methods
 
-    Get or set the angle of the sprite, in radians. Going over 2 * pi is OK.
+##### new Label(text, params)
 
-`Sprite::loop`
+Example:
 
-    Read only. Use `Sprite::setLoop(loop)` to set this value.
+```js
+var label = new chem.Label("hello world", {
+  pos: new Vec2d(0, 0),
+  scale: new Vec2d(1, 1),
+  zOrder: 0,
+  batch: some_batch,
+  rotation: 0,
+  visible: true,
+  alpha: 1,
 
-`Sprite::id`
+  font: "10px sans-serif",
+  textAlign: "start",
+  textBaseline: "alphabetic",
 
-    Read only. Uniquely identifies this `Sprite` among others.
+  fill: true,
+  fillStyle: "#000000",
 
-`Sprite::animation`
+  stroke: false,
+  lineWidth: 1,
+  strokeStyle: "#000000",
+});
+```
 
-    Read only. The current animation of the sprite. Properties of `animation`
-    are:
+All the parameters are optional.
 
-     * `anchor` - `Vec2d` instance
-     * `delay` - seconds
-     * `loop` - boolean
-     * `frames` - `[{size, pos}]` - both `size` and `pos` here are `Vec2d`s.
+##### draw(context)
 
-`Sprite::animationName`
+Draws the label onto the context. Most of the time you will not
+do this directly; instead you will add the label to a batch
+and call `batch.draw(context)`.
 
-    Read only.
+See `Batch`.
 
-##### events
+##### setVisible(visible)
 
-These are events that you can subscribe to. See `EventEmitter` on how to
-subscribe to events.
+Hides the label but keeps it ready to display again.
+See also `delete()`.
 
-`Sprite:: 'animationend' event`
+##### setZOrder(zOrder)
 
-    Fired when the animation completes. If `loop` is true, this will be at a
-    regular interval. If `loop` is false, this will fire only once, until you
-    reset the frame index.
+Use to layer labels and sprites the way you want to.
+Start with 0 as the bottom layer.
+When you want to put something on top, use 1 for the zOrder, 2 for
+something on top of that, and so on.
 
-    See also:
-     * `Sprite::setFrameIndex(frameIndex)`
+See also `Label::zOrder`
 
-#### vec2d
+##### delete()
+
+Indicates that the label should release all resources and no longer
+display on the canvas.
+
+See also `setVisible(visible)`.
+
+
+#### properties
+
+##### pos
+
+`Vec2d`. Get or set the position in the canvas this sprite is drawn.
+
+##### size
+
+Read only. `Vec2d` width and height of the first frame, not taking into
+account `scale` or current frame.
+
+##### scale
+
+`Vec2d`. Get or set the scale with which the sprite is drawn.
+
+##### zOrder
+
+Read only. Use `Sprite::setZOrder` to change the `zOrder` of a sprite.
+      
+##### batch
+
+Read only. Use `Batch::add(sprite)` and `Batch::remove(sprite)` to
+change this value.
+
+##### rotation
+
+Get or set the angle of the sprite, in radians. Going over 2 * pi is OK.
+
+##### alpha
+
+Get or set the opacity on a scale of 0 to 1.
+
+##### id
+
+Read only. Uniquely identifies this `Label` among other labels.
+
+##### font
+
+Get or set the font used to render.
+
+Examples:
+
+ * "10px Arial"
+ * "12pt sans-serif"
+
+##### textAlign
+
+Get or set the alignment value. Possible values: 
+
+ * `left` - The text is left-aligned.
+ * `right` - The text is right-aligned.
+ * `center` - The text is centered.
+ * `start` - The text is aligned at the normal start of the line
+   (left-aligned for left-to-right locales, right-aligned for right-to-left
+   locales).
+ * `end` - The text is aligned at the normal end of the line (right-aligned
+   for left-to-right locales, left-aligned for right-to-left locales).
+
+Default is `start`.
+
+##### textBaseline
+
+Get or set the text baseline being used when drawing text.  Possible values:
+
+ * `top` - The text baseline is the top of the em square.
+ * `middle` - The text baseline is the middle of the em square.
+ * `alphabetic` - The text baseline is the normal alphabetic baseline.
+ * `ideographic` - The text baseline is the ideographic baseline; this is
+   the bottom of the body of the characters, if the main body of characters
+   protrudes beneath the alphabetic baseline.  Currently unsupported; this
+   will act like alphabetic.
+ * `bottom` - The text baseline is the bottom of the bounding box.
+   This differs from the ideographic baseline in that the ideographic baseline
+   doesn't consider descenders.
+
+Default is `alphabetic`.
+
+##### fill
+
+Get or set boolean whether to fill the text. Default `true`.
+
+##### fillStyle
+
+Get or set the color used to fill. Default `"#000000"`.
+
+##### stroke
+
+Get or set boolean whether to stroke the text. Default `false`.
+
+##### strokeStyle
+
+Get or set the color used to stroke. Default `"#000000"`.
+
+##### lineWidth
+
+Get or set the width of the stroke. Default `1`.
+
+### vec2d
 
 ```js
 var vec2d = require('chem').vec2d;
@@ -653,11 +925,22 @@ See [node-vec2d](https://github.com/superjoe30/node-vec2d)
 
 See also [chem-cli](http://github.com/superjoe30/chem-cli)
 
-    # set up dev environment for chem itself:
-    sudo apt-get install libcairo2-dev
-    sudo npm link
+```bash
+# set up dev environment for chem itself:
+sudo apt-get install libcairo2-dev
+sudo npm link
+```
 
-## History
+## History / Changelog
+
+### 0.5.0
+
+ * add chem.Label e.g. "text sprite"
+ * `batch.sprites` renamed to `batch.layers`
+ * `batch.layers` contains both `Sprite` and `Label`
+ * `engine.draw(batch)` replaced with `batch.draw(context)`
+ * `engine.drawFps()` replaced with `engine.createFpsLabel()`
+ * add `sprite.draw(context)`
 
 ### 0.4.5
 
