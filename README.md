@@ -2,6 +2,8 @@
 
 canvas-based game engine and toolchain optimized for rapid development.
 
+Inspired by [pyglet](http://www.pyglet.org/).
+
 ## Features
 
  * Automatically creates a spritesheet for your assets and then
