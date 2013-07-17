@@ -528,6 +528,32 @@ Sets the `volume` property. Same as HTML5 Audio object.
 
 Sets the `preload` property. Same as HTML5 Audio object.
 
+#### setPlaybackRate(value)
+
+Sets the `playbackRate` property. Same as HTML5 Audio object.
+
+### properties
+
+#### currentSrc
+
+Read-only. URL of the playing sound.
+
+#### volume
+
+Read-only.
+
+#### preload
+
+Read-only.
+
+#### playbackRate
+
+Read-only.
+
+#### maxPoolSize
+
+Read/write. Defaults to 1000;
+
 ## Sprite
 
 ```js
