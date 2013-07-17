@@ -1,6 +1,10 @@
 **Table of Contents**  *generated with [DocToc](http://doctoc.herokuapp.com/)*
 
 - [button](#button)
+- [resources](#resources)
+	- [getImage(name, frameIndex)](#getimagename-frameindex)
+	- [animations](#animations)
+	- [spritesheet](#spritesheet)
 - [vec2d](#vec2d)
 - [Batch](#batch)
 	- [methods](#methods)
@@ -136,6 +140,25 @@ See also:
  * `Engine:: 'buttonup' event (button)`
 
 See `lib/button.js` for the full listing.
+
+## resources
+
+var resources = require('chem').resources;
+
+### getImage(name, frameIndex)
+
+Obtain a new Image object by extracting it from the spritesheet.
+
+ * `name` - the animation name to get the frame of
+ * `frameIndex` - defaults to `0`
+
+### animations
+
+Object containing all the animation metadata, indexed by name.
+
+### spritesheet
+
+Spritesheet Image.
 
 ## vec2d
 

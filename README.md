@@ -241,7 +241,7 @@ That is, pay careful attention not to perform destructive behavior on the
 ### Not Using a Spritesheet
 
 If you omit the spritesheet object in your chemfile, no spritesheet files
-will be generated. Be sure to set `chem.useSpritesheet = false` in your app code to avoiding attempting to load the missing resources.
+will be generated. Be sure to set `chem.resources.useSpritesheet = false` in your app code to avoiding attempting to load the missing resources.
 
 ### Reference API Documentation
 
