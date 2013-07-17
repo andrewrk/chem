@@ -59,8 +59,16 @@
 	- [methods](#methods-3)
 		- [new Sound(url)](#new-soundurl)
 		- [play()](#play)
+		- [stop()](#stop-1)
 		- [setVolume(value)](#setvolumevalue)
 		- [setPreload(value)](#setpreloadvalue)
+		- [setPlaybackRate(value)](#setplaybackratevalue)
+	- [properties](#properties-2)
+		- [currentSrc](#currentsrc)
+		- [volume](#volume)
+		- [preload](#preload)
+		- [playbackRate](#playbackrate)
+		- [maxPoolSize](#maxpoolsize)
 - [Sprite](#sprite)
 	- [methods](#methods-4)
 		- [new Sprite(animationName, params)](#new-spriteanimationname-params)
@@ -88,7 +96,7 @@
 		- [setAnimationStartDate(animationStartDate)](#setanimationstartdateanimationstartdate)
 		- [getFrameIndex()](#getframeindex)
 		- [delete()](#delete-1)
-	- [properties](#properties-2)
+	- [properties](#properties-3)
 		- [pos](#pos-1)
 		- [size](#size-2)
 		- [scale](#scale-1)
@@ -519,6 +527,10 @@ And these properties:
 
  * `currentTime`
  * `duration`
+
+#### stop()
+
+Stops all the Audio instances in the pool.
 
 #### setVolume(value)
 
