@@ -69,6 +69,11 @@
 		- [preload](#preload)
 		- [playbackRate](#playbackrate)
 		- [maxPoolSize](#maxpoolsize)
+		- [duration](#duration)
+		- [buffered](#buffered)
+	- [events](#events-1)
+		- ["progress"](#progress)
+		- ["loaded"](#loaded)
 - [Sprite](#sprite)
 	- [methods](#methods-4)
 		- [new Sprite(animationName, params)](#new-spriteanimationname-params)
@@ -108,7 +113,7 @@
 		- [id](#id-1)
 		- [animation](#animation)
 		- [animationName](#animationname)
-	- [events](#events-1)
+	- [events](#events-2)
 		- ['animationend'](#'animationend')
 
 ## button
@@ -818,6 +823,8 @@ Read only. The current animation of the sprite. Properties of `animation` are:
  * `delay` - seconds
  * `loop` - boolean
  * `frames` - `[{size, pos}]` - both `size` and `pos` here are `Vec2d`s.
+ * `duration` - length in seconds of the animation
+ * `name` - string
 
 #### animationName
 
