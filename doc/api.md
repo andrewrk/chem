@@ -566,6 +566,24 @@ Read-only.
 
 Read/write. Defaults to 1000;
 
+#### duration
+
+Read only. Only valid after the 'loaded' event has fired.
+
+#### buffered
+
+Read only. How much audio has been loaded in seconds.
+
+### events
+
+#### "progress"
+
+Fired when some more audio has been buffered.
+
+#### "loaded"
+
+Fired when the sound is done loading.
+
 ## Sprite
 
 ```js
