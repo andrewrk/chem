@@ -1,5 +1,10 @@
 # History
 
+## 1.0.0
+
+ * fix compilation error regarding window being defined
+ * start using semver correctly
+
 ## 0.6.0
 
  * ability to get/set playbackRate on Sound
