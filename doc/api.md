@@ -2,9 +2,16 @@
 
 - [button](#button)
 - [resources](#resources)
-	- [getImage(name, frameIndex)](#getimagename-frameindex)
-	- [animations](#animations)
-	- [spritesheet](#spritesheet)
+	- [properties](#properties)
+		- [animations](#animations)
+		- [spritesheet](#spritesheet)
+		- [images](#images)
+		- [text](#text)
+	- [methods](#methods)
+		- [getImage(name, frameIndex)](#getimagename-frameindex)
+	- [events](#events)
+		- ['ready'](#'ready')
+		- ['progress' (event)](#'progress'-event)
 - [vec2d](#vec2d)
 - [Batch](#batch)
 	- [methods](#methods)
@@ -13,7 +20,7 @@
 		- [remove(item)](#removeitem)
 		- [draw(context)](#drawcontext)
 - [Engine](#engine)
-	- [methods](#methods-1)
+	- [methods](#methods)
 		- [new Engine(canvas)](#new-enginecanvas)
 		- [setSize(size)](#setsizesize)
 		- [start()](#start)
@@ -36,15 +43,15 @@
 		- ['buttondown' (button)](#'buttondown'-button)
 		- ['buttonup' (button)](#'buttonup'-button)
 - [Label](#label)
-	- [methods](#methods-2)
+	- [methods](#methods)
 		- [new Label(text, params)](#new-labeltext-params)
-		- [draw(context)](#drawcontext-1)
+		- [draw(context)](#drawcontext)
 		- [setVisible(visible)](#setvisiblevisible)
 		- [setZOrder(zOrder)](#setzorderzorder)
 		- [delete()](#delete)
-	- [properties](#properties-1)
+	- [properties](#properties)
 		- [pos](#pos)
-		- [size](#size-1)
+		- [size](#size)
 		- [scale](#scale)
 		- [zOrder](#zorder)
 		- [batch](#batch)
@@ -60,14 +67,14 @@
 		- [strokeStyle](#strokestyle)
 		- [lineWidth](#linewidth)
 - [Sound](#sound)
-	- [methods](#methods-3)
+	- [methods](#methods)
 		- [new Sound(url)](#new-soundurl)
 		- [play()](#play)
-		- [stop()](#stop-1)
+		- [stop()](#stop)
 		- [setVolume(value)](#setvolumevalue)
 		- [setPreload(value)](#setpreloadvalue)
 		- [setPlaybackRate(value)](#setplaybackratevalue)
-	- [properties](#properties-2)
+	- [properties](#properties)
 		- [currentSrc](#currentsrc)
 		- [volume](#volume)
 		- [preload](#preload)
@@ -75,15 +82,15 @@
 		- [maxPoolSize](#maxpoolsize)
 		- [duration](#duration)
 		- [buffered](#buffered)
-	- [events](#events-1)
+	- [events](#events)
 		- ["progress"](#progress)
 		- ["loaded"](#loaded)
 - [Sprite](#sprite)
-	- [methods](#methods-4)
+	- [methods](#methods)
 		- [new Sprite(animationName, params)](#new-spriteanimationname-params)
 		- [setAnimationName(animationName)](#setanimationnameanimationname)
 		- [setAnimation(animation)](#setanimationanimation)
-		- [draw(context)](#drawcontext-2)
+		- [draw(context)](#drawcontext)
 		- [getSize()](#getsize)
 		- [getAnchor()](#getanchor)
 		- [getTopLeft()](#gettopleft)
@@ -98,26 +105,26 @@
 		- [setBottom(y)](#setbottomy)
 		- [isTouching(sprite)](#istouchingsprite)
 		- [hitTest(vec2d)](#hittestvec2d)
-		- [setVisible(visible)](#setvisiblevisible-1)
-		- [setZOrder(zOrder)](#setzorderzorder-1)
+		- [setVisible(visible)](#setvisiblevisible)
+		- [setZOrder(zOrder)](#setzorderzorder)
 		- [setFrameIndex(frameIndex)](#setframeindexframeindex)
 		- [setLoop(loop)](#setlooploop)
 		- [setAnimationStartDate(animationStartDate)](#setanimationstartdateanimationstartdate)
 		- [getFrameIndex()](#getframeindex)
-		- [delete()](#delete-1)
-	- [properties](#properties-3)
-		- [pos](#pos-1)
-		- [size](#size-2)
-		- [scale](#scale-1)
-		- [zOrder](#zorder-1)
-		- [batch](#batch-1)
-		- [rotation](#rotation-1)
+		- [delete()](#delete)
+	- [properties](#properties)
+		- [pos](#pos)
+		- [size](#size)
+		- [scale](#scale)
+		- [zOrder](#zorder)
+		- [batch](#batch)
+		- [rotation](#rotation)
 		- [loop](#loop)
-		- [alpha](#alpha-1)
-		- [id](#id-1)
+		- [alpha](#alpha)
+		- [id](#id)
 		- [animation](#animation)
 		- [animationName](#animationname)
-	- [events](#events-2)
+	- [events](#events)
 		- ['animationend'](#'animationend')
 
 ## button
@@ -145,20 +152,55 @@ See `lib/button.js` for the full listing.
 
 var resources = require('chem').resources;
 
-### getImage(name, frameIndex)
+### properties
+
+#### animations
+
+Object containing all the animation metadata, indexed by name.
+
+#### spritesheet
+
+Spritesheet Image.
+
+#### images
+
+Contains a map of your static image resources. These are in public/img.
+
+#### text
+
+Contains a map of your text resources. These are in public/text.
+
+### methods
+
+#### getImage(name, frameIndex)
 
 Obtain a new Image object by extracting it from the spritesheet.
 
  * `name` - the animation name to get the frame of
  * `frameIndex` - defaults to `0`
 
-### animations
+### events
 
-Object containing all the animation metadata, indexed by name.
+These are events that you can subscribe to:
 
-### spritesheet
+```js
+resources.on('eventName', function() {
+  // your code here
+});
+```
 
-Spritesheet Image.
+For more information see [EventEmitter](http://nodejs.org/docs/latest/api/events.html#events_class_events_eventemitter)
+
+#### 'ready'
+
+Emitted when all resources are loaded and you may begin utilizing them.
+
+#### 'progress' (event)
+
+event is an object that contains:
+
+ * `total` - total number of resources to fetch
+ * `complete` - how many resources have been fetched
 
 ## vec2d
 

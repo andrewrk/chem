@@ -20,6 +20,8 @@ Inspired by [pyglet](http://www.pyglet.org/).
    when you save.
  * Handles main loop and frame skipping.
  * Convenient API for keyboard and mouse input.
+ * Bootstraps the resource loading process and optionally provides a basic
+   loading progress bar.
 
 ## Usage
 
@@ -70,10 +72,13 @@ See [chem-cli](http://github.com/superjoe30/chem-cli) for more information.
 ```js
 var chem = require("chem");
 var v = chem.vec2d;
+var canvas = document.getElementById("game");
+var engine = new chem.Engine(canvas);
+engine.showLoadProgressBar();
+engine.start();
+canvas.focus();
 
-chem.onReady(function () {
-  var canvas = document.getElementById("game");
-  var engine = new chem.Engine(canvas);
+chem.resources.on('ready', function () {
   var batch = new chem.Batch();
   var boom = new chem.Sound('sfx/boom.ogg');
   var ship = new chem.Sprite('ship', {
@@ -126,8 +131,6 @@ chem.onReady(function () {
     // draw a little fps counter in the corner
     fpsLabel.draw(context);
   });
-  engine.start();
-  canvas.focus();
 });
 ```
 ### ./chemfile.js
@@ -211,6 +214,12 @@ to-JavaScript language (including JavaScript itself) that you choose.
      * `loop` - whether an animation should start over when it ends. You can
        override this in individual sprites.
 
+ * `autoBootstrap` - set this to `false` if you do not want public/bootstrap.js
+   to be auto generated.
+
+If you leave the `spritesheet` export undefined, no spritesheet will be
+generated or used at runtime.
+
 ### Use any "compile to JS" language
 
 Supported languages:
@@ -227,7 +236,24 @@ The first step is to require "chem":
 ```js
 var chem = require('chem');
 
-chem.onReady(function() {
+// Next, locate your canvas:
+var canvas = document.getElementById("the-canvas-id");
+
+// Create the main game engine:
+var engine = new Engine(canvas);
+
+// Display a nice loading progress bar while we serve assets:
+// (it automatically goes away once loading is complete)
+engine.showLoadProgressBar()
+
+// Start the main loop:
+engine.start()
+
+// Focus the canvas so that keyboard input works:
+canvas.focus()
+
+// Finally, wait until resources are done loading:
+chem.resources.on('ready', function() {
   // Now you can go for it. All asssets are loaded.
 });
 ```
@@ -238,10 +264,13 @@ As a convention, any `Vec2d` instances you get from Chem are not clones.
 That is, pay careful attention not to perform destructive behavior on the
 `Vec2d` instances returned from the API.
 
-### Not Using a Spritesheet
+### Resource Locations
 
-If you omit the spritesheet object in your chemfile, no spritesheet files
-will be generated. Be sure to set `chem.resources.useSpritesheet = false` in your app code to avoiding attempting to load the missing resources.
+Text files placed in public/text/ will be available in the `chem.resources.text`
+object once the 'ready' event has fired.
+
+Image files placed in public/img/ will be available in the
+`chem.resources.images` object once the 'ready' event has fired.
 
 ### Reference API Documentation
 
