@@ -1,5 +1,18 @@
 # History
 
+## 0.6.0
+
+ * ability to get/set playbackRate on Sound
+ * ability to stop() a Sound
+ * Sound emits "progress" and "ready" event
+ * remove chem.onReady in favor of chem.resources.on('ready')
+ * resoures is a normal EventEmitter just like everything else
+ * resources has a "progress" event
+ * resources.bootstrap() called by auto generated code instead of chem library
+ * add automatic text and image resource loading via public/text/ and public/img/
+   available on resources.images and resources.text
+ * add engine.showLoadProgressBar()
+
 ## 0.5.0
 
  * add chem.Label e.g. "text sprite"

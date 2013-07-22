@@ -84,7 +84,7 @@
 		- [buffered](#buffered)
 	- [events](#events)
 		- ["progress"](#progress)
-		- ["loaded"](#loaded)
+		- ["ready"](#ready)
 - [Sprite](#sprite)
 	- [methods](#methods)
 		- [new Sprite(animationName, params)](#new-spriteanimationname-params)
@@ -638,7 +638,7 @@ Read/write. Defaults to 1000;
 
 #### duration
 
-Read only. Only valid after the 'loaded' event has fired.
+Read only. Only valid after the 'ready' event has fired.
 
 #### buffered
 
@@ -650,7 +650,7 @@ Read only. How much audio has been loaded in seconds.
 
 Fired when some more audio has been buffered.
 
-#### "loaded"
+#### "ready"
 
 Fired when the sound is done loading.
 
