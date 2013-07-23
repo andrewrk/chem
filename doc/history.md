@@ -1,8 +1,12 @@
 # History
 
+## 1.0.2
+
+ * update vec2d dependency. adds `reflect` and `reflectAboutLine` methods
+
 ## 1.0.1
 
- * update vec2d dependency. fixes rotate function.
+ * update vec2d dependency. fixes `rotate` method.
 
 ## 1.0.0
 
