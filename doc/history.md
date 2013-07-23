@@ -1,5 +1,9 @@
 # History
 
+## 1.0.1
+
+ * update vec2d dependency. fixes rotate function.
+
 ## 1.0.0
 
  * fix compilation error regarding window being defined
