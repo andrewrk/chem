@@ -1,5 +1,9 @@
 # History
 
+## 2.1.0
+
+ * add Batch::clear()
+
 ## 2.0.1
 
  * Sprite: fix memory leak
