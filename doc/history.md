@@ -1,5 +1,12 @@
 # History
 
+## 2.0.0
+
+ * remove label.id and sprite.id
+ * Batch is faster
+ * chem.button was missing Key5 - Key9. Fixed.
+ * sound.maxPoolSize now defaults to 10 instead of 1000
+
 ## 1.0.2
 
  * update vec2d dependency. adds `reflect` and `reflectAboutLine` methods
