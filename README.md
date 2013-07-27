@@ -178,6 +178,7 @@ exports.spritesheet = {
 
 ## Demo Projects Using Chem
 
+ * [Pillagers](https://github.com/superjoe30/pillagers) - real time strategy with space physics
  * [Meteor Attack](https://github.com/superjoe30/meteor-attack) - dodge meteors in space
  * [Disinfecticide](https://github.com/superjoe30/disinfecticide) - use extreme measures to control a deadly disease outbreak.
  * [holocaust](https://github.com/superjoe30/holocaust/) -
