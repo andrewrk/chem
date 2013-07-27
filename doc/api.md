@@ -57,7 +57,6 @@
 		- [batch](#batch)
 		- [rotation](#rotation)
 		- [alpha](#alpha)
-		- [id](#id)
 		- [font](#font)
 		- [textAlign](#textalign)
 		- [textBaseline](#textbaseline)
@@ -121,7 +120,6 @@
 		- [rotation](#rotation)
 		- [loop](#loop)
 		- [alpha](#alpha)
-		- [id](#id)
 		- [animation](#animation)
 		- [animationName](#animationname)
 	- [events](#events)
@@ -493,10 +491,6 @@ Get or set the angle of the label, in radians. Going over 2 * pi is OK.
 #### alpha
 
 Get or set the opacity on a scale of 0 to 1.
-
-#### id
-
-Read only. Uniquely identifies this `Label` among other labels.
 
 #### font
 
@@ -875,10 +869,6 @@ Read only. Use `Sprite::setLoop(loop)` to set this value.
 #### alpha
 
 Get or set the opacity on a scale of 0 to 1.
-
-#### id
-
-Read only. Uniquely identifies this `Sprite` among other sprites.
 
 #### animation
 
