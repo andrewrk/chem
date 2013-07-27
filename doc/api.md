@@ -628,7 +628,7 @@ Read-only.
 
 #### maxPoolSize
 
-Read/write. Defaults to 1000;
+Read/write. Defaults to 10.
 
 #### duration
 
