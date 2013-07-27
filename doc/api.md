@@ -19,6 +19,7 @@
 		- [add(item)](#additem)
 		- [remove(item)](#removeitem)
 		- [draw(context)](#drawcontext)
+		- [clear()](#clear)
 - [Engine](#engine)
 	- [methods](#methods)
 		- [new Engine(canvas)](#new-enginecanvas)
@@ -240,6 +241,12 @@ All of the sprites and labels will be drawn with the correct
 rotations, offsets, scaling, `zOrder`, and animation applied.
 
  * `context` - 2D canvas drawing context.
+
+#### clear()
+
+Deletes all sprites in the batch.
+
+See also Sprite::delete()
 
 ## Engine
 
