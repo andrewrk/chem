@@ -1,5 +1,10 @@
 # History
 
+## 2.0.1
+
+ * Sprite: fix memory leak
+ * Batch: allow empty zOrder layers
+
 ## 2.0.0
 
  * remove label.id and sprite.id
