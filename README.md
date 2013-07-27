@@ -1,4 +1,4 @@
-# chem
+![chem](http://i.imgur.com/LZPbMwb.png)
 
 canvas-based game engine and toolchain optimized for rapid development.
 
