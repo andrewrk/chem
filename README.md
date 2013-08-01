@@ -8,18 +8,18 @@ Inspired by [pyglet](http://www.pyglet.org/).
 
  * Automatically creates a spritesheet for your assets and then
    loads the assets at runtime.
- * Provides convenient API for drawing animated sprites in a canvas
+ * Provides API for drawing animated sprites in a canvas
    - Supports anchor points and rotation
  * Write code in JavaScript or other compile-to-javascript
    languages such as Coffee-Script.
  * Uses [browserify](https://github.com/substack/node-browserify) to compile
    your code which allows you to harness the power of code on [npm](https://npmjs.org/).
-   - For example, [A* search](https://github.com/superjoe30/node-astar)
+   - Wiki Article: [Useful npm packages for games](https://github.com/superjoe30/chem/wiki/Useful-npm-packages-for-games)
    - Allows you to organize code modules using `require` and `module.exports` syntax.
  * Everything from code to spritesheet is compiled automatically
    when you save.
  * Handles main loop and frame skipping.
- * Convenient API for keyboard and mouse input.
+ * API for keyboard and mouse input.
  * Bootstraps the resource loading process and optionally provides a basic
    loading progress bar.
 
