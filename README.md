@@ -94,21 +94,14 @@ chem.resources.on('ready', function () {
     ship.pos.add(shipVel);
 
     // rotate the ship with left and right arrow keys
-    if (engine.buttonState(chem.button.KeyLeft)) {
-      ship.rotation -= rotationSpeed * dx;
-    }
-    if (engine.buttonState(chem.button.KeyRight)) {
-      ship.rotation += rotationSpeed * dx;
-    }
+    var rotateAmt = rotationSpeed * dx;
+    if (engine.buttonState(chem.button.KeyLeft)) ship.rotation -= rotateAmt;
+    if (engine.buttonState(chem.button.KeyRight)) ship.rotation += rotateAmt;
 
     // apply forward and backward thrust with up and down arrow keys
-    var thrust = v(Math.cos(ship.rotation), Math.sin(ship.rotation));
-    if (engine.buttonState(chem.button.KeyUp)) {
-      shipVel.add(thrust.scaled(thrustAmt * dx));
-    }
-    if (engine.buttonState(chem.button.KeyDown)) {
-      shipVel.sub(thrust.scaled(thrustAmt * dx));
-    }
+    var thrust = v.unit(ship.rotation).scale(thrustAmt * dx);
+    if (engine.buttonState(chem.button.KeyUp)) shipVel.add(thrust);
+    if (engine.buttonState(chem.button.KeyDown)) shipVel.sub(thrust);
 
     // press space to blow yourself up
     if (engine.buttonJustPressed(chem.button.KeySpace)) {
