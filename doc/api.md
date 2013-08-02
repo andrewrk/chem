@@ -8,20 +8,36 @@
 		- [images](#images)
 		- [text](#text)
 	- [methods](#methods)
-		- [getImage(name, frameIndex)](#getimagename-frameindex)
 	- [events](#events)
 		- ['ready'](#'ready')
 		- ['progress' (event)](#'progress'-event)
 - [vec2d](#vec2d)
+- [Animation](#animation)
+	- [constructors](#constructors)
+		- [new Animation()](#new-animation)
+		- [Animation.fromJson(json)](#animationfromjsonjson)
+		- [Animation.fromImage(image, options)](#animationfromimageimage-options)
+	- [methods](#methods-1)
+		- [addFrame(pos, size)](#addframepos-size)
+		- [removeFrame(index)](#removeframeindex)
+		- [clearFrames()](#clearframes)
+		- [setDelay(delay)](#setdelaydelay)
+		- [getImage(frameIndex)](#getimageframeindex)
+	- [properties](#properties-1)
+		- [delay](#delay)
+		- [spritesheet](#spritesheet-1)
+		- [duration](#duration)
+		- [anchor](#anchor)
+		- [frames](#frames)
 - [Batch](#batch)
-	- [methods](#methods)
+	- [methods](#methods-2)
 		- [new Batch()](#new-batch)
 		- [add(item)](#additem)
 		- [remove(item)](#removeitem)
 		- [draw(context)](#drawcontext)
 		- [clear()](#clear)
 - [Engine](#engine)
-	- [methods](#methods)
+	- [methods](#methods-3)
 		- [new Engine(canvas)](#new-enginecanvas)
 		- [setSize(size)](#setsizesize)
 		- [start()](#start)
@@ -31,28 +47,28 @@
 		- [buttonJustPressed(button)](#buttonjustpressedbutton)
 		- [buttonJustReleased(button)](#buttonjustreleasedbutton)
 		- [createFpsLabel()](#createfpslabel)
-	- [properties](#properties)
+	- [properties](#properties-2)
 		- [size](#size)
 		- [fps](#fps)
 		- [canvas](#canvas)
 		- [mousePos](#mousepos)
 		- [buttonCaptureExceptions](#buttoncaptureexceptions)
-	- [events](#events)
+	- [events](#events-1)
 		- ['update' (dt, dx)](#'update'-dt-dx)
 		- ['draw' (context)](#'draw'-context)
 		- ['mousemove' (pos, button)](#'mousemove'-pos-button)
 		- ['buttondown' (button)](#'buttondown'-button)
 		- ['buttonup' (button)](#'buttonup'-button)
 - [Label](#label)
-	- [methods](#methods)
+	- [methods](#methods-4)
 		- [new Label(text, params)](#new-labeltext-params)
-		- [draw(context)](#drawcontext)
+		- [draw(context)](#drawcontext-1)
 		- [setVisible(visible)](#setvisiblevisible)
 		- [setZOrder(zOrder)](#setzorderzorder)
 		- [delete()](#delete)
-	- [properties](#properties)
+	- [properties](#properties-3)
 		- [pos](#pos)
-		- [size](#size)
+		- [size](#size-1)
 		- [scale](#scale)
 		- [zOrder](#zorder)
 		- [batch](#batch)
@@ -67,30 +83,29 @@
 		- [strokeStyle](#strokestyle)
 		- [lineWidth](#linewidth)
 - [Sound](#sound)
-	- [methods](#methods)
+	- [methods](#methods-5)
 		- [new Sound(url)](#new-soundurl)
 		- [play()](#play)
-		- [stop()](#stop)
+		- [stop()](#stop-1)
 		- [setVolume(value)](#setvolumevalue)
 		- [setPreload(value)](#setpreloadvalue)
 		- [setPlaybackRate(value)](#setplaybackratevalue)
-	- [properties](#properties)
+	- [properties](#properties-4)
 		- [currentSrc](#currentsrc)
 		- [volume](#volume)
 		- [preload](#preload)
 		- [playbackRate](#playbackrate)
 		- [maxPoolSize](#maxpoolsize)
-		- [duration](#duration)
+		- [duration](#duration-1)
 		- [buffered](#buffered)
-	- [events](#events)
+	- [events](#events-2)
 		- ["progress"](#progress)
 		- ["ready"](#ready)
 - [Sprite](#sprite)
-	- [methods](#methods)
-		- [new Sprite(animationName, params)](#new-spriteanimationname-params)
-		- [setAnimationName(animationName)](#setanimationnameanimationname)
+	- [methods](#methods-6)
+		- [new Sprite(animation, params)](#new-spriteanimation-params)
 		- [setAnimation(animation)](#setanimationanimation)
-		- [draw(context)](#drawcontext)
+		- [draw(context)](#drawcontext-2)
 		- [getSize()](#getsize)
 		- [getAnchor()](#getanchor)
 		- [getTopLeft()](#gettopleft)
@@ -105,25 +120,24 @@
 		- [setBottom(y)](#setbottomy)
 		- [isTouching(sprite)](#istouchingsprite)
 		- [hitTest(vec2d)](#hittestvec2d)
-		- [setVisible(visible)](#setvisiblevisible)
-		- [setZOrder(zOrder)](#setzorderzorder)
+		- [setVisible(visible)](#setvisiblevisible-1)
+		- [setZOrder(zOrder)](#setzorderzorder-1)
 		- [setFrameIndex(frameIndex)](#setframeindexframeindex)
 		- [setLoop(loop)](#setlooploop)
 		- [setAnimationStartDate(animationStartDate)](#setanimationstartdateanimationstartdate)
 		- [getFrameIndex()](#getframeindex)
-		- [delete()](#delete)
-	- [properties](#properties)
-		- [pos](#pos)
-		- [size](#size)
-		- [scale](#scale)
-		- [zOrder](#zorder)
-		- [batch](#batch)
-		- [rotation](#rotation)
+		- [delete()](#delete-1)
+	- [properties](#properties-5)
+		- [pos](#pos-1)
+		- [size](#size-2)
+		- [scale](#scale-1)
+		- [zOrder](#zorder-1)
+		- [batch](#batch-1)
+		- [rotation](#rotation-1)
 		- [loop](#loop)
-		- [alpha](#alpha)
+		- [alpha](#alpha-1)
 		- [animation](#animation)
-		- [animationName](#animationname)
-	- [events](#events)
+	- [events](#events-3)
 		- ['animationend'](#'animationend')
 
 ## button
@@ -171,13 +185,6 @@ Contains a map of your text resources. These are in public/text.
 
 ### methods
 
-#### getImage(name, frameIndex)
-
-Obtain a new Image object by extracting it from the spritesheet.
-
- * `name` - the animation name to get the frame of
- * `frameIndex` - defaults to `0`
-
 ### events
 
 These are events that you can subscribe to:
@@ -208,6 +215,85 @@ var vec2d = require('chem').vec2d;
 ```
 
 See [node-vec2d](https://github.com/superjoe30/node-vec2d)
+
+## Animation
+
+```js
+var Animation = require('chem').Animation;
+```
+
+An animation is a list of frames backed by a spritesheet from which to draw them.
+
+### constructors
+
+#### new Animation()
+
+Creates a new animation with no frames.
+
+#### Animation.fromJson(json)
+
+`json` has these properties:
+
+ * `delay` - how many seconds between each frame
+ * `spritesheet` - the Image from which to draw frames when using this animation
+ * `anchor` - vec2d instance representing the center point of rotation,
+   scaling, and positioning.
+ * `loop`
+ * `frames` - an array of `{pos, size}` objects which are the locations in the spritesheet
+   of each of the frames. `pos` and `size` are vec2d instances.
+
+#### Animation.fromImage(image, options)
+
+ * `image` - the image which this animation will draw
+ * `options` - optional. can contain:
+   `anchor` - see `anchor` property
+
+### methods
+
+#### addFrame(pos, size)
+
+ * `pos` - vec2d instance representing the upper left corner of the image in the spritesheet
+ * `size` - vec2d instance containing the width and height of the image in the spritesheet
+
+#### removeFrame(index)
+
+Deletes the frame at `index`.
+
+#### clearFrames()
+
+Turns this animation into an empty animation with no frames.
+
+#### setDelay(delay)
+
+`delay` is the amount of seconds you want in between each frame.
+
+#### getImage(frameIndex)
+
+Extracts the image at `frameIndex` from the spritesheet and returns it.
+
+### properties
+
+#### delay
+
+Read-only. Number of seconds between each frame.
+
+#### spritesheet
+
+Read/write. The Image from which to draw frames when using this animation.
+
+#### duration
+
+Read-only. Total length in seconds of this animation.
+
+#### anchor
+
+Read/write. vec2d instance representing the center point of rotation,
+scaling, and positioning.
+
+#### frames
+
+Read-only. An array of `{pos, size}` objects which specify where in the
+spritesheet the frame draws from.
 
 ## Batch
 
@@ -665,12 +751,12 @@ A `Sprite` is a graphic that you might want to move around on the screen.
 
 ### methods
 
-#### new Sprite(animationName, params)
+#### new Sprite(animation, params)
 
 Example:
 
 ```js
-var sprite = new chem.Sprite('some_animation_name', {
+var sprite = new chem.Sprite(chem.resources.animations.some_animation_name, {
   pos: new Vec2d(0, 0),
   scale: new Vec2d(1, 1),
   zOrder: 0,
@@ -685,15 +771,6 @@ var sprite = new chem.Sprite('some_animation_name', {
 
 All the parameters are optional.
 
-#### setAnimationName(animationName)
-
-Changes the sprite's animation to the one indexed by `animationName`.
-
-Note that you probably also want to call `setFrameIndex(0)` if you want
-the new animation to start from the beginning.
-
- * `animationName` - string which should be found in your `chemfile.js`
-
 #### setAnimation(animation)
 
 Changes the sprite's animation to `animation`.
@@ -701,10 +778,11 @@ Changes the sprite's animation to `animation`.
 Note that you probably also want to call `setFrameIndex(0)` if you want
 the new animation to start from the beginning.
 
-Typically you will not use this method; you will use `setAnimationName`
-instead.
+You can get an `animation` from `chem.resources.animations`. It is recommended
+to use `var ani = chem.resources.animations` as an import declaration so
+that it is easy to access animations.
 
- * `animation` - animation object
+See also `Animation`.
 
 #### draw(context)
 
@@ -879,18 +957,7 @@ Get or set the opacity on a scale of 0 to 1.
 
 #### animation
 
-Read only. The current animation of the sprite. Properties of `animation` are:
-
- * `anchor` - `Vec2d` instance
- * `delay` - seconds
- * `loop` - boolean
- * `frames` - `[{size, pos}]` - both `size` and `pos` here are `Vec2d`s.
- * `duration` - length in seconds of the animation
- * `name` - string
-
-#### animationName
-
-Read only.
+Read only. The current `Animation` of the sprite. Set it with `setAnimation`.
 
 ### events
 

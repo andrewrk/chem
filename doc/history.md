@@ -1,5 +1,15 @@
 # History
 
+## 3.0.0
+
+ * Sprite constructor takes an animation instead of a string.
+ * expose Animation. You can construct Animations at runtime now and assign
+   them to sprites.
+ * remove `chem.resources.getImage`. Use
+   `chem.resources.animations[name].getImage` instead.
+ * remove `sprite.setAnimationName`. Use `sprite.setAnimation` instead.
+ * remove `sprite.animationName`. Use `sprite.animation` instead.
+
 ## 2.1.0
 
  * add Batch::clear()

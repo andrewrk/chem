@@ -10,4 +10,5 @@ module.exports = {
   Sprite: require('./lib/sprite'),
   Label: require('./lib/label'),
   Batch: require('./lib/batch'),
+  Animation: require('./lib/animation'),
 };
