@@ -5,6 +5,7 @@
  * sound: `play` always returns an audio object. restarts old sounds
    if necessary.
  * capture mouse up events even if they go outside the canvas.
+ * key up event handler on window instead of canvas.
 
 ## 3.0.0
 
