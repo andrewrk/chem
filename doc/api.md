@@ -672,7 +672,9 @@ var sound = new chem.Sound('url/to/sound.ogg');
 #### play()
 
 Plays the sound. If the sound is already playing, it will play another
-instance at the same time.
+instance at the same time. If the number of instances in the pool is
+greater than `maxPoolSize`, it will find the least recently played audio
+in the pool and restart it.
 
 Returns the HTML5 Audio object that is generating the sound, which has these
 methods:

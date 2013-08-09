@@ -1,5 +1,11 @@
 # History
 
+## 3.1.0
+
+ * sound: `play` always returns an audio object. restarts old sounds
+   if necessary.
+ * capture mouse up events even if they go outside the canvas.
+
 ## 3.0.0
 
  * Sprite constructor takes an animation instead of a string.
