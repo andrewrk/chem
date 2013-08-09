@@ -2,8 +2,6 @@
 
 canvas-based game engine and toolchain optimized for rapid development.
 
-Inspired by [pyglet](http://www.pyglet.org/).
-
 ## Features
 
  * Automatically creates a spritesheet for your assets and then
@@ -173,6 +171,7 @@ exports.spritesheet = {
 ## Demo Projects Using Chem
 
  * [Pillagers](https://github.com/superjoe30/pillagers) - real time strategy with space physics
+ * [Lemming](https://github.com/superjoe30/lemming-js) - PyWeek #12 entry, ported to chem
  * [Meteor Attack](https://github.com/superjoe30/meteor-attack) - dodge meteors in space
  * [Disinfecticide](https://github.com/superjoe30/disinfecticide) - use extreme measures to control a deadly disease outbreak.
  * [holocaust](https://github.com/superjoe30/holocaust/) -
