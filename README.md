@@ -18,14 +18,14 @@ canvas-based game engine and toolchain optimized for rapid development.
    when you save.
  * Handles main loop and frame skipping.
  * API for keyboard and mouse input.
- * Bootstraps the resource loading process and optionally provides a basic
-   loading progress bar.
 
 ## Usage
 
 ```bash
 # install dependencies in ubuntu
 sudo apt-get install libcairo2-dev
+# on osx you can install this with brew
+# on windows you must install libcairo manually.
 
 # start with a nearly-empty project, such as a freshly created project
 # from github with only a .git/ and README.md.
