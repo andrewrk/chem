@@ -173,6 +173,7 @@ exports.spritesheet = {
 
 ## Demo Projects Using Chem
 
+ * [Purgatory](https://github.com/superjoe30/purgatory) - escape from the circles of hell
  * [Pillagers](https://github.com/superjoe30/pillagers) - real time strategy with space physics
  * [Lemming](https://github.com/superjoe30/lemming-js) - PyWeek #12 entry, ported to chem
  * [Meteor Attack](https://github.com/superjoe30/meteor-attack) - dodge meteors in space
