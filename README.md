@@ -19,6 +19,12 @@ canvas-based game engine and toolchain optimized for rapid development.
  * Handles main loop and frame skipping.
  * API for keyboard and mouse input.
 
+## Featured Game Demos
+
+[![Purgatory: Lost Doorways](https://s3.amazonaws.com/superjoe/blog-files/purgatory-title-small.png)](https://s3.amazonaws.com/superjoe/temp/purgatory/index.html "Escape from the circles of hell. This game was made in 7 hours.")
+[![Pillagers!](https://s3.amazonaws.com/superjoe/blog-files/pillagers-title-small.png)](https://s3.amazonaws.com/superjoe/temp/pillagers/index.html "Real-time strategy game with space physics. This game was made in 7 days.")
+[![Lemming](https://s3.amazonaws.com/superjoe/blog-files/lemming-title-small.png)](https://s3.amazonaws.com/superjoe/temp/lemming/index.html "Use your own dead bodies to beat side-scrolling platformer levels. Made in 7 days.")
+
 ## Usage
 
 ```bash
@@ -171,11 +177,8 @@ exports.spritesheet = {
 
 [See the demo in action.](http://www.superjoesoftware.com/temp/chem-readme-demo/public/index.html)
 
-## Demo Projects Using Chem
+## More Demo Projects Using Chem
 
- * [Purgatory](https://github.com/superjoe30/purgatory) - escape from the circles of hell
- * [Pillagers](https://github.com/superjoe30/pillagers) - real time strategy with space physics
- * [Lemming](https://github.com/superjoe30/lemming-js) - PyWeek #12 entry, ported to chem
  * [Meteor Attack](https://github.com/superjoe30/meteor-attack) - dodge meteors in space
  * [Disinfecticide](https://github.com/superjoe30/disinfecticide) - use extreme measures to control a deadly disease outbreak.
  * [holocaust](https://github.com/superjoe30/holocaust/) -
