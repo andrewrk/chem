@@ -21,9 +21,9 @@ canvas-based game engine and toolchain optimized for rapid development.
 
 ## Featured Game Demos
 
-[![Purgatory: Lost Doorways](https://s3.amazonaws.com/superjoe/blog-files/purgatory-title-small.png)](https://s3.amazonaws.com/superjoe/temp/purgatory/index.html "Escape from the circles of hell. This game was made in 7 hours.")
-[![Pillagers!](https://s3.amazonaws.com/superjoe/blog-files/pillagers-title-small.png)](https://s3.amazonaws.com/superjoe/temp/pillagers/index.html "Real-time strategy game with space physics. This game was made in 7 days.")
-[![Lemming](https://s3.amazonaws.com/superjoe/blog-files/lemming-title-small.png)](https://s3.amazonaws.com/superjoe/temp/lemming/index.html "Use your own dead bodies to beat side-scrolling platformer levels. Made in 7 days.")
+[![Face the Music](https://s3.amazonaws.com/superjoe/blog-files/face-the-music-title-small.png)](http://s3.amazonaws.com/superjoe/temp/face-the-music/index.html "Rock your way out of being trampled by a mob of screaming fans. This game was made in 48 hours.")
+[![Purgatory: Lost Doorways](https://s3.amazonaws.com/superjoe/blog-files/purgatory-title-small.png)](http://s3.amazonaws.com/superjoe/temp/purgatory/index.html "Escape from the circles of hell. This game was made in 7 hours.")
+[![Pillagers!](https://s3.amazonaws.com/superjoe/blog-files/pillagers-title-small.png)](http://s3.amazonaws.com/superjoe/temp/pillagers/index.html "Real-time strategy game with space physics. This game was made in 7 days.")
 
 ## Usage
 
@@ -179,13 +179,17 @@ exports.spritesheet = {
 
 ## More Demo Projects Using Chem
 
- * [Meteor Attack](https://github.com/superjoe30/meteor-attack) - dodge meteors in space
- * [Disinfecticide](https://github.com/superjoe30/disinfecticide) - use extreme measures to control a deadly disease outbreak.
+ * [Lemming](https://s3.amazonaws.com/superjoe/temp/lemming/index.html) -
+   Use your own dead bodies to beat side-scrolling platformer levels.
+   Made in 7 days.
+ * [Meteor Attack](https://github.com/superjoe30/meteor-attack) -
+   dodge meteors in space
+ * [Disinfecticide](https://github.com/superjoe30/disinfecticide) -
+   use extreme measures to control a deadly disease outbreak.
  * [holocaust](https://github.com/superjoe30/holocaust/) -
    rebuild society after a nuclear holocaust ravages the world
  * [Dr. Chemical's Lab](https://github.com/superjoe30/dr-chemicals-lab/tree/master/javascript) -
-   PyWeek #14 entry, ported to chem
- * [vapor](https://github.com/thejoshwolfe/vapor) - vaporware game. Not cool yet.
+   puzzle game that should have been an action game.
 
 ## Developing With Chem
 
@@ -280,14 +284,4 @@ See [doc/api.md](doc/api.md).
 ### History / Changelog
 
 See [doc/history.md](doc/history.md).
-
-## Developing chem
-
-See also [chem-cli](http://github.com/superjoe30/chem-cli)
-
-```bash
-# set up dev environment for chem itself:
-sudo apt-get install libcairo2-dev
-sudo npm link
-```
 

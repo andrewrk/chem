@@ -1,5 +1,9 @@
 # History
 
+## 3.2.0
+
+ * ability to build with an asset prefix to make deployment easier
+
 ## 3.1.0
 
  * sound: `play` always returns an audio object. restarts old sounds

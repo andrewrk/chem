@@ -1,8 +1,8 @@
 {
   "name": "chem",
-  "description": "html5 canvas game engine optimized for rapid development - runtime",
+  "description": "html5 canvas 2D game engine optimized for rapid development - runtime",
   "author": "Andrew Kelley <superjoe30@gmail.com>",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "main": "index.js",
   "license": "MIT",
   "repository": {

@@ -183,7 +183,24 @@ Contains a map of your static image resources. These are in public/img.
 
 Contains a map of your text resources. These are in public/text.
 
+#### prefix
+
+Path to prefix asset urls with.
+
 ### methods
+
+#### url(relativePath)
+
+Returns the correct resource url, taking into account prefix, based on a
+relative asset path.
+
+#### fetchTextFile(relativePath, callback)
+
+`callback(err, textFileContents)`
+
+#### fetchImage(relativePath, callback)
+
+`callback(err, image)`
 
 ### events
 
