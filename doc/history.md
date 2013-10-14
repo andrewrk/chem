@@ -1,5 +1,11 @@
 # History
 
+## 3.3.0
+
+ * use the timestamp parameter of requestAnimationFrame instead of new Date()
+   - results in smoother and faster gamess
+ * depend on pend instead of deprecated batch2
+
 ## 3.2.0
 
  * ability to build with an asset prefix to make deployment easier

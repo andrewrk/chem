@@ -7,10 +7,14 @@
 		- [spritesheet](#spritesheet)
 		- [images](#images)
 		- [text](#text)
+		- [prefix](#prefix)
 	- [methods](#methods)
+		- [url(relativePath)](#urlrelativepath)
+		- [fetchTextFile(relativePath, callback)](#fetchtextfilerelativepath-callback)
+		- [fetchImage(relativePath, callback)](#fetchimagerelativepath-callback)
 	- [events](#events)
 		- ['ready'](#'ready')
-		- ['progress' (event)](#'progress'-event)
+		- ['progress' (complete, total)](#'progress'-complete-total)
 - [vec2d](#vec2d)
 - [Animation](#animation)
 	- [constructors](#constructors)
@@ -218,12 +222,10 @@ For more information see [EventEmitter](http://nodejs.org/docs/latest/api/events
 
 Emitted when all resources are loaded and you may begin utilizing them.
 
-#### 'progress' (event)
+#### 'progress' (complete, total)
 
-event is an object that contains:
-
- * `total` - total number of resources to fetch
  * `complete` - how many resources have been fetched
+ * `total` - total number of resources to fetch
 
 ## vec2d
 
