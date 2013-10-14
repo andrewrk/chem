@@ -1,10 +1,12 @@
 # History
 
-## 3.3.0
+## 4.0.0
 
  * use the timestamp parameter of requestAnimationFrame instead of new Date()
    - results in smoother and faster gamess
  * depend on pend instead of deprecated batch2
+   - chem.resources.on('progress', handler) - handler takes complete, total
+     instead of an object.
 
 ## 3.2.0
 
