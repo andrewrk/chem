@@ -233,7 +233,7 @@ Emitted when all resources are loaded and you may begin utilizing them.
 var vec2d = require('chem').vec2d;
 ```
 
-See [node-vec2d](https://github.com/superjoe30/node-vec2d)
+See [node-vec2d](https://github.com/andrewrk/node-vec2d)
 
 ## Animation
 

@@ -12,7 +12,7 @@ canvas-based game engine and toolchain optimized for rapid development.
    languages such as Coffee-Script.
  * Uses [browserify](https://github.com/substack/node-browserify) to compile
    your code which allows you to harness the power of code on [npm](https://npmjs.org/).
-   - Wiki Article: [Useful npm packages for games](https://github.com/superjoe30/chem/wiki/Useful-npm-packages-for-games)
+   - Wiki Article: [Useful npm packages for games](https://github.com/andrewrk/chem/wiki/Useful-npm-packages-for-games)
    - Allows you to organize code modules using `require` and `module.exports` syntax.
  * Everything from code to spritesheet is compiled automatically
    when you save.
@@ -53,7 +53,7 @@ npm run dev
 ./node_modules/.bin/chem
 ```
 
-See [chem-cli](http://github.com/superjoe30/chem-cli) for more information.
+See [chem-cli](http://github.com/andrewrk/chem-cli) for more information.
     
 ## Synopsis
 
@@ -182,13 +182,13 @@ exports.spritesheet = {
  * [Lemming](https://s3.amazonaws.com/superjoe/temp/lemming/index.html) -
    Use your own dead bodies to beat side-scrolling platformer levels.
    Made in 7 days.
- * [Meteor Attack](https://github.com/superjoe30/meteor-attack) -
+ * [Meteor Attack](https://github.com/andrewrk/meteor-attack) -
    dodge meteors in space
- * [Disinfecticide](https://github.com/superjoe30/disinfecticide) -
+ * [Disinfecticide](https://github.com/andrewrk/disinfecticide) -
    use extreme measures to control a deadly disease outbreak.
- * [holocaust](https://github.com/superjoe30/holocaust/) -
+ * [holocaust](https://github.com/andrewrk/holocaust/) -
    rebuild society after a nuclear holocaust ravages the world
- * [Dr. Chemical's Lab](https://github.com/superjoe30/dr-chemicals-lab/tree/master/javascript) -
+ * [Dr. Chemical's Lab](https://github.com/andrewrk/dr-chemicals-lab/tree/master/javascript) -
    puzzle game that should have been an action game.
 
 ## Developing With Chem

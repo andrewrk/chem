@@ -7,7 +7,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git://github.com/superjoe30/chem.git"
+    "url": "git://github.com/andrewrk/chem.git"
   },
   "dependencies": {
     "vec2d": "~0.2.0",
