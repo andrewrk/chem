@@ -1,5 +1,9 @@
 # History
 
+## 4.1.0
+
+ * Smoother main loop
+
 ## 4.0.0
 
  * use the timestamp parameter of requestAnimationFrame instead of new Date()
