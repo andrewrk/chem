@@ -1,5 +1,10 @@
 # History
 
+## 4.1.1
+
+ * Update pend dependency.
+ * update vec2d dependency.
+
 ## 4.1.0
 
  * Smoother main loop
