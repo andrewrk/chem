@@ -179,6 +179,8 @@ exports.spritesheet = {
 
 ## More Demo Projects Using Chem
 
+ * [Planetarius](https://github.com/andrewrk/planetarius) -
+   Networked multiplayer arcade shooter, made in 48 hours.
  * [Lemming](https://s3.amazonaws.com/superjoe/temp/lemming/index.html) -
    Use your own dead bodies to beat side-scrolling platformer levels.
    Made in 7 days.
